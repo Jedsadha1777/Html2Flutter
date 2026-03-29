@@ -1,0 +1,41 @@
+# Claude Code
+.claude/
+
+# Flutter / Dart
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+
+# Android
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/app/google-services.json
+**/android/gradle/wrapper/gradle-wrapper.jar
+**/android/**/*.class
+**/android/**/*.apk
+
+# iOS / macOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/macos/Pods/
+**/*.xcworkspace/
+**/DerivedData/
+**/*.ipa
+
+# IDE
+**/.idea/
+**/*.iml
+**/.vscode/
+**/*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# HTML tool
+html/target/
