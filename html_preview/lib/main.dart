@@ -112,11 +112,12 @@ class _PreviewAppState extends State<_PreviewApp> {
     final availableWidth = constraints.maxWidth;
 
     final fixedTotal = 0.0;
-    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
-    final flexUnit = flexSpace / 1.650000;
+    final pctUnit = availableWidth.isInfinite ? 0.0 : availableWidth / 100;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal - pctUnit * 65.0).clamp(0.0, double.infinity);
+    final flexUnit = flexSpace / 1.000000;
     final colWidths = <double>[
-      flexUnit * 0.300000,
-      flexUnit * 0.350000,
+      pctUnit * 30.0,
+      pctUnit * 35.0,
       flexUnit,
     ];
 
