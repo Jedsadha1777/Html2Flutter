@@ -33,7 +33,8 @@ class _PreviewAppState extends State<_PreviewApp> {
             IconButton(icon: const Icon(Icons.refresh),  onPressed: _resetZoom),
           ],
         ),
-        body: InteractiveViewer(
+        body: LayoutBuilder(
+          builder: (ctx, outerConstraints) => InteractiveViewer(
           transformationController: _transformationController,
           minScale: 0.5,
           maxScale: 5.0,
@@ -42,31 +43,30 @@ class _PreviewAppState extends State<_PreviewApp> {
           onInteractionUpdate: (details) => setState(() {
             _currentScale = _transformationController.value.getMaxScaleOnAxis();
           }),
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: UnconstrainedBox(
-  alignment: Alignment.topLeft,
-  child: Container(
-  margin: EdgeInsets.fromLTRB(20, 20, 20, 20),
-  padding: EdgeInsets.fromLTRB(8, 8, 8, 8),
-  decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.black, width: 1), right: BorderSide(color: Colors.black, width: 1), bottom: BorderSide(color: Colors.black, width: 1), left: BorderSide(color: Colors.black, width: 1))),
-  child: LayoutBuilder(
+          child: SizedBox(
+            width: outerConstraints.maxWidth,
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16),
+              child: UnconstrainedBox(
+                alignment: Alignment.topLeft,
+                child: Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.all(0),
+                width: 800,
+                decoration: BoxDecoration(color: Color(0xFFF9FAFC), border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1), right: BorderSide(color: Color(0xFFEEEEEE), width: 1), bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1), left: BorderSide(color: Color(0xFFEEEEEE), width: 1))),
+                child: LayoutBuilder(
   builder: (context, constraints) {
-    final availableWidth = 280.0.clamp(0.0, constraints.maxWidth);
+    final availableWidth = constraints.maxWidth;
 
-    final fixedTotal = 276.0;
-    final flexSpace = (availableWidth - fixedTotal).clamp(0.0, double.infinity);
-    final flexUnit = flexSpace / 0.001000;
+    final fixedTotal = 0.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = flexSpace / 1.000000;
     final colWidths = <double>[
-      15.0,
-      94.0,
-      65.0,
-      51.0,
-      51.0,
+      flexUnit,
     ];
 
-    final rowHeights = <double>[50.0, 41.0, 20.0, 37.0, 22.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 33.0, 22.0, 23.0, 38.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 38.0];
+    final rowHeights = <double>[81.0, 738.0, 70.0];
 
     final cs = <double>[0.0];
     for (final w in colWidths) { cs.add(cs.last + w); }
@@ -85,31 +85,9 @@ class _PreviewAppState extends State<_PreviewApp> {
               padding: pad, alignment: align, child: child));
 
     final matrixData = <List<int>>[
-      <int>[0, 0, 0, 0, 0],
-      <int>[1, 1, 1, 1, 1],
-      <int>[2, 2, 2, 2, 2],
-      <int>[3, 3, 3, 4, 4],
-      <int>[5, 5, 5, 5, 5],
-      <int>[6, 6, 6, 6, 7],
-      <int>[8, 9, 9, 9, 10],
-      <int>[11, 12, 12, 12, 13],
-      <int>[14, 14, 14, 14, 15],
-      <int>[16, 16, 16, 16, 17],
-      <int>[18, 18, 18, 18, 19],
-      <int>[20, 21, 21, 21, 22],
-      <int>[23, 24, 24, 24, 25],
-      <int>[26, 26, 26, 26, 27],
-      <int>[28, 28, 28, 29, 29],
-      <int>[30, 30, 30, 31, 31],
-      <int>[32, 32, 32, 32, 32],
-      <int>[33, 33, 34, 35, 36],
-      <int>[37, 37, 38, 39, 40],
-      <int>[41, 42, 43, 44, 45],
-      <int>[46, 46, 47, 48, 49],
-      <int>[50, 50, 51, 52, 53],
-      <int>[54, 54, 54, 55, 56],
-      <int>[57, 58, 58, 59, 60],
-      <int>[61, 61, 61, 61, 61],
+      <int>[0],
+      <int>[1],
+      <int>[2],
     ];
 
     return SizedBox(
@@ -118,72 +96,328 @@ class _PreviewAppState extends State<_PreviewApp> {
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [
-          cell(0, 0, 5, 1, border: _bBottom(10), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), child: _t('Nutrition Facts', sz: 24.0, bold: true, ff: 'Arial')),
-          cell(0, 1, 5, 2, border: _bBottom(), pad: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0), child: _rt([(' Serving Size 1/2 cup (about 82g)', false), ('\n', false), (' Serving Per Container 8 ', false)], sz: 12.0, ff: 'Arial')),
-          cell(0, 2, 5, 3, pad: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0), child: _t('Amount Per Serving', sz: 10.0, bold: true, ff: 'Arial')),
-          cell(0, 3, 3, 4, border: _bTop(), child: _rt([('Calories', true), (' 200', false)], sz: 14.0, ff: 'Arial')),
-          cell(3, 3, 5, 4, border: _bTop(), align: Alignment.centerRight, child: _t('Calories from Fat 130', sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 4, 5, 5, border: _bTop(5), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 2.0), align: Alignment.centerRight, child: _t('% Daily Value*', sz: 10.0, bold: true, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 5, 4, 6, border: _bTop(), child: _rt([('Total Fat', true), (' 14g', false)], sz: 12.0, ff: 'Arial')),
-          cell(4, 5, 5, 6, border: _bTop(), align: Alignment.centerRight, child: _rt([('22%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 6, 1, 7, child: const SizedBox.shrink()),
-          cell(1, 6, 4, 7, border: _bTop(), child: _t('Saturated Fat 9g', sz: 12.0, ff: 'Arial')),
-          cell(4, 6, 5, 7, border: _bTop(), align: Alignment.centerRight, child: _rt([('22%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 7, 1, 8, child: const SizedBox.shrink()),
-          cell(1, 7, 4, 8, border: _bTop(), child: _t('Trans Fat 0g', sz: 12.0, ff: 'Arial')),
-          cell(4, 7, 5, 8, border: _bTop(), child: const SizedBox.shrink()),
-          cell(0, 8, 4, 9, border: _bTop(), child: _rt([('Cholesterol', true), (' 55mg', false)], sz: 12.0, ff: 'Arial')),
-          cell(4, 8, 5, 9, border: _bTop(), align: Alignment.centerRight, child: _rt([('18%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 9, 4, 10, border: _bTop(), child: _rt([('Sodium', true), (' 40mg', false)], sz: 12.0, ff: 'Arial')),
-          cell(4, 9, 5, 10, border: _bTop(), align: Alignment.centerRight, child: _rt([('2%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 10, 4, 11, border: _bTop(), child: _rt([('Total Carbohydrate', true), (' 17g', false)], sz: 12.0, ff: 'Arial')),
-          cell(4, 10, 5, 11, border: _bTop(), align: Alignment.centerRight, child: _rt([('6%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 11, 1, 12, child: const SizedBox.shrink()),
-          cell(1, 11, 4, 12, border: _bTop(), child: _t('Dietary Fiber 1g', sz: 12.0, ff: 'Arial')),
-          cell(4, 11, 5, 12, border: _bTop(), align: Alignment.centerRight, child: _rt([('4%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 12, 1, 13, child: const SizedBox.shrink()),
-          cell(1, 12, 4, 13, border: _bTop(), child: _t('Sugars 14g', sz: 12.0, ff: 'Arial')),
-          cell(4, 12, 5, 13, border: _bTop(), child: const SizedBox.shrink()),
-          cell(0, 13, 4, 14, border: _bTopBottom(1, 10), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), child: _rt([('Protein', true), (' 3g', false)], sz: 12.0, ff: 'Arial')),
-          cell(4, 13, 5, 14, border: _bTopBottom(1, 10), child: const SizedBox.shrink()),
-          cell(0, 14, 3, 15, pad: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0), child: _t('Vitamin A 10%', sz: 12.0, ff: 'Arial')),
-          cell(3, 14, 5, 15, pad: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0), align: Alignment.centerRight, child: _t('Vitamin C 0%', sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 15, 3, 16, border: _bBottom(), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), child: _t('Calcium 10%', sz: 12.0, ff: 'Arial')),
-          cell(3, 15, 5, 16, border: _bBottom(), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), align: Alignment.centerRight, child: _t('Iron 6%', sz: 12.0, ff: 'Arial', align: TextAlign.right)),
-          cell(0, 16, 5, 17, pad: EdgeInsets.symmetric(vertical: 4.0, horizontal: 0.0), child: _t('* Percent Daily Values are based on a 2,000 calorie diet.', sz: 10.0, ff: 'Arial')),
-          cell(0, 17, 2, 18, child: const SizedBox.shrink()),
-          cell(2, 17, 3, 18, border: _bBottom(), child: _t('Calories:', sz: 10.0, ff: 'Arial')),
-          cell(3, 17, 4, 18, border: _bBottom(), child: _t('2,000', sz: 10.0, ff: 'Arial')),
-          cell(4, 17, 5, 18, border: _bBottom(), child: _t('2,500', sz: 10.0, ff: 'Arial')),
-          cell(0, 18, 2, 19, child: _rt([('Total Fat', true)], sz: 10.0, ff: 'Arial')),
-          cell(2, 18, 3, 19, child: _t('Less than', sz: 10.0, ff: 'Arial')),
-          cell(3, 18, 4, 19, child: _t('65g', sz: 10.0, ff: 'Arial')),
-          cell(4, 18, 5, 19, child: _t('80g', sz: 10.0, ff: 'Arial')),
-          cell(0, 19, 1, 20, child: const SizedBox.shrink()),
-          cell(1, 19, 2, 20, child: _t('Saturated Fat', sz: 10.0, ff: 'Arial')),
-          cell(2, 19, 3, 20, child: _t('Less than', sz: 10.0, ff: 'Arial')),
-          cell(3, 19, 4, 20, child: _t('20g', sz: 10.0, ff: 'Arial')),
-          cell(4, 19, 5, 20, child: _t('25g', sz: 10.0, ff: 'Arial')),
-          cell(0, 20, 2, 21, child: _rt([('Cholesterol', true)], sz: 10.0, ff: 'Arial')),
-          cell(2, 20, 3, 21, child: _t('Less than', sz: 10.0, ff: 'Arial')),
-          cell(3, 20, 4, 21, child: _t('300mg', sz: 10.0, ff: 'Arial')),
-          cell(4, 20, 5, 21, child: _t('300mg', sz: 10.0, ff: 'Arial')),
-          cell(0, 21, 2, 22, child: _rt([('Sodium', true)], sz: 10.0, ff: 'Arial')),
-          cell(2, 21, 3, 22, child: _t('Less than', sz: 10.0, ff: 'Arial')),
-          cell(3, 21, 4, 22, child: _t('2,400mg', sz: 10.0, ff: 'Arial')),
-          cell(4, 21, 5, 22, child: _t('2,400mg', sz: 10.0, ff: 'Arial')),
-          cell(0, 22, 3, 23, child: _rt([('Total Carbohydrate', true)], sz: 10.0, ff: 'Arial')),
-          cell(3, 22, 4, 23, child: _t('300g', sz: 10.0, ff: 'Arial')),
-          cell(4, 22, 5, 23, child: _t('375g', sz: 10.0, ff: 'Arial')),
-          cell(0, 23, 1, 24, child: const SizedBox.shrink()),
-          cell(1, 23, 3, 24, child: _t('Dietary Fiber', sz: 10.0, ff: 'Arial')),
-          cell(3, 23, 4, 24, child: _t('25g', sz: 10.0, ff: 'Arial')),
-          cell(4, 23, 5, 24, child: _t('30g', sz: 10.0, ff: 'Arial')),
-          cell(0, 24, 5, 25, pad: EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 0.0), child: Column(
+          cell(0, 0, 1, 1, bg: Colors.grey.shade200, pad: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 18.0), child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _rt([(' Calories per gram:', false)], sz: 10.0, ff: 'Arial'),
-                  Text('Fat 9 • Carbohydrate 4 • Protein 4', style: TextStyle(fontFamily: 'Arial', fontSize: 10.0), textAlign: TextAlign.center),
+                  Text('Alvish Baldha (Courier)', style: TextStyle(fontFamily: 'Browallia New', fontSize: 18.0, fontWeight: FontWeight.bold, color: Color(0xFF1A1C21))),
+                  Text('hello@email.com', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.bold)),
+                  Text('+44 7766002333', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.bold)),
+                ],
+              )),
+          cell(0, 1, 1, 2, pad: EdgeInsets.all(4.0), child: Container(
+  padding: EdgeInsets.fromLTRB(16, 20, 16, 20),
+  decoration: BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1), right: BorderSide(color: Color(0xFFD7DAE0), width: 1), bottom: BorderSide(color: Color(0xFFD7DAE0), width: 1), left: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+  child: LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 0.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = flexSpace / 1.650000;
+    final colWidths = <double>[
+      flexUnit * 0.300000,
+      flexUnit * 0.350000,
+      flexUnit,
+    ];
+
+    final rowHeights = <double>[215.0, 69.0, 446.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 1, 2],
+      <int>[3, 4, 5],
+      <int>[6, 6, 6],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          cell(0, 0, 1, 1, pad: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 35.0), align: Alignment.topLeft, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Client Name', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21))),
+                  Text('Business address City, Country', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                  Text('email@company.com', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                ],
+              )),
+          cell(1, 0, 2, 1, pad: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 35.0), align: Alignment.topLeft, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Pick-up', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21))),
+                  Text('1 Hight street, London, E1 7QL Uk', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                  Text('Drop-off', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21))),
+                  Text('1 Hight street, London, E1 7QL Uk', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                ],
+              )),
+          cell(2, 0, 3, 1, pad: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 35.0), align: Alignment.topLeft, child: LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 0.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = flexSpace / 2.000000;
+    final colWidths = <double>[
+      flexUnit,
+      flexUnit,
+    ];
+
+    final rowHeights = <double>[26.0, 26.0, 26.0, 26.0, 26.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 1],
+      <int>[2, 3],
+      <int>[4, 5],
+      <int>[6, 7],
+      <int>[8, 9],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          cell(0, 0, 1, 1, pad: EdgeInsets.all(4.0), child: _t('Job ID', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 0, 2, 1, pad: EdgeInsets.all(4.0), align: Alignment.centerRight, child: _t('123567', sz: 12.0, align: TextAlign.right)),
+          cell(0, 1, 1, 2, pad: EdgeInsets.all(4.0), child: _t('Job date', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 1, 2, 2, pad: EdgeInsets.all(4.0), align: Alignment.centerRight, child: _t('14/12/2020', sz: 12.0, align: TextAlign.right)),
+          cell(0, 2, 1, 3, pad: EdgeInsets.all(4.0), child: _t('Distance', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 2, 2, 3, pad: EdgeInsets.all(4.0), align: Alignment.centerRight, child: _t('1.568 miles', sz: 12.0, align: TextAlign.right)),
+          cell(0, 3, 1, 4, pad: EdgeInsets.all(4.0), child: _t('Pick-up time', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 3, 2, 4, pad: EdgeInsets.all(4.0), align: Alignment.centerRight, child: _t('19:58', sz: 12.0, align: TextAlign.right)),
+          cell(0, 4, 1, 5, pad: EdgeInsets.all(4.0), child: _t('Time delivered', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 4, 2, 5, pad: EdgeInsets.all(4.0), align: Alignment.centerRight, child: _t('20:58', sz: 12.0, align: TextAlign.right)),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 0.0,
+                matrixData: matrixData,
+                numRows: 5,
+                numCols: 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+)),
+          cell(0, 1, 1, 2, pad: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 13.0), child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Service', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                  Text('Delivery Service', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21))),
+                ],
+              )),
+          cell(1, 1, 2, 2, pad: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 13.0), align: Alignment.center, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Invoice number', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470)), textAlign: TextAlign.center),
+                  Text('#AB2324-01', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)), textAlign: TextAlign.center),
+                ],
+              )),
+          cell(2, 1, 3, 2, pad: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 13.0), align: Alignment.centerRight, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Invoice date', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470)), textAlign: TextAlign.right),
+                  Text('01 Aug, 2023', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)), textAlign: TextAlign.right),
+                ],
+              )),
+          cell(0, 2, 3, 3, pad: EdgeInsets.all(20.0), child: LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 260.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = flexSpace / 1.000000;
+    final colWidths = <double>[
+      flexUnit,
+      40.0,
+      100.0,
+      120.0,
+    ];
+
+    final rowHeights = <double>[36.0, 60.0, 60.0, 164.0, 44.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 1, 2, 3],
+      <int>[4, 5, 6, 7],
+      <int>[8, 9, 10, 11],
+      <int>[12, 13, 13, 13],
+      <int>[14, -1, -1, -1],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          Positioned(left: cs[0], top: rs[0], width: cs[1] - cs[0], height: rs[1] - rs[0], child: Container(
+              decoration: BoxDecoration(color: Colors.grey.shade200, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1), bottom: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 0.0), alignment: Alignment.centerLeft, child: _t('Item Detail', sz: 12.0, bold: true))),
+          Positioned(left: cs[1], top: rs[0], width: cs[2] - cs[1], height: rs[1] - rs[0], child: Container(
+              decoration: BoxDecoration(color: Colors.grey.shade200, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1), bottom: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 0.0), alignment: Alignment.centerLeft, child: _t('Qty', sz: 12.0, bold: true))),
+          Positioned(left: cs[2], top: rs[0], width: cs[3] - cs[2], height: rs[1] - rs[0], child: Container(
+              decoration: BoxDecoration(color: Colors.grey.shade200, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1), bottom: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 0.0), alignment: Alignment.centerRight, child: _t('Rate', sz: 12.0, bold: true, align: TextAlign.right))),
+          Positioned(left: cs[3], top: rs[0], width: cs[4] - cs[3], height: rs[1] - rs[0], child: Container(
+              decoration: BoxDecoration(color: Colors.grey.shade200, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1), bottom: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 0.0), alignment: Alignment.centerRight, child: _t('Amount', sz: 12.0, bold: true, align: TextAlign.right))),
+          cell(0, 1, 1, 2, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Drops', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21))),
+                  Text('On-demand delivery', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                ],
+              )),
+          cell(1, 1, 2, 2, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), child: Text('1', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)))),
+          cell(2, 1, 3, 2, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), align: Alignment.centerRight, child: Text('£5.00', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)), textAlign: TextAlign.right)),
+          cell(3, 1, 4, 2, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), align: Alignment.centerRight, child: Text('£5.00', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)), textAlign: TextAlign.right)),
+          cell(0, 2, 1, 3, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Hours', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21))),
+                  Text('Shift delivery service', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF5E6470))),
+                ],
+              )),
+          cell(1, 2, 2, 3, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), child: Text('0', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)))),
+          cell(2, 2, 3, 3, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), align: Alignment.centerRight, child: Text('£0.00', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)), textAlign: TextAlign.right)),
+          cell(3, 2, 4, 3, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0), align: Alignment.centerRight, child: Text('£0.00', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, fontWeight: FontWeight.w700, color: Color(0xFF1A1C21)), textAlign: TextAlign.right)),
+          Positioned(left: cs[0], top: rs[3], width: cs[1] - cs[0], height: rs[4] - rs[3], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0), alignment: Alignment.centerLeft, child: const SizedBox.shrink())),
+          Positioned(left: cs[1], top: rs[3], width: cs[4] - cs[1], height: rs[4] - rs[3], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.all(4.0), alignment: Alignment.centerLeft, child: LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 0.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = flexSpace / 2.000000;
+    final colWidths = <double>[
+      flexUnit,
+      flexUnit,
+    ];
+
+    final rowHeights = <double>[34.0, 42.0, 61.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 1],
+      <int>[2, 3],
+      <int>[4, 5],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          cell(0, 0, 1, 1, pad: EdgeInsets.fromLTRB(4.0, 12.0, 4.0, 4.0), child: _t('Subtotal', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 0, 2, 1, pad: EdgeInsets.fromLTRB(4.0, 12.0, 4.0, 4.0), align: Alignment.centerRight, child: _t('£5.00', sz: 12.0, color: Color(0xFF1A1C21), align: TextAlign.right)),
+          cell(0, 1, 1, 2, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0), child: _t('VAT in items (0%) (1)', sz: 12.0, bold: true, color: Color(0xFF1A1C21))),
+          cell(1, 1, 2, 2, pad: EdgeInsets.symmetric(vertical: 12.0, horizontal: 0.0), align: Alignment.centerRight, child: _t('£5.00', sz: 12.0, color: Color(0xFF1A1C21), align: TextAlign.right)),
+          Positioned(left: cs[0], top: rs[2], width: cs[1] - cs[0], height: rs[3] - rs[2], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 30.0), alignment: Alignment.centerLeft, child: _t('Total Price (2)', sz: 12.0, bold: true, color: Color(0xFF1A1C21)))),
+          Positioned(left: cs[1], top: rs[2], width: cs[2] - cs[1], height: rs[3] - rs[2], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(top: BorderSide(color: Color(0xFFD7DAE0), width: 1))),
+              padding: EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 30.0), alignment: Alignment.centerRight, child: _t('£5.00', sz: 12.0, bold: true, color: Color(0xFF1A1C21), align: TextAlign.right))),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 0.0,
+                matrixData: matrixData,
+                numRows: 3,
+                numCols: 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+))),
+          cell(0, 4, 1, 5, pad: EdgeInsets.all(4.0), child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('(1) VAT non applicable', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF1A1C21))),
+                  Text('(2) Price includes the remuneration for MealShift Services', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF1A1C21))),
                 ],
               )),
           Positioned.fill(
@@ -194,8 +428,52 @@ class _PreviewAppState extends State<_PreviewApp> {
                 borderColor: Colors.black,
                 borderWidth: 0.0,
                 matrixData: matrixData,
-                numRows: 25,
-                numCols: 5,
+                numRows: 5,
+                numCols: 4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+)),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Color(0xFFD7DAE0),
+                borderWidth: 0.0,
+                matrixData: matrixData,
+                numRows: 3,
+                numCols: 3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+),
+)),
+          cell(0, 2, 1, 3, pad: EdgeInsets.fromLTRB(4.0, 30.0, 4.0, 4.0), child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('MealShift Ltd1 Assam Street, London - E1 7QLRegistration number:12793366', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0)),
+                  Text('Any questions, contact customer service at support@mealshift.co.uk.', style: TextStyle(fontFamily: 'Browallia New', fontSize: 12.0, color: Color(0xFF1A1C21))),
+                ],
+              )),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 0.0,
+                matrixData: matrixData,
+                numRows: 3,
+                numCols: 1,
               ),
             ),
           ),
@@ -206,7 +484,9 @@ class _PreviewAppState extends State<_PreviewApp> {
 ),
 ),
 ),
+            ),
           ),
+        ),
         ),
       ),
     );
@@ -241,9 +521,6 @@ Widget _rt(List<(String, bool)> spans, {double sz = 16, String ff = 'Browallia N
 // ── Border helpers ────────────────────────────────────────────────────────────
 
 const _bk = Colors.black;
-Border _bTop([double w = 1])    => Border(top:    BorderSide(color: _bk, width: w));
-Border _bBottom([double w = 1]) => Border(bottom: BorderSide(color: _bk, width: w));
-Border _bTopBottom(double t, double b) => Border(top: BorderSide(color: _bk, width: t), bottom: BorderSide(color: _bk, width: b));
 
 class _TableGridPainter extends CustomPainter {
   final List<double> colStarts;
