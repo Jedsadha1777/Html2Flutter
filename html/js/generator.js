@@ -32,6 +32,7 @@ const DartGenerator = {
       controllers:  context.controllers,
       dropdowns:    context.dropdowns,
       checkboxes:   context.checkboxes,
+      usesTable:    context.usesTable,
     };
   },
 

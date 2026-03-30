@@ -54,6 +54,25 @@ const StyleParser = {
       case 'min-width':      result.minWidth = value; return result;
       case 'box-sizing':       result.boxSizing = value; return result;
       case 'border-collapse':  result.borderCollapse = value; return result;
+      // CSS logical properties (block = top+bottom, inline = left+right)
+      case 'border-block':        return this.parseBorderBlock(value);
+      case 'border-block-start':  return this.parseBorderSide('borderTop', value);
+      case 'border-block-end':    return this.parseBorderSide('borderBottom', value);
+      case 'border-inline':       return { ...this.parseBorderSide('borderLeft', value), ...this.parseBorderSide('borderRight', value) };
+      case 'border-inline-start': return this.parseBorderSide('borderLeft', value);
+      case 'border-inline-end':   return this.parseBorderSide('borderRight', value);
+      case 'padding-block': {
+        const sides = this.expandBoxModel('padding', value);
+        return { paddingTop: sides.paddingTop, paddingBottom: sides.paddingTop };
+      }
+      case 'padding-block-start': result.paddingTop    = value; return result;
+      case 'padding-block-end':   result.paddingBottom = value; return result;
+      case 'padding-inline': {
+        const sides = this.expandBoxModel('padding', value);
+        return { paddingLeft: sides.paddingTop, paddingRight: sides.paddingTop };
+      }
+      case 'padding-inline-start': result.paddingLeft  = value; return result;
+      case 'padding-inline-end':   result.paddingRight = value; return result;
       case 'transform': {
         result.transform = value;
         const m = value.match(/rotate\(\s*([-\d.]+)deg\s*\)/);
@@ -120,6 +139,10 @@ const StyleParser = {
       if (color) result[`border${side}Color`] = color;
     }
     return result;
+  },
+
+  parseBorderBlock(value) {
+    return { ...this.parseBorderSide('borderTop', value), ...this.parseBorderSide('borderBottom', value) };
   },
 
   parseBorderSide(prefix, value) {
@@ -207,7 +230,12 @@ const StyleParser = {
   // 1rem/1em = 16px (browser default root font size)
   parseDimension(value) {
     if (!value) return null;
-    const match = String(value).match(/^([\d.]+)(px|%|em|rem|pt|vh|vw)?$/);
+    const s = String(value).trim();
+    // CSS fill-available / stretch → treat as 100%
+    if (s === '-webkit-fill-available' || s === 'fill-available' || s === 'stretch') {
+      return { value: 100, unit: '%' };
+    }
+    const match = s.match(/^([\d.]+)(px|%|em|rem|pt|vh|vw)?$/);
     if (match) {
       const num = parseFloat(match[1]);
       const unit = match[2] || 'px';
@@ -268,8 +296,10 @@ const StyleParser = {
 
   textAlignToFlutter(align) {
     const m = {
-      'left':'TextAlign.left','center':'TextAlign.center',
-      'right':'TextAlign.right','justify':'TextAlign.justify',
+      'left':'TextAlign.left','start':'TextAlign.left',
+      'center':'TextAlign.center',
+      'right':'TextAlign.right','end':'TextAlign.right',
+      'justify':'TextAlign.justify',
     };
     return m[align?.toLowerCase()] || null;
   },
@@ -344,10 +374,11 @@ const StyleParser = {
     const right  = this.borderSideToFlutter('borderRight', styles);
     const bottom = this.borderSideToFlutter('borderBottom', styles);
 
-    // Draw top if first row OR if cell explicitly sets a top border
-    if (top && (isFirstRow || styles.borderTopWidth)) sides.push(`top: ${top}`);
-    // Draw left if first col OR if cell explicitly sets a left border
-    if (left && (isFirstCol || styles.borderLeftWidth)) sides.push(`left: ${left}`);
+    // In collapsed mode each cell draws bottom+right only.
+    // Top drawn only for first row (outer edge); left only for first col.
+    // This prevents doubled borders at shared edges.
+    if (top && isFirstRow) sides.push(`top: ${top}`);
+    if (left && isFirstCol) sides.push(`left: ${left}`);
     if (right)  sides.push(`right: ${right}`);
     if (bottom) sides.push(`bottom: ${bottom}`);
     if (sides.length === 0) return null;

@@ -149,6 +149,10 @@ const TableHandler = {
 
     const matrix = new TableMatrix();
     matrix.numRows = numRows;
+    // Pre-compute colgroup column count to clamp excess cells from Luckysheet rowspan artifacts
+    const _colgroups = this.collectColgroups(tableNode);
+    const _colgroupCols = this.countColgroupColumns(_colgroups);
+    const maxCols = _colgroupCols > 0 ? _colgroupCols : Infinity;
     const rowData = [];
     const minRowHeights = [];
     const cellHeightMap = new Map(); // cell → {effFontSize, structuralLines}
@@ -244,7 +248,13 @@ const TableHandler = {
             let wh = child.type === 'signature' ? 100 : 150;
             if (child.height) { const d = StyleParser.parseDimension(child.height); if (d) wh = d.value; }
             widgetContentH = Math.max(widgetContentH, wh);
-          } else if ((child.type === 'text' && child.content?.trim()) || (child.tagName && child.tagName !== 'svg')) {
+          } else if (child.type === 'table') {
+          if (hasCurrentInline) { totalContentH += Math.ceil(effFontSize * 1.5); hasCurrentInline = false; }
+            const nested = this.buildTable(child, null, null);
+            const nestedH = nested.minRowHeights.reduce((a, b) => a + b, 0);
+            totalContentH += Math.max(nestedH, Math.ceil(effFontSize * 1.5));
+          }
+          else if ((child.type === 'text' && child.content?.trim()) || (child.tagName && child.tagName !== 'svg')) {
             hasCurrentInline = true;
           }
         }
@@ -264,7 +274,7 @@ const TableHandler = {
 
       if (row.node?.styles?.height) {
         const dim = this.convertDimension(StyleParser.parseDimension(row.node.styles.height));
-        if (dim && dim.unit !== '%') minHeight = Math.max(dim.value, 16);
+        if (dim && dim.unit !== '%') minHeight = Math.max(minHeight, dim.value);
       } else {
         for (const cell of row.cells) {
           if (cell.styles?.height) {
@@ -283,7 +293,8 @@ const TableHandler = {
       let colIdx = 0;
       for (const cell of row.cells) {
         colIdx = matrix.findFreeColumn(rowIdx, colIdx);
-        const colspan = cell.colspan || 1;
+        if (colIdx >= maxCols) break; // skip excess cells beyond colgroup columns
+        const colspan = Math.min(cell.colspan || 1, maxCols - colIdx);
         const rawRowspan = cell.rowspan || 1;
         const rowspan = Math.min(rawRowspan, numRows - rowIdx);
 
@@ -359,10 +370,17 @@ const TableHandler = {
     // Column widths from <colgroup>/<col>
     const colgroups = this.collectColgroups(tableNode);
     const colgroupCols = this.countColgroupColumns(colgroups);
-    matrix.numCols = Math.max(matrix.numCols, colgroupCols);
+    // Clamp to colgroup count when defined (findFreeColumn may have expanded numCols beyond it)
+    matrix.numCols = colgroupCols > 0 ? colgroupCols : Math.max(matrix.numCols, colgroupCols);
     const columnWidths = this.parseColumnWidths(colgroups, matrix.numCols);
     this.fillColumnWidthsFromCells(matrix, columnWidths);
-    this.estimateShrinkColumnWidths(matrix, columnWidths, this.getPadding(tableNode));
+    // Only shrink text-only columns when table doesn't have a percent width.
+    // Percent-width tables (e.g. width:100%) should let remaining columns flex to fill space.
+    const twStr = tableNode.styles?.width || tableNode.width;
+    const isPercentWidth = twStr && StyleParser.parseDimension(twStr)?.unit === '%';
+    if (!isPercentWidth) {
+      this.estimateShrinkColumnWidths(matrix, columnWidths, this.getPadding(tableNode));
+    }
     // Resolve table's own fixed width for refine pass (explicit px on table overrides container estimate)
     let tableEstW = estimatedAvailableWidth;
     const tableWidthStr = tableNode.styles?.width || tableNode.width;
@@ -495,12 +513,12 @@ const TableHandler = {
         else if (w?.type === 'percent') totalPercent += w.value;
         else flexCount++;
       }
-      const flexSpace = Math.max(0, estimatedAvailableWidth - totalFixed);
-      const totalFlex = (totalPercent / 100) + flexCount;
-      const flexUnit = totalFlex > 0 ? flexSpace / totalFlex : 0;
+      const percentSpace = estimatedAvailableWidth * (totalPercent / 100);
+      const flexSpace = Math.max(0, estimatedAvailableWidth - totalFixed - percentSpace);
+      const flexUnit = flexCount > 0 ? flexSpace / flexCount : 0;
       estColWidths = columnWidths.map(w => {
         if (w?.type === 'fixed')   return w.value;
-        if (w?.type === 'percent') return flexUnit * (w.value / 100);
+        if (w?.type === 'percent') return estimatedAvailableWidth * (w.value / 100);
         return flexUnit;
       });
     }
@@ -661,6 +679,12 @@ const TableHandler = {
     const paddingLeft   = StyleParser.parseDimension(ts.paddingLeft)?.value;
     const hasMargin  = marginTop  || marginRight  || marginBottom  || marginLeft;
     const hasPadding = paddingTop || paddingRight || paddingBottom || paddingLeft;
+
+    // Tables with all fixed/shrink columns (no flex/percent) or explicit fixed width
+    // need UnconstrainedBox to exceed parent constraints and be scrollable
+    const allColumnsFixed = columnWidths.length > 0 && columnWidths.every(w => w?.type === 'fixed' || w?.type === 'shrink');
+    const needsUnconstrained = fixedTableWidth != null || allColumnsFixed;
+
     if (tableBorder || hasMargin || hasPadding) {
       const wrapProps = [];
       if (hasMargin) {
@@ -682,13 +706,13 @@ const TableHandler = {
       }
       const inner = lines.join('\n');
       const wrapped = `Container(\n  ${wrapProps.join(',\n  ')},\n  child: ${inner},\n)`;
-      return fixedTableWidth != null
+      return needsUnconstrained
         ? `UnconstrainedBox(\n  alignment: Alignment.topLeft,\n  child: ${wrapped},\n)`
         : wrapped;
     }
 
     const base = lines.join('\n');
-    return fixedTableWidth != null
+    return needsUnconstrained
       ? `UnconstrainedBox(\n  alignment: Alignment.topLeft,\n  child: ${base},\n)`
       : base;
   },
@@ -763,14 +787,20 @@ const TableHandler = {
       else flexCount++;
     }
     lines.push(`    final fixedTotal = ${totalFixed.toFixed(1)};`);
-    lines.push('    final flexSpace = (availableWidth - fixedTotal).clamp(0.0, double.infinity);');
-    const totalFlex = (totalPercent / 100) + flexCount;
-    lines.push(`    final flexUnit = flexSpace / ${Math.max(totalFlex, 0.001).toFixed(6)};`);
+    if (totalPercent > 0) {
+      // Percent columns = percentage of availableWidth (CSS behavior)
+      // Flex columns = remaining space after fixed + percent allocations
+      lines.push(`    final pctUnit = availableWidth.isInfinite ? 0.0 : availableWidth / 100;`);
+      lines.push(`    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal - pctUnit * ${totalPercent.toFixed(1)}).clamp(0.0, double.infinity);`);
+    } else {
+      lines.push('    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);');
+    }
+    lines.push(`    final flexUnit = flexSpace / ${Math.max(flexCount, 0.001).toFixed(6)};`);
     lines.push('    final colWidths = <double>[');
     for (let i = 0; i < numCols; i++) {
       const w = columnWidths[i];
       if (w?.type === 'fixed' || w?.type === 'shrink') lines.push(`      ${w.value.toFixed(1)},`);
-      else if (w?.type === 'percent') lines.push(`      flexUnit * ${(w.value / 100).toFixed(6)},`);
+      else if (w?.type === 'percent') lines.push(`      pctUnit * ${w.value.toFixed(1)},`);
       else lines.push('      flexUnit,');
     }
     lines.push('    ];');
@@ -874,7 +904,8 @@ const TableHandler = {
   },
 
   alignment(h, v) {
-    const hVal = (h || 'left').toLowerCase();
+    const hMap = { 'start': 'left', 'end': 'right' };
+    const hVal = hMap[(h || '').toLowerCase()] || (h || 'left').toLowerCase();
     const vVal = (v || 'middle').toLowerCase();
     if (vVal === 'top'    && hVal === 'left')   return 'Alignment.topLeft';
     if (vVal === 'top'    && hVal === 'center') return 'Alignment.topCenter';
@@ -966,10 +997,10 @@ const TableHandler = {
     });
 
     // Special interactive widgets (nested table, form controls)
-    for (const child of contentChildren) {
-      if (child.type === 'table') {
-        // Share outer context's maps so controllers/dropdowns from nested tables
-        // are registered in the outer context and get proper Dart field declarations.
+    const formTypes = new Set(['input','select','textarea','date-picker','signature','image-upload']);
+    const hasSpecial = contentChildren.some(c => c.type === 'table' || formTypes.has(c.type));
+    if (hasSpecial) {
+      const _renderNestedTable = (child) => {
         const isolated = {
           controllers: context.controllers,
           dropdowns:   context.dropdowns,
@@ -982,13 +1013,24 @@ const TableHandler = {
         if (isolated.usesComment)        context.usesComment        = true;
         if (isolated.usesGesture)        context.usesGesture        = true;
         return result;
+      };
+
+      const segments = [];
+      for (const child of contentChildren) {
+        if (child.type === 'table')         { segments.push(_renderNestedTable(child)); continue; }
+        if (child.type === 'input')         { segments.push(this.inputWidget(child, context)); continue; }
+        if (child.type === 'select')        { segments.push(this.selectWidget(child, context)); continue; }
+        if (child.type === 'textarea')      { segments.push(this.textareaWidget(child, context)); continue; }
+        if (child.type === 'date-picker')   { segments.push(this.datepickerWidget(child, context)); continue; }
+        if (child.type === 'signature')     { segments.push(this.signatureWidget(child, context)); continue; }
+        if (child.type === 'image-upload')  { segments.push(this.imageUploadWidget(child, context)); continue; }
+        // Non-special sibling content (text, p, div, span, etc.) — render recursively
+        const sibling = this._renderMixedChild(child, style, context);
+        if (sibling) segments.push(sibling);
       }
-      if (child.type === 'input')        return this.inputWidget(child, context);
-      if (child.type === 'select')       return this.selectWidget(child, context);
-      if (child.type === 'textarea')     return this.textareaWidget(child, context);
-      if (child.type === 'date-picker')  return this.datepickerWidget(child, context);
-      if (child.type === 'signature')    return this.signatureWidget(child, context);
-      if (child.type === 'image-upload') return this.imageUploadWidget(child, context);
+      if (segments.length === 0) return 'const SizedBox.shrink()';
+      if (segments.length === 1) return segments[0];
+      return `Column(\n                crossAxisAlignment: CrossAxisAlignment.stretch,\n                children: [\n                  ${segments.join(',\n                  ')},\n                ],\n              )`;
     }
 
     // Block-level children (div, p, headings) require Column layout with per-segment alignment
@@ -1201,6 +1243,26 @@ const TableHandler = {
               )`;
   },
 
+  // Render a single non-special child (text, span, p, div, etc.) as a string widget.
+  // Used when mixing special widgets (table/form) with surrounding content.
+  _renderMixedChild(child, style, context) {
+    if (child.type === 'text') {
+      const t = child.content?.trim();
+      return t ? `Text('${this.escapeString(t)}')` : null;
+    }
+    // If this block child itself contains a nested table, recurse via buildColumnContent
+    const blockTags = new Set(['div','p','h1','h2','h3','h4','h5','h6','ul','ol']);
+    if (blockTags.has(child.tagName) || child.tagName === 'span' || child.tagName === 'a') {
+      const innerHasTable = (child.children || []).some(c => c.type === 'table');
+      if (innerHasTable) {
+        return this.buildColumnContent(child.children || [], style, context);
+      }
+      const t = this.extractText(child);
+      return t ? `Text('${this.escapeString(t)}')` : null;
+    }
+    return null;
+  },
+
   // Render cell content that contains block-level elements (div, p, etc.) as a Column.
   // Inline nodes before/between/after block elements are grouped and rendered as Text or RichText.
   buildColumnContent(children, style, context) {
@@ -1218,8 +1280,30 @@ const TableHandler = {
     for (const child of children) {
       if (child.tagName === 'br') {
         flushInline();
+      } else if (child.type === 'table') {
+        // Nested table directly inside a cell (reached via div/p wrapper path)
+        flushInline();
+        const isolated = {
+          controllers: context.controllers,
+          dropdowns:   context.dropdowns,
+          checkboxes:  context.checkboxes,
+          customWidgets: context.customWidgets,
+          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false,
+        };
+        const result = this.generate(child, isolated, style);
+        if (isolated.usesDiagonalBorder) context.usesDiagonalBorder = true;
+        if (isolated.usesComment)        context.usesComment        = true;
+        if (isolated.usesGesture)        context.usesGesture        = true;
+        segments.push(result);
       } else if (blockTags.has(child.tagName)) {
         flushInline();
+        // If this block child contains a nested table, recurse into it
+        const innerHasTable = (child.children || []).some(c => c.type === 'table');
+        if (innerHasTable) {
+          const nested = this.buildColumnContent(child.children || [], style, context);
+          if (nested && nested !== 'const SizedBox.shrink()') segments.push(nested);
+          continue;
+        }
         const blockText = this.extractText(child);
         if (blockText) {
           // Use child's own font-size if specified, otherwise inherit from cell

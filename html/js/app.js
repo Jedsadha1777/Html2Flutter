@@ -154,6 +154,7 @@ const App = {
     const state       = (r.stateCode        || '').trim();
     const widget      = (r.widgetCode       || '').trim();
     const boilerplate = (r.boilerplateCode  || '').trim();
+    
 
     if (!widget || widget.startsWith('// Error')) return null;
 
@@ -202,7 +203,8 @@ const App = {
       '            IconButton(icon: const Icon(Icons.refresh),  onPressed: _resetZoom),',
       '          ],',
       '        ),',
-      '        body: InteractiveViewer(',
+      '        body: LayoutBuilder(',
+      '          builder: (ctx, outerConstraints) => InteractiveViewer(',
       '          transformationController: _transformationController,',
       '          minScale: 0.5,',
       '          maxScale: 5.0,',
@@ -211,11 +213,15 @@ const App = {
       '          onInteractionUpdate: (details) => setState(() {',
       '            _currentScale = _transformationController.value.getMaxScaleOnAxis();',
       '          }),',
-      '          child: Container(',
-      '            color: Colors.white,',
-      '            padding: const EdgeInsets.all(16),',
-      '            ' + widget + ',',
-      '          ),',
+        '          child: SizedBox(',
+        '            width: outerConstraints.maxWidth,',
+        '            child: Container(',
+        '              color: Colors.white,',
+        '              padding: const EdgeInsets.all(16),',
+        '              ' + widget + ',',
+        '            ),',
+        '          ),',
+      '        ),',
       '        ),',
       '      ),',
       '    );',
