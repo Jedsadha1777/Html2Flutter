@@ -911,19 +911,11 @@ const TableHandler = {
       return `          Positioned(left: cs[${col}], top: rs[${row}], width: cs[${colEnd}] - cs[${col}], height: rs[${rowEnd}] - rs[${row}], child: ${child}),`;
     }
 
-    // ── Skip invisible empty cells (no content, no border, no bg) ────────
-    const bg = style.bgColor;
-    const hasBg = bg && bg !== 'Colors.transparent';
-    const hasBorder = !!borderHelper || !!style.cellBorder;
-    const isEmpty = content === 'const SizedBox.shrink()';
-    if (isEmpty && !hasBorder && !hasBg) {
-      return ''; // skip — invisible cell, no widget needed
-    }
-
     // ── Compact cell() helper ─────────────────────────────────────────────
     const args = [`${col}, ${row}, ${colEnd}, ${rowEnd}`];
     if (borderHelper)  args.push(`border: ${borderHelper}`);
-    if (hasBg) args.push(`bg: ${bg}`);
+    const bg = style.bgColor;
+    if (bg && bg !== 'Colors.transparent') args.push(`bg: ${bg}`);
     if (cellPadding !== 'EdgeInsets.all(0.0)' && cellPadding !== 'EdgeInsets.zero') args.push(`pad: ${cellPadding}`);
     if (alignment !== 'Alignment.centerLeft') args.push(`align: ${alignment}`);
     args.push(`child: ${content}`);
