@@ -258,7 +258,17 @@ const TableHandler = {
             hasCurrentInline = true;
           }
         }
-        if (hasCurrentInline) totalContentH += Math.ceil(effFontSize * 1.5);
+        if (hasCurrentInline) {
+          // For pre/pre-wrap/pre-line cells, count explicit newlines as additional lines.
+          const preWrap = ['pre', 'pre-wrap', 'pre-line'].includes(cell.styles?.whiteSpace);
+          if (preWrap) {
+            const rawText = this.extractTextPreserveNewlines(cell);
+            const lineCount = Math.max(1, rawText.split('\n').length);
+            totalContentH += Math.ceil(effFontSize * 1.5) * lineCount;
+          } else {
+            totalContentH += Math.ceil(effFontSize * 1.5);
+          }
+        }
         if (totalContentH === 0 && widgetContentH === 0) totalContentH = Math.ceil(effFontSize * 1.5);
 
         // structuralLines: how many lines at maxChildFs (for refineRowHeights wrapping estimate)
@@ -354,9 +364,28 @@ const TableHandler = {
         }
         if (cell.styles) {
           const collapsed = tableNode.styles?.borderCollapse === 'collapse';
-          const border = collapsed
-            ? StyleParser.cellBorderCollapsed(cell.styles, rowIdx === 0, colIdx === 0)
-            : StyleParser.cellBorderToFlutter(cell.styles);
+          let border;
+          if (collapsed) {
+            const aboveSlot = rowIdx > 0 ? (matrix.slots[rowIdx - 1]?.[colIdx] ?? null) : null;
+            const abovePlacement = aboveSlot != null ? matrix.placements[aboveSlot.placementIdx] : null;
+            const aboveHasBottom = (abovePlacement?.style?.cellBorder ?? '').includes('bottom:');
+
+            const leftSlot = colIdx > 0 ? (matrix.slots[rowIdx]?.[colIdx - 1] ?? null) : null;
+            const leftPlacement = leftSlot != null ? matrix.placements[leftSlot.placementIdx] : null;
+            const leftHasRight = (leftPlacement?.style?.cellBorder ?? '').includes('right:');
+
+            // Draw top when above has no bottom; draw left when left has no right.
+            // Both are handled on the current cell ("first-fix" approach) so colspan/rowspan
+            // cells get a border that spans their full width/height.
+            // A post-processing pass (_convertLeftToRight) will shift left→right on neighbors
+            // for pixel-accurate vertical alignment once all rows are in the matrix.
+            const drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
+            const drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
+
+            border = StyleParser.cellBorderCollapsed(cell.styles, drawTop, drawLeft);
+          } else {
+            border = StyleParser.cellBorderToFlutter(cell.styles);
+          }
           if (border) cellStyle = cellStyle.copyWith({ cellBorder: border });
         }
 
@@ -365,6 +394,13 @@ const TableHandler = {
         matrix.occupy(rowIdx, colIdx, rowspan, colspan, placementIdx);
         colIdx += colspan;
       }
+    }
+
+    // Post-processing: convert top→bottom and left→right for pixel-accurate border alignment.
+    // Must run after all cells (including rowspan/colspan cells) are placed in the matrix.
+    if (tableNode.styles?.borderCollapse === 'collapse') {
+      this._convertTopToBottom(matrix);
+      this._convertLeftToRight(matrix);
     }
 
     // Column widths from <colgroup>/<col>
@@ -795,7 +831,9 @@ const TableHandler = {
     } else {
       lines.push('    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);');
     }
-    lines.push(`    final flexUnit = flexSpace / ${Math.max(flexCount, 0.001).toFixed(6)};`);
+    // When unconstrained (e.g. inside InteractiveViewer), flexSpace=0 and each flex column
+    // would collapse to 0px. Fall back to 200px per flex unit so form-widget columns are visible.
+    lines.push(`    final flexUnit = availableWidth.isInfinite ? 200.0 : flexSpace / ${Math.max(flexCount, 0.001).toFixed(6)};`);
     lines.push('    final colWidths = <double>[');
     for (let i = 0; i < numCols; i++) {
       const w = columnWidths[i];
@@ -1082,8 +1120,11 @@ const TableHandler = {
       return this.buildRichText(contentChildren, style, rtSoftWrap, rtOverflow, context);
     }
 
-    const text = this.extractText({ children: contentChildren });
-    if (!text) return 'const SizedBox.shrink()';
+    const _preserveNl = ['pre', 'pre-wrap', 'pre-line'].includes(style.whiteSpace);
+    const text = _preserveNl
+      ? this.extractTextPreserveNewlines({ children: contentChildren })
+      : this.extractText({ children: contentChildren });
+    if (!text || !text.trim()) return 'const SizedBox.shrink()';
 
     const fontSize   = style.fontSize   ? style.fontSize.toFixed(1)   : '16.0';
     const fontFamily = style.fontFamily || 'Browallia New';
@@ -1161,10 +1202,142 @@ const TableHandler = {
     return pairs;
   },
 
+  // Add a border side to an existing Flutter Border(...) string, or create a new one.
+  // Keeps all borders on the canonical side (right for vertical, bottom for horizontal).
+  addBorderSide(borderStr, side, sideValue) {
+    if (!sideValue) return borderStr || null;
+    if (!borderStr) return `Border(${side}: ${sideValue})`;
+    if (borderStr.includes(`${side}:`)) return borderStr; // already has this side
+    // Append before the closing ')' of Border(...)
+    return borderStr.slice(0, -1) + `, ${side}: ${sideValue})`;
+  },
+
+  // Extract the value string of a named border side from a Flutter Border(...) string.
+  // e.g. extractBorderSide('Border(right: BorderSide(width: 1))', 'right') → 'BorderSide(width: 1)'
+  extractBorderSide(borderStr, side) {
+    if (!borderStr) return null;
+    const marker = `${side}: `;
+    const mIdx = borderStr.indexOf(marker);
+    if (mIdx === -1) return null;
+    const valStart = mIdx + marker.length;
+    let depth = 0, valEnd = valStart;
+    for (let i = valStart; i < borderStr.length; i++) {
+      if (borderStr[i] === '(') depth++;
+      else if (borderStr[i] === ')') {
+        if (depth === 0) break;
+        depth--;
+        if (depth === 0) { valEnd = i + 1; break; }
+      }
+      valEnd = i + 1;
+    }
+    return borderStr.slice(valStart, valEnd) || null;
+  },
+
+  // Remove a named border side from a Flutter Border(...) string.
+  removeBorderSide(borderStr, side) {
+    if (!borderStr || !borderStr.includes(`${side}:`)) return borderStr;
+    const marker = `${side}: `;
+    const mIdx = borderStr.indexOf(marker);
+    if (mIdx === -1) return borderStr;
+    const valStart = mIdx + marker.length;
+    let depth = 0, valEnd = valStart;
+    for (let i = valStart; i < borderStr.length; i++) {
+      if (borderStr[i] === '(') depth++;
+      else if (borderStr[i] === ')') {
+        if (depth === 0) break;
+        depth--;
+        if (depth === 0) { valEnd = i + 1; break; }
+      }
+      valEnd = i + 1;
+    }
+    const removal = `${marker}${borderStr.slice(valStart, valEnd)}`;
+    let result = borderStr;
+    if (result.includes(', ' + removal)) result = result.replace(', ' + removal, '');
+    else if (result.includes(removal + ', ')) result = result.replace(removal + ', ', '');
+    else result = result.replace(removal, '');
+    const inner = result.slice('Border('.length, -1).trim();
+    return inner ? result : null;
+  },
+
+  // Post-processing pass: for each cell that drew a 'top' border, move it to 'bottom' on the
+  // above neighbor. This ensures all horizontal lines at a given row boundary are drawn at the
+  // same pixel y position (bottom-side convention), fixing 1px misalignment bugs.
+  _convertTopToBottom(matrix) {
+    for (const p of matrix.placements) {
+      if (p.row === 0) continue;
+      const cellBorder = p.style?.cellBorder;
+      if (!cellBorder || !cellBorder.includes('top:')) continue;
+      const topSide = this.extractBorderSide(cellBorder, 'top');
+      if (!topSide) continue;
+      let allCovered = true;
+      const seen = new Set();
+      for (let c = p.col; c < p.col + p.colspan; c++) {
+        const aSlot = matrix.slots[p.row - 1]?.[c] ?? null;
+        if (aSlot == null) { allCovered = false; continue; }
+        if (seen.has(aSlot.placementIdx)) continue;
+        seen.add(aSlot.placementIdx);
+        const ap = matrix.placements[aSlot.placementIdx];
+        if ((ap.style?.cellBorder ?? '').includes('bottom:')) continue;
+        const updated = this.addBorderSide(ap.style?.cellBorder, 'bottom', topSide);
+        ap.style = ap.style.copyWith({ cellBorder: updated });
+      }
+      if (allCovered) {
+        const newBorder = this.removeBorderSide(cellBorder, 'top');
+        p.style = p.style.copyWith({ cellBorder: newBorder });
+      }
+    }
+  },
+
+  // Post-processing pass: for each cell that drew a 'left' border, move it to 'right' on the
+  // left neighbor. This ensures all vertical lines at a given column boundary are drawn at the
+  // same pixel x position (right-side convention), fixing 1px misalignment bugs.
+  _convertLeftToRight(matrix) {
+    for (const p of matrix.placements) {
+      if (p.col === 0) continue;
+      const cellBorder = p.style?.cellBorder;
+      if (!cellBorder || !cellBorder.includes('left:')) continue;
+      const leftSide = this.extractBorderSide(cellBorder, 'left');
+      if (!leftSide) continue;
+      let allCovered = true;
+      const seen = new Set();
+      for (let r = p.row; r < p.row + p.rowspan; r++) {
+        const lSlot = matrix.slots[r]?.[p.col - 1] ?? null;
+        if (lSlot == null) { allCovered = false; continue; }
+        if (seen.has(lSlot.placementIdx)) continue;
+        seen.add(lSlot.placementIdx);
+        const lp = matrix.placements[lSlot.placementIdx];
+        if ((lp.style?.cellBorder ?? '').includes('right:')) continue;
+        const updated = this.addBorderSide(lp.style?.cellBorder, 'right', leftSide);
+        lp.style = lp.style.copyWith({ cellBorder: updated });
+      }
+      if (allCovered) {
+        const newBorder = this.removeBorderSide(cellBorder, 'left');
+        p.style = p.style.copyWith({ cellBorder: newBorder });
+      }
+    }
+  },
+
+  // Extract text content preserving newlines (for pre/pre-wrap/pre-line white-space).
+  extractTextPreserveNewlines(node) {
+    let text = '';
+    for (const c of (node.children || [])) {
+      if (c.type === 'text') {
+        text += c.content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      } else if (c.tagName === 'br') {
+        text += '\n';
+      } else {
+        text += this.extractTextPreserveNewlines(c);
+      }
+    }
+    return text;
+  },
+
   // Build RichText widget for cells with mixed styled spans
   buildRichText(children, baseStyle, softWrap = true, overflow = 'TextOverflow.clip', context = null) {
     // Fast path: simple bold/normal spans → use _rt() helper
-    if (softWrap && overflow === 'TextOverflow.clip' && this._isSimpleRichText(children)
+    // Skip fast path when preserving newlines (pre/pre-wrap) since _buildRtPairs collapses them.
+    const _usePreserveNl = ['pre', 'pre-wrap', 'pre-line'].includes(baseStyle.whiteSpace);
+    if (!_usePreserveNl && softWrap && overflow === 'TextOverflow.clip' && this._isSimpleRichText(children)
         && !baseStyle.textColor && !baseStyle.lineHeight) {
       const pairs = this._buildRtPairs(children);
       if (pairs.length > 0) {
@@ -1180,11 +1353,34 @@ const TableHandler = {
     }
 
     const spans = [];
+    const preserveNewlines = ['pre', 'pre-wrap', 'pre-line'].includes(baseStyle.whiteSpace);
+
+    // Helper: push text content as one or more TextSpans, splitting on \n when preserveNewlines.
+    const pushText = (raw, styleStr = null) => {
+      if (preserveNewlines) {
+        const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line) {
+            spans.push(styleStr
+              ? `TextSpan(text: '${this.escapeString(line)}', style: ${styleStr})`
+              : `TextSpan(text: '${this.escapeString(line)}')`);
+          }
+          if (i < lines.length - 1) spans.push(`TextSpan(text: '\\n')`);
+        }
+      } else {
+        const t = raw.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ');
+        if (t.trim()) {
+          spans.push(styleStr
+            ? `TextSpan(text: '${this.escapeString(t)}', style: ${styleStr})`
+            : `TextSpan(text: '${this.escapeString(t)}')`);
+        }
+      }
+    };
 
     for (const child of children) {
       if (child.type === 'text') {
-        const t = child.content.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ');
-        if (t.trim()) spans.push(`TextSpan(text: '${this.escapeString(t)}')`);
+        pushText(child.content);
         continue;
       }
 
@@ -1204,14 +1400,13 @@ const TableHandler = {
 
       const inlineTags = ['span','b','strong','i','em','u','s','strike'];
       if (inlineTags.includes(child.tagName)) {
-        const text = this.extractText(child);
-        if (!text) continue;
+        const rawText = preserveNewlines
+          ? this.extractTextPreserveNewlines(child)
+          : this.extractText(child);
+        if (!rawText) continue;
         const sp = this.spanStyles(child.styles || {}, child.tagName);
-        if (sp.length > 0) {
-          spans.push(`TextSpan(text: '${this.escapeString(text)}', style: TextStyle(${sp.join(', ')}))`);
-        } else {
-          spans.push(`TextSpan(text: '${this.escapeString(text)}')`);
-        }
+        const styleStr = sp.length > 0 ? `TextStyle(${sp.join(', ')})` : null;
+        pushText(rawText, styleStr);
         continue;
       }
 

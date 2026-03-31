@@ -57,6 +57,8 @@ const HTMLParser = {
     this.parseCommonAttributes(element, node);
 
     const voidElements = ['input', 'col', 'br', 'hr', 'img', 'svg'];
+    // Note: <pagebreak> is intentionally NOT void — browser nests subsequent content
+    // inside it, so we need to read its children and hoist them into the next page.
     if (!voidElements.includes(tagName)) {
       for (const child of element.childNodes) {
         const childNode = this.parseNode(child);

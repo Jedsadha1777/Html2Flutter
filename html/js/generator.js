@@ -15,16 +15,22 @@ const DartGenerator = {
 
     if (ast.bodyStyles) context.bodyStyles = ast.bodyStyles;
 
-    let widgetCode = this.generateNode(ast, context);
-    widgetCode = 'child: ' + widgetCode.trimStart();
+    // Split document at top-level <pagebreak> tags into separate page ASTs.
+    const pageAsts = this._splitPages(ast);
+    const widgetCodes = pageAsts.map(pageAst => {
+      const code = this.generateNode(pageAst, context);
+      return 'child: ' + code.trimStart();
+    });
+    const widgetCode = widgetCodes[0];
 
     const controllersCode  = this.generateControllers(context);
     const importsCode      = this.generateImports(context);
     const stateCode        = this.generateStateVariables(context);
-    const boilerplateCode  = this.generateBoilerplate(context, widgetCode);
+    const boilerplateCode  = this.generateBoilerplate(context, widgetCodes.join('\n'));
 
     return {
       widgetCode,
+      widgetCodes,
       controllersCode,
       importsCode,
       stateCode,
@@ -34,6 +40,33 @@ const DartGenerator = {
       checkboxes:   context.checkboxes,
       usesTable:    context.usesTable,
     };
+  },
+
+  // Split ast.children at <pagebreak> elements into separate pseudo-document objects.
+  // Because browsers treat <pagebreak> as an unknown inline element, multiple <pagebreak>
+  // tags get nested inside each other. We walk recursively so N pagebreaks → N+1 pages.
+  _splitPages(ast) {
+    const segments = [];
+    let current = [];
+
+    const walk = (children) => {
+      for (const child of children) {
+        if (child.type === 'element' && child.tagName === 'pagebreak') {
+          segments.push(current);
+          current = [];
+          walk(child.children || []); // recurse: next pagebreak may be nested inside
+        } else {
+          current.push(child);
+        }
+      }
+    };
+
+    walk(ast.children);
+    segments.push(current);
+
+    return segments
+      .filter(s => s.some(c => c.type !== 'text' || c.content?.trim()))
+      .map(children => ({ ...ast, children }));
   },
 
   generateNode(node, context) {
