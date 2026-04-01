@@ -6,9 +6,171 @@
 import 'package:flutter/material.dart';
 import 'preview_shell.dart';
 
-void main() => runApp(PreviewShell(pages: [_content()]));
+void main() => runApp(const _App());
 
-Widget _content() => UnconstrainedBox(
+class _App extends StatefulWidget {
+  const _App({super.key});
+  @override
+  State<_App> createState() => _AppState();
+}
+
+class _AppState extends State<_App> {
+
+  // ============ CONTROLLERS ============
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _customerNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _extController = TextEditingController();
+
+
+  @override
+  Widget build(BuildContext context) => PreviewShell(pages: [
+      _page1(),
+      _page2(),
+      _page3(),
+      _page4(),
+      _page5(),
+  ]);
+
+  Widget _page1() => LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 68.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = availableWidth.isInfinite ? 200.0 : flexSpace / 1.000000;
+    final colWidths = <double>[
+      68.0,
+      flexUnit,
+    ];
+
+    final rowHeights = <double>[34.0, 46.0, 46.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 1],
+      <int>[2, 3],
+      <int>[4, 5],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          cell(0, 0, 1, 1, pad: EdgeInsets.all(8.0), child: _t('Field', sz: 12.0, bold: true, ff: 'Arial')),
+          cell(1, 0, 2, 1, pad: EdgeInsets.all(8.0), child: _t('Value', sz: 12.0, bold: true, ff: 'Arial')),
+          cell(0, 1, 1, 2, pad: EdgeInsets.all(8.0), child: _t('Name:', sz: 12.0, ff: 'Arial')),
+          cell(1, 1, 2, 2, pad: EdgeInsets.all(8.0), child: TextField(controller: _nameController, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8)))),
+          cell(0, 2, 1, 3, pad: EdgeInsets.all(8.0), child: _t('Email:', sz: 12.0, ff: 'Arial')),
+          cell(1, 2, 2, 3, pad: EdgeInsets.all(8.0), child: TextField(controller: _emailController, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8)))),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 1.0,
+                matrixData: matrixData,
+                numRows: 3,
+                numCols: 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+);
+
+  Widget _page2() => LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 72.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = availableWidth.isInfinite ? 200.0 : flexSpace / 2.000000;
+    final colWidths = <double>[
+      72.0,
+      flexUnit,
+      flexUnit,
+    ];
+
+    final rowHeights = <double>[38.0, 50.0, 50.0, 38.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 0, 0],
+      <int>[1, 2, 2],
+      <int>[3, 4, 5],
+      <int>[6, 6, 6],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          cell(0, 0, 3, 1, bg: Color(0xFF1976D2), pad: EdgeInsets.all(10.0), child: _t('Customer Information', sz: 12.0, bold: true, color: Colors.white, ff: 'Arial')),
+          cell(0, 1, 1, 2, pad: EdgeInsets.all(10.0), child: _t('Name:', sz: 12.0, ff: 'Arial')),
+          cell(1, 1, 3, 2, pad: EdgeInsets.all(10.0), child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 300.0), child: TextField(controller: _customerNameController, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8))))),
+          cell(0, 2, 1, 3, pad: EdgeInsets.all(10.0), child: _t('Phone:', sz: 12.0, ff: 'Arial')),
+          cell(1, 2, 2, 3, pad: EdgeInsets.all(10.0), child: TextField(controller: _phoneController, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8)))),
+          cell(2, 2, 3, 3, pad: EdgeInsets.all(10.0), child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 80.0), child: TextField(controller: _extController, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8))))),
+          cell(0, 3, 3, 4, pad: EdgeInsets.all(10.0), align: Alignment.centerRight, child: _rt([('Total: ฿1,234.00', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 1.0,
+                matrixData: matrixData,
+                numRows: 4,
+                numCols: 3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+);
+
+  Widget _page3() => UnconstrainedBox(
   alignment: Alignment.topLeft,
   child: LayoutBuilder(
   builder: (context, constraints) {
@@ -2607,6 +2769,373 @@ Widget _content() => UnconstrainedBox(
 ),
 );
 
+  Widget _page4() => UnconstrainedBox(
+  alignment: Alignment.topLeft,
+  child: Container(
+  margin: EdgeInsets.fromLTRB(20, 20, 20, 20),
+  padding: EdgeInsets.fromLTRB(8, 8, 8, 8),
+  decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.black, width: 1), right: BorderSide(color: Colors.black, width: 1), bottom: BorderSide(color: Colors.black, width: 1), left: BorderSide(color: Colors.black, width: 1))),
+  child: LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = 280.0.clamp(0.0, constraints.maxWidth);
+
+    final fixedTotal = 276.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = availableWidth.isInfinite ? 200.0 : flexSpace / 0.001000;
+    final colWidths = <double>[
+      15.0,
+      94.0,
+      65.0,
+      51.0,
+      51.0,
+    ];
+
+    final rowHeights = <double>[50.0, 41.0, 20.0, 37.0, 22.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 33.0, 22.0, 23.0, 38.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 38.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 0, 0, 0, 0],
+      <int>[1, 1, 1, 1, 1],
+      <int>[2, 2, 2, 2, 2],
+      <int>[3, 3, 3, 4, 4],
+      <int>[5, 5, 5, 5, 5],
+      <int>[6, 6, 6, 6, 7],
+      <int>[8, 9, 9, 9, 10],
+      <int>[11, 12, 12, 12, 13],
+      <int>[14, 14, 14, 14, 15],
+      <int>[16, 16, 16, 16, 17],
+      <int>[18, 18, 18, 18, 19],
+      <int>[20, 21, 21, 21, 22],
+      <int>[23, 24, 24, 24, 25],
+      <int>[26, 26, 26, 26, 27],
+      <int>[28, 28, 28, 29, 29],
+      <int>[30, 30, 30, 31, 31],
+      <int>[32, 32, 32, 32, 32],
+      <int>[33, 33, 34, 35, 36],
+      <int>[37, 37, 38, 39, 40],
+      <int>[41, 42, 43, 44, 45],
+      <int>[46, 46, 47, 48, 49],
+      <int>[50, 50, 51, 52, 53],
+      <int>[54, 54, 54, 55, 56],
+      <int>[57, 58, 58, 59, 60],
+      <int>[61, 61, 61, 61, 61],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          cell(0, 0, 5, 1, border: _bBottom(10), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), child: _t('Nutrition Facts', sz: 24.0, bold: true, ff: 'Arial')),
+          cell(0, 1, 5, 2, border: _bBottom(), pad: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0), child: _rt([(' Serving Size 1/2 cup (about 82g)', false), ('\n', false), (' Serving Per Container 8 ', false)], sz: 12.0, ff: 'Arial')),
+          cell(0, 2, 5, 3, pad: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0), child: _t('Amount Per Serving', sz: 10.0, bold: true, ff: 'Arial')),
+          cell(0, 3, 3, 4, border: _bTop(), child: _rt([('Calories', true), (' 200', false)], sz: 14.0, ff: 'Arial')),
+          cell(3, 3, 5, 4, border: _bTop(), align: Alignment.centerRight, child: _t('Calories from Fat 130', sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+          cell(0, 4, 5, 5, border: _bTop(5), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 2.0), align: Alignment.centerRight, child: _t('% Daily Value*', sz: 10.0, bold: true, ff: 'Arial', align: TextAlign.right)),
+          cell(0, 5, 4, 6, border: _bTop(), child: _rt([('Total Fat', true), (' 14g', false)], sz: 12.0, ff: 'Arial')),
+          cell(4, 5, 5, 6, border: _bTop(), align: Alignment.centerRight, child: _rt([('22%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+
+          cell(1, 6, 4, 7, border: _bTop(), child: _t('Saturated Fat 9g', sz: 12.0, ff: 'Arial')),
+          cell(4, 6, 5, 7, border: _bTop(), align: Alignment.centerRight, child: _rt([('22%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+
+          cell(1, 7, 4, 8, border: _bTop(), child: _t('Trans Fat 0g', sz: 12.0, ff: 'Arial')),
+          cell(4, 7, 5, 8, border: _bTop(), child: const SizedBox.shrink()),
+          cell(0, 8, 4, 9, border: _bTop(), child: _rt([('Cholesterol', true), (' 55mg', false)], sz: 12.0, ff: 'Arial')),
+          cell(4, 8, 5, 9, border: _bTop(), align: Alignment.centerRight, child: _rt([('18%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+          cell(0, 9, 4, 10, border: _bTop(), child: _rt([('Sodium', true), (' 40mg', false)], sz: 12.0, ff: 'Arial')),
+          cell(4, 9, 5, 10, border: _bTop(), align: Alignment.centerRight, child: _rt([('2%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+          cell(0, 10, 4, 11, border: _bTop(), child: _rt([('Total Carbohydrate', true), (' 17g', false)], sz: 12.0, ff: 'Arial')),
+          cell(4, 10, 5, 11, border: _bTop(), align: Alignment.centerRight, child: _rt([('6%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+
+          cell(1, 11, 4, 12, border: _bTop(), child: _t('Dietary Fiber 1g', sz: 12.0, ff: 'Arial')),
+          cell(4, 11, 5, 12, border: _bTop(), align: Alignment.centerRight, child: _rt([('4%', true)], sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+
+          cell(1, 12, 4, 13, border: _bTop(), child: _t('Sugars 14g', sz: 12.0, ff: 'Arial')),
+          cell(4, 12, 5, 13, border: _bTop(), child: const SizedBox.shrink()),
+          cell(0, 13, 4, 14, border: _bTopBottom(1, 10), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), child: _rt([('Protein', true), (' 3g', false)], sz: 12.0, ff: 'Arial')),
+          cell(4, 13, 5, 14, border: _bTopBottom(1, 10), child: const SizedBox.shrink()),
+          cell(0, 14, 3, 15, pad: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0), child: _t('Vitamin A 10%', sz: 12.0, ff: 'Arial')),
+          cell(3, 14, 5, 15, pad: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 0.0), align: Alignment.centerRight, child: _t('Vitamin C 0%', sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+          cell(0, 15, 3, 16, border: _bBottom(), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), child: _t('Calcium 10%', sz: 12.0, ff: 'Arial')),
+          cell(3, 15, 5, 16, border: _bBottom(), pad: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 4.0), align: Alignment.centerRight, child: _t('Iron 6%', sz: 12.0, ff: 'Arial', align: TextAlign.right)),
+          cell(0, 16, 5, 17, pad: EdgeInsets.symmetric(vertical: 4.0, horizontal: 0.0), child: _t('* Percent Daily Values are based on a 2,000 calorie diet.', sz: 10.0, ff: 'Arial')),
+
+          cell(2, 17, 3, 18, border: _bBottom(), child: _t('Calories:', sz: 10.0, ff: 'Arial')),
+          cell(3, 17, 4, 18, border: _bBottom(), child: _t('2,000', sz: 10.0, ff: 'Arial')),
+          cell(4, 17, 5, 18, border: _bBottom(), child: _t('2,500', sz: 10.0, ff: 'Arial')),
+          cell(0, 18, 2, 19, child: _rt([('Total Fat', true)], sz: 10.0, ff: 'Arial')),
+          cell(2, 18, 3, 19, child: _t('Less than', sz: 10.0, ff: 'Arial')),
+          cell(3, 18, 4, 19, child: _t('65g', sz: 10.0, ff: 'Arial')),
+          cell(4, 18, 5, 19, child: _t('80g', sz: 10.0, ff: 'Arial')),
+
+          cell(1, 19, 2, 20, child: _t('Saturated Fat', sz: 10.0, ff: 'Arial')),
+          cell(2, 19, 3, 20, child: _t('Less than', sz: 10.0, ff: 'Arial')),
+          cell(3, 19, 4, 20, child: _t('20g', sz: 10.0, ff: 'Arial')),
+          cell(4, 19, 5, 20, child: _t('25g', sz: 10.0, ff: 'Arial')),
+          cell(0, 20, 2, 21, child: _rt([('Cholesterol', true)], sz: 10.0, ff: 'Arial')),
+          cell(2, 20, 3, 21, child: _t('Less than', sz: 10.0, ff: 'Arial')),
+          cell(3, 20, 4, 21, child: _t('300mg', sz: 10.0, ff: 'Arial')),
+          cell(4, 20, 5, 21, child: _t('300mg', sz: 10.0, ff: 'Arial')),
+          cell(0, 21, 2, 22, child: _rt([('Sodium', true)], sz: 10.0, ff: 'Arial')),
+          cell(2, 21, 3, 22, child: _t('Less than', sz: 10.0, ff: 'Arial')),
+          cell(3, 21, 4, 22, child: _t('2,400mg', sz: 10.0, ff: 'Arial')),
+          cell(4, 21, 5, 22, child: _t('2,400mg', sz: 10.0, ff: 'Arial')),
+          cell(0, 22, 3, 23, child: _rt([('Total Carbohydrate', true)], sz: 10.0, ff: 'Arial')),
+          cell(3, 22, 4, 23, child: _t('300g', sz: 10.0, ff: 'Arial')),
+          cell(4, 22, 5, 23, child: _t('375g', sz: 10.0, ff: 'Arial')),
+
+          cell(1, 23, 3, 24, child: _t('Dietary Fiber', sz: 10.0, ff: 'Arial')),
+          cell(3, 23, 4, 24, child: _t('25g', sz: 10.0, ff: 'Arial')),
+          cell(4, 23, 5, 24, child: _t('30g', sz: 10.0, ff: 'Arial')),
+          cell(0, 24, 5, 25, pad: EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 0.0), child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _rt([(' Calories per gram:', false)], sz: 10.0, ff: 'Arial'),
+                  Text('Fat 9 • Carbohydrate 4 • Protein 4', style: TextStyle(fontFamily: 'Arial', fontSize: 10.0), textAlign: TextAlign.center),
+                ],
+              )),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 0.0,
+                matrixData: matrixData,
+                numRows: 25,
+                numCols: 5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+),
+),
+);
+
+  Widget _page5() => UnconstrainedBox(
+  alignment: Alignment.topLeft,
+  child: LayoutBuilder(
+  builder: (context, constraints) {
+    final availableWidth = constraints.maxWidth;
+
+    final fixedTotal = 560.0;
+    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);
+    final flexUnit = availableWidth.isInfinite ? 200.0 : flexSpace / 0.001000;
+    final colWidths = <double>[
+      120.0,
+      160.0,
+      160.0,
+      120.0,
+    ];
+
+    final rowHeights = <double>[27.0, 28.0, 28.0, 28.0, 28.0, 29.0];
+
+    final cs = <double>[0.0];
+    for (final w in colWidths) { cs.add(cs.last + w); }
+    final rs = <double>[0.0];
+    for (final h in rowHeights) { rs.add(rs.last + h); }
+
+    final totalWidth = cs.last;
+    final totalHeight = rs.last;
+
+    Positioned cell(int c, int r, int ce, int re,
+        {Border? border, Color? bg, EdgeInsets pad = EdgeInsets.zero,
+        Alignment align = Alignment.centerLeft, required Widget child}) =>
+      Positioned(left: cs[c], top: rs[r], width: cs[ce] - cs[c], height: rs[re] - rs[r],
+          child: Container(
+              decoration: (border != null || bg != null) ? BoxDecoration(border: border, color: bg) : null,
+              padding: pad, alignment: align, child: child));
+
+    final matrixData = <List<int>>[
+      <int>[0, 0, 0, 0],
+      <int>[1, 2, 3, 4],
+      <int>[5, 6, 7, 8],
+      <int>[9, 10, 11, 12],
+      <int>[13, 14, 15, 16],
+      <int>[17, 18, 19, 20],
+    ];
+
+    return SizedBox(
+      width: totalWidth,
+      height: totalHeight,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          Positioned(left: cs[0], top: rs[0], width: cs[4] - cs[0], height: rs[1] - rs[0], child: Container(
+              decoration: BoxDecoration(color: Color(0xFF1976D2), border: Border(bottom: BorderSide(color: Color(0xFF0D47A1), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold, color: Colors.white),
+                child: Text('Sales Report Q1 2024', softWrap: false, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+              ))),
+          Positioned(left: cs[0], top: rs[1], width: cs[1] - cs[0], height: rs[2] - rs[1], child: Container(
+              decoration: BoxDecoration(color: Color(0xFFE3F2FD), border: Border(left: BorderSide(color: Color(0xFF90CAF9), width: 1), right: BorderSide(color: Color(0xFF90CAF9), width: 1), bottom: BorderSide(color: Color(0xFF90CAF9), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('Product', softWrap: false, overflow: TextOverflow.visible),
+              ))),
+          Positioned(left: cs[1], top: rs[1], width: cs[2] - cs[1], height: rs[2] - rs[1], child: Container(
+              decoration: BoxDecoration(color: Color(0xFFE3F2FD), border: Border(right: BorderSide(color: Color(0xFF90CAF9), width: 1), bottom: BorderSide(color: Color(0xFF90CAF9), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('Sales', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.center),
+              ))),
+          Positioned(left: cs[2], top: rs[1], width: cs[3] - cs[2], height: rs[2] - rs[1], child: Container(
+              decoration: BoxDecoration(color: Color(0xFFE3F2FD), border: Border(right: BorderSide(color: Color(0xFF90CAF9), width: 1), bottom: BorderSide(color: Color(0xFF90CAF9), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('Revenue', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.center),
+              ))),
+          Positioned(left: cs[3], top: rs[1], width: cs[4] - cs[3], height: rs[2] - rs[1], child: Container(
+              decoration: BoxDecoration(color: Color(0xFFE3F2FD), border: Border(right: BorderSide(color: Color(0xFF90CAF9), width: 1), bottom: BorderSide(color: Color(0xFF90CAF9), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('Status', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.center),
+              ))),
+          Positioned(left: cs[0], top: rs[2], width: cs[1] - cs[0], height: rs[3] - rs[2], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(left: BorderSide(color: Color(0xFFCCCCCC), width: 1), right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('Widget A', softWrap: false, overflow: TextOverflow.visible),
+              ))),
+          Positioned(left: cs[1], top: rs[2], width: cs[2] - cs[1], height: rs[3] - rs[2], child: Container(
+              decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [Color(0xFF63C3F5), Colors.transparent], stops: [0.7800, 0.7800]), border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('78', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[2], top: rs[2], width: cs[3] - cs[2], height: rs[3] - rs[2], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('\$12,450.00', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[3], top: rs[2], width: cs[4] - cs[3], height: rs[3] - rs[2], child: Container(
+              decoration: BoxDecoration(color: Color(0xFF63BE7B), border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('⬆️'),
+                  SizedBox(width: 4.0),
+                  Text('High', style: TextStyle(fontFamily: 'Arial', fontSize: 14.6)),
+                ],
+              ))),
+          Positioned(left: cs[0], top: rs[3], width: cs[1] - cs[0], height: rs[4] - rs[3], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(left: BorderSide(color: Color(0xFFCCCCCC), width: 1), right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('Widget B', softWrap: false, overflow: TextOverflow.visible),
+              ))),
+          Positioned(left: cs[1], top: rs[3], width: cs[2] - cs[1], height: rs[4] - rs[3], child: Container(
+              decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [Color(0xFF63C3F5), Colors.transparent], stops: [0.4500, 0.4500]), border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('45', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[2], top: rs[3], width: cs[3] - cs[2], height: rs[4] - rs[3], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('\$7,200.00', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[3], top: rs[3], width: cs[4] - cs[3], height: rs[4] - rs[3], child: Container(
+              decoration: BoxDecoration(color: Color(0xFFFFEB84), border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('➡️'),
+                  SizedBox(width: 4.0),
+                  Text('Mid', style: TextStyle(fontFamily: 'Arial', fontSize: 14.6)),
+                ],
+              ))),
+          Positioned(left: cs[0], top: rs[4], width: cs[1] - cs[0], height: rs[5] - rs[4], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(left: BorderSide(color: Color(0xFFCCCCCC), width: 1), right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('Widget C', softWrap: false, overflow: TextOverflow.visible),
+              ))),
+          Positioned(left: cs[1], top: rs[4], width: cs[2] - cs[1], height: rs[5] - rs[4], child: Container(
+              decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [Color(0xFF63C3F5), Colors.transparent], stops: [0.2200, 0.2200]), border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('22', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[2], top: rs[4], width: cs[3] - cs[2], height: rs[5] - rs[4], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6),
+                child: Text('\$3,100.00', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[3], top: rs[4], width: cs[4] - cs[3], height: rs[5] - rs[4], child: Container(
+              decoration: BoxDecoration(color: Color(0xFFF8696B), border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('⬇️'),
+                  SizedBox(width: 4.0),
+                  Text('Low', style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, color: Colors.white)),
+                ],
+              ))),
+          Positioned(left: cs[0], top: rs[5], width: cs[1] - cs[0], height: rs[6] - rs[5], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(left: BorderSide(color: Color(0xFFCCCCCC), width: 1), right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('Total', softWrap: false, overflow: TextOverflow.visible),
+              ))),
+          Positioned(left: cs[1], top: rs[5], width: cs[2] - cs[1], height: rs[6] - rs[5], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('145', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[2], top: rs[5], width: cs[3] - cs[2], height: rs[6] - rs[5], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerRight, child: DefaultTextStyle.merge(
+                style: TextStyle(fontFamily: 'Arial', fontSize: 14.6, fontWeight: FontWeight.bold),
+                child: Text('\$22,750.00', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.right),
+              ))),
+          Positioned(left: cs[3], top: rs[5], width: cs[4] - cs[3], height: rs[6] - rs[5], child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFFCCCCCC), width: 1), bottom: BorderSide(color: Color(0xFFCCCCCC), width: 1))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: const SizedBox.shrink())),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TableGridPainter(
+                colStarts: cs,
+                rowStarts: rs,
+                borderColor: Colors.black,
+                borderWidth: 0.0,
+                matrixData: matrixData,
+                numRows: 6,
+                numCols: 4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+),
+);
+}
+
 // ============ HELPER CLASSES ============
 // ── Text helpers ──────────────────────────────────────────────────────────────
 
@@ -2621,6 +3150,9 @@ Widget _rt(List<(String, bool)> spans, {double sz = 16, String ff = 'Browallia N
 // ── Border helpers ────────────────────────────────────────────────────────────
 
 const _bk = Colors.black;
+Border _bTop([double w = 1])    => Border(top:    BorderSide(color: _bk, width: w));
+Border _bBottom([double w = 1]) => Border(bottom: BorderSide(color: _bk, width: w));
+Border _bTopBottom(double t, double b) => Border(top: BorderSide(color: _bk, width: t), bottom: BorderSide(color: _bk, width: b));
 
 class _TableGridPainter extends CustomPainter {
   final List<double> colStarts;
