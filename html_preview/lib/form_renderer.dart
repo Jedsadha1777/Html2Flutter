@@ -2,18 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'preview_shell.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// FormRenderer — dynamic form builder driven by JSON schema
-//
-// Renders complex tables using Stack+Positioned (same approach as
-// the Dart code generator) with CustomPaint grid borders.
-// Wraps pages in PreviewShell for PDF-style preview.
-//
-// Usage:
-//   final json = jsonDecode(jsonString);
-//   FormRenderer(schema: json);
-// ═══════════════════════════════════════════════════════════════════════════════
-
 class FormRenderer extends StatefulWidget {
   final Map<String, dynamic> schema;
   final void Function(Map<String, dynamic> values)? onSubmit;
@@ -36,9 +24,9 @@ class _FormRendererState extends State<FormRenderer> {
   final Map<String, String?> _dropdownValues = {};
   final Map<String, bool> _checkboxValues = {};
 
-  // Cell-level properties propagated to child text widgets during build
   String? _currentWhiteSpace;
   String? _currentTextAlign;
+  String? _currentTextTransform;
 
   List<dynamic> get _pages => widget.schema['pages'] as List? ?? [];
   List<dynamic> get _fields => widget.schema['fields'] as List? ?? [];
@@ -102,7 +90,6 @@ class _FormRendererState extends State<FormRenderer> {
       return const Center(child: Text('No pages in schema'));
     }
 
-    // Build each page as a widget, wrap in PreviewShell
     final pageWidgets = _pages.map((p) => _buildNode(p)).toList();
 
     return Form(
@@ -110,10 +97,6 @@ class _FormRendererState extends State<FormRenderer> {
       child: PreviewShell(pages: pageWidgets),
     );
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Node builder — dispatches JSON node type to widget builder
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildNode(dynamic node) {
     if (node == null) return const SizedBox.shrink();
@@ -156,30 +139,25 @@ class _FormRendererState extends State<FormRenderer> {
     }
   }
 
-  // ── Column ────────────────────────────────────────────────────────────────
-
   Widget _buildColumn(Map<String, dynamic> node) {
     final children = node['children'] as List? ?? [];
+    final stretch = node['stretch'] == true;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: stretch ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: children.map((c) => _buildNode(c)).toList(),
     );
   }
 
-  // ── Container — with border, rotation, width:infinity ──────────────────
-
   Widget _buildContainer(Map<String, dynamic> node) {
     final style = node['style'] as Map<String, dynamic>? ?? {};
     Widget child = _buildNode(node['child']);
 
-    // Propagate text styles (fontSize, fontWeight, color, fontFamily) to children
     final textStyle = _cellTextStyle(style);
     if (textStyle != null) {
       child = DefaultTextStyle.merge(style: textStyle, child: child);
     }
 
-    // Width: 'infinity' or numeric
     double? width;
     final widthVal = style['width'];
     if (widthVal == 'infinity') {
@@ -188,7 +166,6 @@ class _FormRendererState extends State<FormRenderer> {
       width = _dim(widthVal);
     }
 
-    // Border
     final border = _parseContainerBorder(style['border'] as Map<String, dynamic>?);
     final borderLeft = _parseSingleBorder(style['borderLeft'] as Map<String, dynamic>?);
 
@@ -212,7 +189,6 @@ class _FormRendererState extends State<FormRenderer> {
       child: child,
     );
 
-    // Rotation
     final rotate = style['rotateAngle'];
     if (rotate != null && rotate != 0) {
       final radians = (rotate as num).toDouble() * 3.14159265 / 180;
@@ -244,13 +220,16 @@ class _FormRendererState extends State<FormRenderer> {
     );
   }
 
-  // ── Text ──────────────────────────────────────────────────────────────────
+  String _applyTextTransform(String text) {
+    if (_currentTextTransform == 'uppercase') return text.toUpperCase();
+    if (_currentTextTransform == 'lowercase') return text.toLowerCase();
+    return text;
+  }
 
   Widget _buildText(Map<String, dynamic> node) {
-    final content = node['content'] as String? ?? '';
+    final content = _applyTextTransform(node['content'] as String? ?? '');
     final style = node['style'] as Map<String, dynamic>?;
     final isNowrap = _currentWhiteSpace == 'nowrap';
-    // textAlign: from node style first, fall back to cell-level textAlign
     final align = _textAlign(style?['textAlign']) ?? _textAlign(_currentTextAlign);
     return Text(
       content,
@@ -261,15 +240,13 @@ class _FormRendererState extends State<FormRenderer> {
     );
   }
 
-  // ── RichText — inline formatted text with spans ───────────────────────────
-
   Widget _buildRichText(Map<String, dynamic> node) {
     final spans = node['spans'] as List? ?? [];
     if (spans.isEmpty) return const SizedBox.shrink();
 
     final textSpans = spans.map<InlineSpan>((s) {
       final spanMap = s as Map<String, dynamic>;
-      final text = spanMap['text'] as String? ?? '';
+      final text = _applyTextTransform(spanMap['text'] as String? ?? '');
       final style = spanMap['style'] as Map<String, dynamic>?;
       return TextSpan(
         text: text,
@@ -286,11 +263,6 @@ class _FormRendererState extends State<FormRenderer> {
       text: TextSpan(children: textSpans),
     );
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Table — pre-computed placements from TableHandler.generateJson()
-  // Uses LayoutBuilder + Stack + Positioned (same as Dart generator output)
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildTable(Map<String, dynamic> node) {
     final placementsList = node['placements'] as List?;
@@ -310,12 +282,14 @@ class _FormRendererState extends State<FormRenderer> {
         .map((row) => (row as List).map((v) => (v as int)).toList())
         .toList();
 
-    // Use LayoutBuilder to resolve column widths at runtime (same as Dart genColWidthCode)
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
+    final fixedWidth = _dim(node['fixedWidth']);
 
-        // Resolve column widths from specs (matches Dart genColWidthCode exactly)
+    Widget layoutBuilder = LayoutBuilder(
+      builder: (context, constraints) {
+        final double availableWidth = fixedWidth != null
+            ? fixedWidth.clamp(0.0, constraints.maxWidth)
+            : constraints.maxWidth;
+
         double totalFixed = 0, totalPercent = 0;
         int flexCount = 0;
         for (final spec in colSpecList) {
@@ -355,7 +329,6 @@ class _FormRendererState extends State<FormRenderer> {
           }
         }
 
-        // Cumulative positions
         final colStarts = <double>[0];
         for (final w in colWidths) {
           colStarts.add(colStarts.last + w);
@@ -368,7 +341,6 @@ class _FormRendererState extends State<FormRenderer> {
         final totalWidth = colStarts.last;
         final totalHeight = rowStarts.last;
 
-        // Build positioned children
         final children = <Widget>[];
 
         for (final p in placementsList) {
@@ -410,9 +382,9 @@ class _FormRendererState extends State<FormRenderer> {
         cellStyle['verticalAlign'] as String?,
       );
 
-      // Set cell-level properties for child text widgets
       _currentWhiteSpace = cellStyle['whiteSpace'] as String?;
       _currentTextAlign = cellStyle['textAlign'] as String?;
+      _currentTextTransform = cellStyle['textTransform'] as String?;
 
       Widget content = pMap['child'] != null
           ? _buildNode(pMap['child'])
@@ -420,6 +392,7 @@ class _FormRendererState extends State<FormRenderer> {
 
       _currentWhiteSpace = null;
       _currentTextAlign = null;
+      _currentTextTransform = null;
 
       final ts = _cellTextStyle(cellStyle);
       if (ts != null) {
@@ -489,7 +462,6 @@ class _FormRendererState extends State<FormRenderer> {
       ));
     }
 
-        // Grid painter overlay
         if (borderWidth > 0) {
           children.add(Positioned.fill(
             child: CustomPaint(
@@ -515,31 +487,32 @@ class _FormRendererState extends State<FormRenderer> {
           ),
         );
 
-        // Table-level CSS border, borderRadius, margin, padding wrapper
-        final tableStyle = node['tableStyle'] as Map<String, dynamic>?;
-        if (tableStyle != null) {
-          final tBorder = _parseCellBorder(tableStyle['border'] as Map<String, dynamic>?);
-          final tRadius = _dim(tableStyle['borderRadius']);
-          final tMargin = _edgeInsets(tableStyle['margin']);
-          final tPadding = _edgeInsets(tableStyle['padding']);
-          final tBg = _color(tableStyle['backgroundColor']);
-          final hasDecor = tBorder != null || tRadius != null || tBg != null;
-          table = Container(
-            margin: tMargin,
-            padding: tPadding,
-            clipBehavior: tRadius != null ? Clip.antiAlias : Clip.none,
-            decoration: hasDecor ? BoxDecoration(
-              border: tBorder,
-              borderRadius: tRadius != null ? BorderRadius.circular(tRadius) : null,
-              color: tBg,
-            ) : null,
-            child: table,
-          );
-        }
-
         return table;
       },
     );
+
+    final tableStyle = node['tableStyle'] as Map<String, dynamic>?;
+    if (tableStyle != null) {
+      final tBorder = _parseCellBorder(tableStyle['border'] as Map<String, dynamic>?);
+      final tRadius = _dim(tableStyle['borderRadius']);
+      final tMargin = _edgeInsets(tableStyle['margin']);
+      final tPadding = _edgeInsets(tableStyle['padding']);
+      final tBg = _color(tableStyle['backgroundColor']);
+      final hasDecor = tBorder != null || tRadius != null || tBg != null;
+      layoutBuilder = Container(
+        margin: tMargin,
+        padding: tPadding,
+        clipBehavior: tRadius != null ? Clip.antiAlias : Clip.none,
+        decoration: hasDecor ? BoxDecoration(
+          border: tBorder,
+          borderRadius: tRadius != null ? BorderRadius.circular(tRadius) : null,
+          color: tBg,
+        ) : null,
+        child: layoutBuilder,
+      );
+    }
+
+    return layoutBuilder;
   }
 
   /// Parse structured cell border JSON into Flutter Border
@@ -583,10 +556,6 @@ class _FormRendererState extends State<FormRenderer> {
       height: lineHeight,
     );
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Form fields
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildInput(Map<String, dynamic> node) {
     final name = node['name'] as String? ?? '';
@@ -763,7 +732,6 @@ class _FormRendererState extends State<FormRenderer> {
       children: items.asMap().entries.map((e) {
         final prefix = ordered ? '${e.key + 1}. ' : '\u2022 ';
         final item = e.value;
-        // Item can be a string or a JSON node (text/richtext)
         if (item is String) {
           return Text('$prefix$item');
         }
@@ -780,10 +748,6 @@ class _FormRendererState extends State<FormRenderer> {
       }).toList(),
     );
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Style helpers
-  // ═══════════════════════════════════════════════════════════════════════════
 
   double? _dim(dynamic v) {
     if (v == null) return null;
@@ -853,8 +817,9 @@ class _FormRendererState extends State<FormRenderer> {
     if (v == null) return null;
     switch (v) {
       case 'center': return TextAlign.center;
-      case 'right': return TextAlign.right;
+      case 'right': case 'end': return TextAlign.right;
       case 'justify': return TextAlign.justify;
+      case 'left': case 'start': return TextAlign.left;
       default: return TextAlign.left;
     }
   }
@@ -862,7 +827,7 @@ class _FormRendererState extends State<FormRenderer> {
   Alignment _alignment(String? hAlign, String? vAlign) {
     double x = -1, y = 0;
     if (hAlign == 'center') x = 0;
-    if (hAlign == 'right') x = 1;
+    if (hAlign == 'right' || hAlign == 'end') x = 1;
     if (vAlign == 'top') y = -1;
     if (vAlign == 'bottom') y = 1;
     return Alignment(x, y);
@@ -881,10 +846,6 @@ class _FormRendererState extends State<FormRenderer> {
     return null;
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Diagonal border painter — draws diagonal lines across a cell
-// ═══════════════════════════════════════════════════════════════════════════════
 
 class _TableGridPainter extends CustomPainter {
   final List<double> colStarts;
@@ -971,10 +932,6 @@ class _DiagonalBorderPainter extends CustomPainter {
       old.topLeftToBottomRight != topLeftToBottomRight ||
       old.bottomLeftToTopRight != bottomLeftToTopRight;
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Convenience: load from raw JSON string
-// ═══════════════════════════════════════════════════════════════════════════════
 
 class FormRendererFromJson extends StatelessWidget {
   final String jsonString;

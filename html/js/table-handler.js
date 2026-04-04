@@ -82,6 +82,11 @@ class TableStyleContext {
     this.whiteSpace    = opts.whiteSpace    || null;
     this.lineHeight    = opts.lineHeight    || null;   // Flutter TextStyle.height ratio (line-height / font-size)
     this.cellBorder    = opts.cellBorder    || null;   // Flutter Border() string
+    this.textTransform = opts.textTransform || null;   // 'uppercase', 'lowercase', 'capitalize'
+    // Raw CSS values for JSON output (avoids parsing Flutter strings back)
+    this.rawBgColor    = opts.rawBgColor    || null;
+    this.rawTextColor  = opts.rawTextColor  || null;
+    this.rawBorderCss  = opts.rawBorderCss  || null;   // raw CSS border properties
   }
 
   copyWith(opts) {
@@ -101,6 +106,10 @@ class TableStyleContext {
       whiteSpace:          opts.whiteSpace          ?? this.whiteSpace,
       lineHeight:          opts.lineHeight          ?? this.lineHeight,
       cellBorder:          opts.cellBorder          ?? this.cellBorder,
+      textTransform:       opts.textTransform       ?? this.textTransform,
+      rawBgColor:          opts.rawBgColor          ?? this.rawBgColor,
+      rawTextColor:        opts.rawTextColor        ?? this.rawTextColor,
+      rawBorderCss:        opts.rawBorderCss        ?? this.rawBorderCss,
     });
   }
 }
@@ -161,12 +170,12 @@ const TableHandler = {
       const row = allRows[rowIdx];
       let sectionStyle = new TableStyleContext(baseOpts);
       if (row.sectionType === 'thead') {
-        sectionStyle = sectionStyle.copyWith({ bgColor: 'Colors.grey.shade200', fontWeight: 'FontWeight.bold' });
+        sectionStyle = sectionStyle.copyWith({ bgColor: 'Colors.grey.shade200', fontWeight: 'FontWeight.bold', rawBgColor: '#EEEEEE' });
       }
 
       let rowStyle = sectionStyle;
-      if (row.node?.bgcolor) rowStyle = rowStyle.copyWith({ bgColor: StyleParser.colorToFlutter(row.node.bgcolor) });
-      if (row.node?.styles?.backgroundColor) rowStyle = rowStyle.copyWith({ bgColor: StyleParser.colorToFlutter(row.node.styles.backgroundColor) });
+      if (row.node?.bgcolor) rowStyle = rowStyle.copyWith({ bgColor: StyleParser.colorToFlutter(row.node.bgcolor), rawBgColor: row.node.bgcolor });
+      if (row.node?.styles?.backgroundColor) rowStyle = rowStyle.copyWith({ bgColor: StyleParser.colorToFlutter(row.node.styles.backgroundColor), rawBgColor: row.node.styles.backgroundColor });
 
       // Apply <tr> text styles so cells inherit them
       const trStyles = row.node?.styles || {};
@@ -310,8 +319,8 @@ const TableHandler = {
 
         let cellStyle = rowStyle;
 
-        if (cell.bgcolor) cellStyle = cellStyle.copyWith({ bgColor: StyleParser.colorToFlutter(cell.bgcolor) });
-        if (cell.styles?.backgroundColor) cellStyle = cellStyle.copyWith({ bgColor: StyleParser.colorToFlutter(cell.styles.backgroundColor) });
+        if (cell.bgcolor) cellStyle = cellStyle.copyWith({ bgColor: StyleParser.colorToFlutter(cell.bgcolor), rawBgColor: cell.bgcolor });
+        if (cell.styles?.backgroundColor) cellStyle = cellStyle.copyWith({ bgColor: StyleParser.colorToFlutter(cell.styles.backgroundColor), rawBgColor: cell.styles.backgroundColor });
         // Linear-gradient background (Luckysheet dataBar)
         if (cell.styles?.backgroundGradient) cellStyle = cellStyle.copyWith({ bgGradient: cell.styles.backgroundGradient });
 
@@ -330,7 +339,7 @@ const TableHandler = {
           if (ff) cellStyle = cellStyle.copyWith({ fontFamily: ff });
         }
 
-        if (cell.styles?.color) cellStyle = cellStyle.copyWith({ textColor: StyleParser.colorToFlutter(cell.styles.color) });
+        if (cell.styles?.color) cellStyle = cellStyle.copyWith({ textColor: StyleParser.colorToFlutter(cell.styles.color), rawTextColor: cell.styles.color });
 
         // Font size — parseDimension converts pt→px
         if (cell.styles?.fontSize) {
@@ -362,6 +371,13 @@ const TableHandler = {
         if (cell.styles?.whiteSpace) {
           cellStyle = cellStyle.copyWith({ whiteSpace: cell.styles.whiteSpace });
         }
+        // text-transform from row or cell
+        if (row.node?.styles?.textTransform) {
+          cellStyle = cellStyle.copyWith({ textTransform: row.node.styles.textTransform });
+        }
+        if (cell.styles?.textTransform) {
+          cellStyle = cellStyle.copyWith({ textTransform: cell.styles.textTransform });
+        }
         if (cell.styles) {
           const collapsed = tableNode.styles?.borderCollapse === 'collapse';
           let border;
@@ -386,7 +402,7 @@ const TableHandler = {
           } else {
             border = StyleParser.cellBorderToFlutter(cell.styles);
           }
-          if (border) cellStyle = cellStyle.copyWith({ cellBorder: border });
+          if (border) cellStyle = cellStyle.copyWith({ cellBorder: border, rawBorderCss: cell.styles || null });
         }
 
         const hd = cellHeightMap.get(cell) || { effFontSize: rowFontSize, structuralLines: 1 };
@@ -599,6 +615,7 @@ const TableHandler = {
         minRowHeights[p.row] = cellH;
       }
     }
+
   },
 
   render(node, table, context, parentStyle) {
@@ -721,7 +738,9 @@ const TableHandler = {
     const allColumnsFixed = columnWidths.length > 0 && columnWidths.every(w => w?.type === 'fixed' || w?.type === 'shrink');
     const needsUnconstrained = fixedTableWidth != null || allColumnsFixed;
 
-    if (tableBorder || hasMargin || hasPadding) {
+    const tableBgColor = ts.backgroundColor ? StyleParser.colorToFlutter(ts.backgroundColor) : null;
+
+    if (tableBorder || hasMargin || hasPadding || tableBgColor) {
       const wrapProps = [];
       if (hasMargin) {
         const mt = marginTop    ?? 0;
@@ -737,8 +756,11 @@ const TableHandler = {
         const pl = paddingLeft   ?? 0;
         wrapProps.push(`padding: EdgeInsets.fromLTRB(${pl}, ${pt}, ${pr}, ${pb})`);
       }
-      if (tableBorder) {
-        wrapProps.push(`decoration: BoxDecoration(border: ${tableBorder})`);
+      if (tableBorder || tableBgColor) {
+        const decorParts = [];
+        if (tableBorder) decorParts.push(`border: ${tableBorder}`);
+        if (tableBgColor) decorParts.push(`color: ${tableBgColor}`);
+        wrapProps.push(`decoration: BoxDecoration(${decorParts.join(', ')})`);
       }
       const inner = lines.join('\n');
       const wrapped = `Container(\n  ${wrapProps.join(',\n  ')},\n  child: ${inner},\n)`;
@@ -1129,10 +1151,14 @@ const TableHandler = {
     }
 
     const _preserveNl = ['pre', 'pre-wrap', 'pre-line'].includes(style.whiteSpace);
-    const text = _preserveNl
+    let text = _preserveNl
       ? this.extractTextPreserveNewlines({ children: contentChildren })
       : this.extractText({ children: contentChildren });
     if (!text || !text.trim()) return 'const SizedBox.shrink()';
+
+    // Apply text-transform
+    if (style.textTransform === 'uppercase') text = text.toUpperCase();
+    else if (style.textTransform === 'lowercase') text = text.toLowerCase();
 
     const fontSize   = style.fontSize   ? style.fontSize.toFixed(1)   : '16.0';
     const fontFamily = style.fontFamily || 'Browallia New';
@@ -1186,13 +1212,15 @@ const TableHandler = {
     return true;
   },
 
-  _buildRtPairs(children) {
+  _buildRtPairs(children, textTransform = null) {
     const pairs = [];
     let buf = '', isBold = false;
     const flush = () => { if (buf) { pairs.push(`('${this.escapeString(buf)}', ${isBold})`); buf = ''; } };
     const add = (node, bold) => {
       if (node.type === 'text') {
-        const t = node.content.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ');
+        let t = node.content.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ');
+        if (textTransform === 'uppercase') t = t.toUpperCase();
+        else if (textTransform === 'lowercase') t = t.toLowerCase();
         if (!t.trim()) return;
         if (bold !== isBold) { flush(); isBold = bold; }
         buf += t;
@@ -1347,7 +1375,7 @@ const TableHandler = {
     const _usePreserveNl = ['pre', 'pre-wrap', 'pre-line'].includes(baseStyle.whiteSpace);
     if (!_usePreserveNl && softWrap && overflow === 'TextOverflow.clip' && this._isSimpleRichText(children)
         && !baseStyle.textColor && !baseStyle.lineHeight) {
-      const pairs = this._buildRtPairs(children);
+      const pairs = this._buildRtPairs(children, baseStyle.textTransform);
       if (pairs.length > 0) {
         const rtArgs = [`[${pairs.join(', ')}]`];
         const fs = baseStyle.fontSize;
@@ -1362,9 +1390,12 @@ const TableHandler = {
 
     const spans = [];
     const preserveNewlines = ['pre', 'pre-wrap', 'pre-line'].includes(baseStyle.whiteSpace);
+    const tt = baseStyle.textTransform; // text-transform
 
     // Helper: push text content as one or more TextSpans, splitting on \n when preserveNewlines.
     const pushText = (raw, styleStr = null) => {
+      if (tt === 'uppercase') raw = raw.toUpperCase();
+      else if (tt === 'lowercase') raw = raw.toLowerCase();
       if (preserveNewlines) {
         const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
         for (let i = 0; i < lines.length; i++) {
@@ -1505,6 +1536,19 @@ const TableHandler = {
         if (innerHasTable) {
           const nested = this.buildColumnContent(child.children || [], style, context);
           if (nested && nested !== 'const SizedBox.shrink()') segments.push(nested);
+          continue;
+        }
+        // Check if block child has styled inline content (e.g. <p><span style="font-weight:700">A</span><span>B</span></p>)
+        const semanticTags = new Set(['b','strong','i','em','u','s','strike']);
+        const hasStyledInline = (child.children || []).some(c =>
+          semanticTags.has(c.tagName) ||
+          c.tagName === 'br' ||
+          ((c.tagName === 'span' || c.tagName === 'a') && c.styles && Object.keys(c.styles).length > 0)
+        );
+        if (hasStyledInline) {
+          // Use buildRichText to preserve per-span styling
+          const rt = this.buildRichText(child.children || [], style, true, 'TextOverflow.clip', context);
+          if (rt && rt !== 'const SizedBox.shrink()') segments.push(rt);
           continue;
         }
         const blockText = this.extractText(child);
@@ -1698,6 +1742,268 @@ const TableHandler = {
     return s
       .replace(/[-_\s]+(.)?/g, (_, c) => c ? c.toUpperCase() : '')
       .replace(/^./, c => c.toLowerCase());
+  },
+
+  generateJson(node, contentBuilder, inheritedStyles = null, estimatedWidth = null) {
+    const context = { containerWidth: estimatedWidth, usesTable: true, usesGesture: false, usesDiagonalBorder: false, usesComment: false };
+    const result = this.buildTable(node, inheritedStyles, estimatedWidth);
+    const { matrix, columnWidths, minRowHeights } = result;
+    const { placements, numRows, numCols } = matrix;
+
+    if (numRows === 0 || numCols === 0) return null;
+
+    const cellsHaveBorder = placements.some(p => p.style.cellBorder);
+    const htmlBorderAttr = parseInt(node.border) || 0;
+    const painterBorderWidth = (!cellsHaveBorder && htmlBorderAttr > 0) ? 1.0 : 0.0;
+    const padding = this.getPadding(node);
+
+    let rowHeights = [...minRowHeights];
+    if (node.styles?.height) {
+      const tableDim = this.convertDimension(StyleParser.parseDimension(node.styles.height));
+      if (tableDim && tableDim.unit !== '%') {
+        const tableH = tableDim.value;
+        const sumH = rowHeights.reduce((a, b) => a + b, 0);
+        if (tableH > sumH) {
+          const extra = tableH - sumH;
+          const perRow = extra / rowHeights.length;
+          rowHeights = rowHeights.map(h => h + perRow);
+        }
+      }
+    }
+
+    const columnSpecs = [];
+    for (let i = 0; i < numCols; i++) {
+      const w = columnWidths[i];
+      if (w?.type === 'fixed' || w?.type === 'shrink') {
+        columnSpecs.push({ type: w.type, value: Math.round(w.value * 10) / 10 });
+      } else if (w?.type === 'percent') {
+        columnSpecs.push({ type: 'percent', value: Math.round(w.value * 10) / 10 });
+      } else {
+        columnSpecs.push({ type: 'flex' });
+      }
+    }
+
+    const matrixData = matrix.toMatrixData();
+
+    const jsonPlacements = [];
+    for (const p of placements) {
+      const { cell, row, col, colspan, rowspan, style } = p;
+      const colEnd = Math.min(col + colspan, numCols);
+      const rowEnd = Math.min(row + rowspan, numRows);
+      if (colEnd <= col || rowEnd <= row) continue;
+
+      const cellPad = this._getCellPaddingValues(cell.styles, padding);
+
+      const bg = style.bgColor;
+      const hasBg = bg && bg !== 'Colors.transparent';
+      const hasBorder = !!style.cellBorder;
+      const hasContent = (cell.children || []).some(c => {
+        if (c.type === 'svg') return false;
+        if (c.styles?.position === 'absolute') return false;
+        if (c.type === 'text' && !(c.content || '').trim()) return false;
+        return true;
+      });
+
+      if (!hasContent && !hasBorder && !hasBg) continue;
+
+      const cellStyle = {};
+      if (style.textAlign && style.textAlign !== 'left') cellStyle.textAlign = style.textAlign;
+      if (style.verticalAlign && style.verticalAlign !== 'middle') cellStyle.verticalAlign = style.verticalAlign;
+      if (style.rawBgColor) {
+        cellStyle.backgroundColor = style.rawBgColor;
+      } else if (style.bgColor && style.bgColor !== 'Colors.transparent') {
+        cellStyle.backgroundColor = this._flutterColorToHex(style.bgColor);
+      }
+      if (style.bgGradient) cellStyle.gradient = style.bgGradient;
+      if (style.rawTextColor) {
+        cellStyle.color = style.rawTextColor;
+      } else if (style.textColor) {
+        cellStyle.color = this._flutterColorToHex(style.textColor);
+      }
+      if (style.fontWeight && style.fontWeight !== 'FontWeight.normal') cellStyle.fontWeight = style.fontWeight === 'FontWeight.bold' ? 'bold' : style.fontWeight;
+      if (style.fontStyle === 'FontStyle.italic') cellStyle.fontStyle = 'italic';
+      if (style.fontSize) cellStyle.fontSize = style.fontSize;
+      if (style.fontFamily) cellStyle.fontFamily = style.fontFamily;
+      if (style.cellBorder) {
+        const rawBorder = style.rawBorderCss ? this._cssBorderToJson(style.rawBorderCss) : null;
+        cellStyle.cellBorder = rawBorder || this._parseCellBorderToJson(style.cellBorder);
+      }
+      if (style.rotateAngle) cellStyle.rotateAngle = style.rotateAngle;
+      if (style.textDecoration) cellStyle.textDecoration = style.textDecoration;
+      if (style.textDecorationStyle) cellStyle.textDecorationStyle = style.textDecorationStyle;
+      if (style.lineHeight) cellStyle.lineHeight = style.lineHeight;
+      if (style.whiteSpace) cellStyle.whiteSpace = style.whiteSpace;
+      if (style.textTransform) cellStyle.textTransform = style.textTransform;
+
+      const svgNode = (cell.children || []).find(c => c.type === 'svg');
+      const diagLines = svgNode?.diagonalLines || [];
+
+      let commentTooltip = null;
+      for (const ch of (cell.children || [])) {
+        if (ch.styles?.position === 'absolute' && ch.attributes?.title) {
+          commentTooltip = ch.attributes.title;
+          break;
+        }
+      }
+
+      const child = contentBuilder ? contentBuilder(cell) : null;
+
+      const placement = { row, col, colEnd, rowEnd };
+      if (diagLines.length > 0) {
+        placement.diagonalLines = diagLines.map(l => ({
+          topLeftToBottomRight: String(l.x1) === '0' && String(l.y1) === '0',
+          bottomLeftToTopRight: String(l.y1) === '100%',
+          color: l.stroke || '#000000',
+          width: l.strokeWidth || 1,
+        }));
+      }
+      if (commentTooltip) placement.comment = commentTooltip;
+      if (Object.keys(cellStyle).length) placement.style = cellStyle;
+      if (cellPad) placement.padding = cellPad;
+      placement.child = child;
+
+      jsonPlacements.push(placement);
+    }
+
+    const ts = node.styles || {};
+    const tableStyle = {};
+    const tableBorderCss = StyleParser.cellBorderToFlutter(ts);
+    if (tableBorderCss) tableStyle.border = this._parseCellBorderToJson(tableBorderCss);
+    const tMargin = {};
+    for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+      const v = ts[`margin${side}`];
+      if (v) { const d = this.convertDimension(StyleParser.parseDimension(v)); if (d) tMargin[side.toLowerCase()] = d.value; }
+    }
+    if (Object.keys(tMargin).length) tableStyle.margin = { top: tMargin.top || 0, right: tMargin.right || 0, bottom: tMargin.bottom || 0, left: tMargin.left || 0 };
+    const tPadding = {};
+    for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+      const v = ts[`padding${side}`];
+      if (v) { const d = this.convertDimension(StyleParser.parseDimension(v)); if (d) tPadding[side.toLowerCase()] = d.value; }
+    }
+    if (Object.keys(tPadding).length) tableStyle.padding = { top: tPadding.top || 0, right: tPadding.right || 0, bottom: tPadding.bottom || 0, left: tPadding.left || 0 };
+    if (ts.backgroundColor) {
+      const bg = StyleParser.colorToFlutter(ts.backgroundColor);
+      if (bg) tableStyle.backgroundColor = this._flutterColorToHex(bg);
+    }
+
+    const tableWidthStr = node.styles?.width || node.width;
+    const tableWidthDim = tableWidthStr ? this.convertDimension(StyleParser.parseDimension(tableWidthStr)) : null;
+    const fixedTableWidth = (tableWidthDim && tableWidthDim.unit !== '%') ? tableWidthDim.value : null;
+
+    const output = {
+      type: 'table',
+      numRows,
+      numCols,
+      columnSpecs,
+      rowHeights: rowHeights.map(h => Math.round(h * 10) / 10),
+      borderWidth: painterBorderWidth,
+      matrixData,
+      placements: jsonPlacements,
+    };
+    if (fixedTableWidth != null) output.fixedWidth = Math.round(fixedTableWidth * 10) / 10;
+    if (Object.keys(tableStyle).length) output.tableStyle = tableStyle;
+    return output;
+  },
+
+  _getCellPaddingValues(cellStyles, tableDefault) {
+    if (!cellStyles) return { top: tableDefault, right: tableDefault, bottom: tableDefault, left: tableDefault };
+    const top    = cellStyles.paddingTop    ? (this.convertDimension(StyleParser.parseDimension(cellStyles.paddingTop))?.value    ?? tableDefault) : tableDefault;
+    const right  = cellStyles.paddingRight  ? (this.convertDimension(StyleParser.parseDimension(cellStyles.paddingRight))?.value  ?? tableDefault) : tableDefault;
+    const bottom = cellStyles.paddingBottom ? (this.convertDimension(StyleParser.parseDimension(cellStyles.paddingBottom))?.value ?? tableDefault) : tableDefault;
+    const left   = cellStyles.paddingLeft   ? (this.convertDimension(StyleParser.parseDimension(cellStyles.paddingLeft))?.value   ?? tableDefault) : tableDefault;
+    return { top, right, bottom, left };
+  },
+
+  _cssBorderToJson(styles) {
+    if (!styles) return null;
+    const result = {};
+    const sides = ['Top', 'Bottom', 'Left', 'Right'];
+    for (const side of sides) {
+      const key = side.toLowerCase();
+      const shorthand = styles[`border${side}`];
+      if (shorthand) {
+        const m = String(shorthand).match(/([\d.]+)(?:px)?\s+\w+\s+(#[0-9a-fA-F]{3,8}|\w+(?:\([^)]*\))?)/);
+        if (m) {
+          result[key] = { width: parseFloat(m[1]), color: m[2] };
+          continue;
+        }
+      }
+      const w = styles[`border${side}Width`];
+      const c = styles[`border${side}Color`];
+      if (w || c) {
+        const dim = w ? StyleParser.parseDimension(w) : null;
+        result[key] = { width: dim?.value || 1, color: c || '#000000' };
+      }
+    }
+    if (styles.borderBlock || styles.borderBlockStart || styles.borderBlockEnd) {
+      const parse = (s) => {
+        if (!s) return null;
+        const m = String(s).match(/([\d.]+)(?:px)?\s+\w+\s+(#[0-9a-fA-F]{3,8}|\w+)/);
+        return m ? { width: parseFloat(m[1]), color: m[2] } : null;
+      };
+      if (styles.borderBlock) {
+        const b = parse(styles.borderBlock);
+        if (b) { if (!result.top) result.top = b; if (!result.bottom) result.bottom = b; }
+      }
+      if (styles.borderBlockStart) { const b = parse(styles.borderBlockStart); if (b && !result.top) result.top = b; }
+      if (styles.borderBlockEnd) { const b = parse(styles.borderBlockEnd); if (b && !result.bottom) result.bottom = b; }
+    }
+    return Object.keys(result).length > 0 ? result : null;
+  },
+
+  // Parse Flutter Border(...) string into structured JSON
+  _parseCellBorderToJson(borderStr) {
+    if (!borderStr) return null;
+    const result = {};
+    const sidePattern = /(top|bottom|left|right): BorderSide\(color: (Colors?\.\w+|Color\(0x[0-9A-Fa-f]+\)),\s*width: ([\d.]+)\)/g;
+    let m;
+    while ((m = sidePattern.exec(borderStr)) !== null) {
+      result[m[1]] = {
+        color: this._flutterColorToHex(m[2]),
+        width: parseFloat(m[3]),
+      };
+    }
+    const allMatch = borderStr.match(/Border\.all\(color: (Colors?\.\w+|Color\(0x[0-9A-Fa-f]+\)),\s*width: ([\d.]+)\)/);
+    if (allMatch) {
+      const c = this._flutterColorToHex(allMatch[1]);
+      const w = parseFloat(allMatch[2]);
+      result.top = result.bottom = result.left = result.right = { color: c, width: w };
+    }
+    return Object.keys(result).length > 0 ? result : null;
+  },
+
+  _flutterColorToHex(str) {
+    if (!str) return null;
+    const s = String(str);
+    const m = s.match(/Color\(0x([0-9A-Fa-f]{8})\)/);
+    if (m) return '#' + m[1].substring(2);
+    const named = {
+      'Colors.white': '#FFFFFF', 'Colors.black': '#000000', 'Colors.transparent': null,
+      'Colors.red': '#F44336', 'Colors.blue': '#2196F3', 'Colors.green': '#4CAF50',
+      'Colors.grey': '#9E9E9E', 'Colors.yellow': '#FFEB3B', 'Colors.orange': '#FF9800',
+    };
+    if (named[s] !== undefined) return named[s];
+    const shadeMap = {
+      'grey':   { 50:'#FAFAFA', 100:'#F5F5F5', 200:'#EEEEEE', 300:'#E0E0E0', 400:'#BDBDBD', 500:'#9E9E9E', 600:'#757575', 700:'#616161', 800:'#424242', 900:'#212121' },
+      'red':    { 50:'#FFEBEE', 100:'#FFCDD2', 200:'#EF9A9A', 300:'#E57373', 400:'#EF5350', 500:'#F44336', 600:'#E53935', 700:'#D32F2F', 800:'#C62828', 900:'#B71C1C' },
+      'blue':   { 50:'#E3F2FD', 100:'#BBDEFB', 200:'#90CAF9', 300:'#64B5F6', 400:'#42A5F5', 500:'#2196F3', 600:'#1E88E5', 700:'#1976D2', 800:'#1565C0', 900:'#0D47A1' },
+      'green':  { 50:'#E8F5E9', 100:'#C8E6C9', 200:'#A5D6A7', 300:'#81C784', 400:'#66BB6A', 500:'#4CAF50', 600:'#43A047', 700:'#388E3C', 800:'#2E7D32', 900:'#1B5E20' },
+      'orange': { 50:'#FFF3E0', 100:'#FFE0B2', 200:'#FFCC80', 300:'#FFB74D', 400:'#FFA726', 500:'#FF9800', 600:'#FB8C00', 700:'#F57C00', 800:'#EF6C00', 900:'#E65100' },
+      'yellow': { 50:'#FFFDE7', 100:'#FFF9C4', 200:'#FFF59D', 300:'#FFF176', 400:'#FFEE58', 500:'#FFEB3B', 600:'#FDD835', 700:'#FBC02D', 800:'#F9A825', 900:'#F57F17' },
+    };
+    const shadeMatch = s.match(/Colors\.(\w+)\.shade(\d+)/);
+    if (shadeMatch) {
+      const colorName = shadeMatch[1];
+      const shade = shadeMatch[2];
+      if (shadeMap[colorName]?.[shade]) return shadeMap[colorName][shade];
+    }
+    const bracketMatch = s.match(/Colors\.(\w+)\[(\d+)\]/);
+    if (bracketMatch) {
+      const colorName = bracketMatch[1];
+      const shade = bracketMatch[2];
+      if (shadeMap[colorName]?.[shade]) return shadeMap[colorName][shade];
+    }
+    return s;
   },
 };
 

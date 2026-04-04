@@ -54,6 +54,7 @@ const StyleParser = {
       case 'min-width':      result.minWidth = value; return result;
       case 'box-sizing':       result.boxSizing = value; return result;
       case 'border-collapse':  result.borderCollapse = value; return result;
+      case 'text-transform':   result.textTransform = value; return result;
       // CSS logical properties (block = top+bottom, inline = left+right)
       case 'border-block':        return this.parseBorderBlock(value);
       case 'border-block-start':  return this.parseBorderSide('borderTop', value);
