@@ -86,6 +86,10 @@ const DartGenerator = {
       case 'date-picker': return this.generateDatePicker(node, context);
       case 'signature':   return this.generateSignature(node, context);
       case 'image-upload':return this.generateImageUpload(node, context);
+      case 'checkbox':    return this.generateCheckbox(node, context);
+      case 'radio':       return this.generateRadio(node, context);
+      case 'file':        return this.generateFile(node, context);
+      case 'search':      return this.generateSearch(node, context);
       case 'option':      return '';
       case 'element':     return this.generateElement(node, context);
       default:            return this.generateChildren(node, context);
@@ -745,6 +749,49 @@ ${ind}  borderRadius: BorderRadius.circular(4),
 ${ind}),
 ${ind}child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey)),
 )`;
+  },
+
+  generateCheckbox(node, context) {
+    const name = node.name || `checkbox_${context.checkboxes.size}`;
+    context.checkboxes.set(name, { name });
+    const props = [`name: '${name}'`];
+    if (node.label) props.push(`label: '${this.escapeString(node.label)}'`);
+    if (node.options && node.options.length) props.push(`options: [${node.options.map(o => `'${this.escapeString(o)}'`).join(', ')}]`);
+    if (node.hasOther) props.push('hasOther: true');
+    if (node.value) props.push(`value: '${this.escapeString(String(node.value))}'`);
+    if (node.disabled) props.push('disabled: true');
+    return `FormCheckbox(${props.join(', ')})`;
+  },
+
+  generateRadio(node, _context) {
+    const name = node.name || 'radio';
+    const props = [`name: '${name}'`];
+    if (node.options && node.options.length) props.push(`options: [${node.options.map(o => `'${this.escapeString(o)}'`).join(', ')}]`);
+    if (node.value) props.push(`value: '${this.escapeString(node.value)}'`);
+    if (node.required) props.push('required: true');
+    if (node.disabled) props.push('disabled: true');
+    return `FormRadio(${props.join(', ')})`;
+  },
+
+  generateFile(node, _context) {
+    const name = node.name || 'file';
+    const props = [`name: '${name}'`];
+    if (node.accept) props.push(`accept: '${node.accept}'`);
+    if (node.multiple) props.push('multiple: true');
+    if (node.maxSize) props.push(`maxSizeMb: ${node.maxSize}`);
+    if (node.required) props.push('required: true');
+    return `FormFile(${props.join(', ')})`;
+  },
+
+  generateSearch(node, _context) {
+    const name = node.name || 'search';
+    const props = [`name: '${name}'`, `source: '${node.source || ''}'`];
+    if (node.display) props.push(`displayFields: '${node.display}'`);
+    if (node.valueField) props.push(`valueField: '${node.valueField}'`);
+    if (node.fields) props.push(`fields: '${node.fields}'`);
+    if (node.placeholder) props.push(`placeholder: '${this.escapeString(node.placeholder)}'`);
+    if (node.required) props.push('required: true');
+    return `FormSearch(${props.join(', ')})`;
   },
 
   generateControllers(context) {

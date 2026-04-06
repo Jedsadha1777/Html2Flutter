@@ -380,7 +380,6 @@ class _ScaledContentState extends State<_ScaledContent> {
           ? scaleW.clamp(0, contentH / nat.height)
           : scaleW;
     }
-    final effectiveScale = nat != null ? scale : 1.0;
     final measured = nat != null;
 
     final scaledW = (nat != null) ? nat.width * scale : contentW;
@@ -393,6 +392,8 @@ class _ScaledContentState extends State<_ScaledContent> {
       pad.bottom,
     );
 
+    final scaledH = (nat != null) ? nat.height * scale : contentH;
+
     return Visibility(
       visible: measured,
       maintainSize: true,
@@ -400,20 +401,27 @@ class _ScaledContentState extends State<_ScaledContent> {
       maintainState: true,
       child: Padding(
         padding: effectivePad,
-        child: Transform.scale(
-          scale: effectiveScale,
-          alignment: Alignment.topLeft,
-          child: OverflowBox(
-            minWidth: 0,
-            minHeight: 0,
-            maxWidth: nat?.width ?? double.infinity,
-            maxHeight: nat?.height ?? double.infinity,
-            alignment: Alignment.topLeft,
-            child: UnconstrainedBox(
+        child: ClipRect(
+          child: SizedBox(
+            width: contentW,
+            height: contentH,
+            child: Align(
               alignment: Alignment.topLeft,
-              child: Container(
-                key: _measureKey,
-                child: widget.content,
+              child: SizedBox(
+                width: scaledW,
+                height: scaledH,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: nat?.width,
+                    height: nat?.height,
+                    child: Container(
+                      key: _measureKey,
+                      child: widget.content,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

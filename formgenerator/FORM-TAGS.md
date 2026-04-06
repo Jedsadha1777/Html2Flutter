@@ -1,0 +1,373 @@
+# Form Field Tags Reference
+
+Shortcode tags สำหรับใส่ในเซลล์ Luckysheet เพื่อสร้าง form fields
+ใช้ได้ทั้งใน Luckysheet Editor (Fullscreen > sidebar) และพิมพ์เองในเซลล์โดยตรง
+
+---
+
+## โครงสร้าง Tag
+
+```
+[type name]
+[type* name]                      ← required field (บังคับกรอก)
+```
+
+- `type` — ชนิด field
+- `*` — ต่อท้าย type = required เช่น `[input* name]`
+- `name` — ชื่อ field (ห้ามมีช่องว่าง ใช้ `-` หรือ `_`)
+
+> ตำแหน่ง cell ใช้ `data-cell` attribute บน `<td>` แทน — ไม่ต้องระบุซ้ำใน tag
+
+---
+
+## Display Binding (ไม่ใช่ form tag)
+
+```
+{{$variable}}                 ← แสดงค่า static
+{{$source.field}}             ← แสดงค่า reactive (เปลี่ยนตาม search result)
+```
+
+ใช้ได้ทุกที่:
+- ใน text cell ธรรมดา: `{{$employee.name}}`
+- ใน input value: `value="{{$employee.name}}"`
+- ผสมกับ static text: `วันที่: {{$date.today}}`
+
+---
+
+## Tags ทั้งหมด
+
+---
+
+### 1. Input
+
+รวม text, email, tel, number เป็น tag เดียว ใช้ `type=` แยกประเภท
+
+```
+[input name]                                        ← text (default)
+[input* name]                                       ← required
+[input name type="email"]                           ← email keyboard + validation
+[input name type="tel"]                             ← phone keyboard
+[input name type="number"]                          ← number keyboard
+[input name placeholder="กรอกชื่อ"]                   ← hint text
+[input name value="default"]                        ← ค่าเริ่มต้น static
+[input name value="{{$employee.name}}"]             ← ค่าเริ่มต้นจาก data
+[input name pattern="[A-Z]{2}-\d+"]                 ← custom regex validation
+[input name readonly]                               ← อ่านอย่างเดียว
+[input name disabled]                               ← ปิดใช้งาน
+```
+
+**ตัวอย่างเต็ม:**
+```
+[input* emp-name type="text" placeholder="ชื่อพนักงาน" value="{{$employee.name}}"]
+[input emp-code type="text" pattern="[A-Z]{2}-\d{4}" placeholder="XX-0000" readonly]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `type` | `text` `email` `tel` `number` | `text` | กำหนด keyboard + auto validation |
+| `value` | string หรือ `{{$var}}` | ว่าง | ค่าเริ่มต้น |
+| `placeholder` | string | ไม่มี | ข้อความ hint |
+| `pattern` | regex string | ไม่มี | custom validation |
+| `readonly` | flag | false | แสดงค่าแต่แก้ไม่ได้ |
+| `disabled` | flag | false | ปิดใช้งาน |
+
+**ค่าที่เก็บ:** `string`
+
+**type → keyboard mapping:**
+
+| type | Keyboard | Auto Validation |
+|------|----------|-----------------|
+| `text` | text | ไม่มี |
+| `email` | emailAddress | email format |
+| `tel` | phone | ตัวเลข + - |
+| `number` | number | ตัวเลข |
+
+---
+
+### 2. Textarea
+
+```
+[textarea name]
+[textarea* name]
+[textarea name rows="5"]
+[textarea name placeholder="รายละเอียด"]
+[textarea name value="{{$note.content}}"]
+[textarea name readonly]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `rows` | number | `3` | จำนวนบรรทัด |
+| `value` | string หรือ `{{$var}}` | ว่าง | ค่าเริ่มต้น |
+| `placeholder` | string | ไม่มี | ข้อความ hint |
+| `readonly` | flag | false | |
+| `disabled` | flag | false | |
+
+**ค่าที่เก็บ:** `string`
+
+---
+
+### 3. Select (Dropdown)
+
+```
+[select name "Option 1" "Option 2" "Option 3"]
+[select* name "Option 1" "Option 2" "Option 3"]
+[select name first_as_label "-- เลือก --" "Option 1" "Option 2"]
+[select name value="Option 2" "Option 1" "Option 2" "Option 3"]
+[select name value="{{$employee.dept}}" "IT" "HR" "Finance"]
+[select name disabled]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `"..."` | option list | ต้องมี | ตัวเลือก |
+| `first_as_label` | flag | false | ตัวแรกเป็น label ไม่มีค่า |
+| `value` | string หรือ `{{$var}}` | ว่าง | ค่าเริ่มต้นที่เลือก |
+| `disabled` | flag | false | |
+
+**ค่าที่เก็บ:** `string` — ค่า option ที่เลือก
+
+---
+
+### 4. Checkbox
+
+มี 3 โหมด:
+
+#### 4a. Single (true/false)
+```
+[checkbox name]
+[checkbox name value="{{$form.agreed}}"]
+[checkbox name disabled]
+```
+**ค่าที่เก็บ:** `boolean`
+
+#### 4b. Single + Label
+```
+[checkbox name label="ยอมรับเงื่อนไข"]
+[checkbox name label="ยอมรับเงื่อนไข" value="{{$form.agreed}}"]
+```
+**ค่าที่เก็บ:** `boolean`
+
+#### 4c. Group (เลือกหลายข้อ)
+```
+[checkbox name "Sports" "Music" "Travel"]
+[checkbox name other "Sports" "Music" "Travel"]
+[checkbox name value="{{$employee.skills}}" "Sports" "Music" "Travel"]
+```
+- `other` — เพิ่มช่อง "Other" + input พิมพ์ระบุ
+
+**ค่าที่เก็บ:** `{ selected: ["Sports", "Travel"], other_text: "" }`
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `label` | string | ไม่มี | ข้อความแสดงข้าง checkbox (โหมด single) |
+| `"..."` | option list | ไม่มี | ตัวเลือก (โหมด group) |
+| `other` | flag | false | เพิ่มช่อง "Other" + input |
+| `value` | string/`{{$var}}` | ว่าง | ค่าเริ่มต้น |
+| `disabled` | flag | false | |
+
+---
+
+### 5. Radio (เลือก 1 ข้อ)
+
+```
+[radio name "Active" "Inactive"]
+[radio* name "Active" "Inactive"]
+[radio name value="Active" "Active" "Inactive" "Pending"]
+[radio name value="{{$status}}" "Active" "Inactive"]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `"..."` | option list | ต้องมี | ตัวเลือก |
+| `value` | string หรือ `{{$var}}` | ว่าง | ค่าเริ่มต้น |
+| `disabled` | flag | false | |
+
+**ค่าที่เก็บ:** `string` — ค่า option ที่เลือก
+
+---
+
+### 6. Date Picker
+
+```
+[date name]
+[date* name]
+[date name value="2026-04-06"]
+[date name value="{{$project.start_date}}"]
+[date name min="2026-01-01" max="2026-12-31"]
+[date name placeholder="เลือกวันที่"]
+[date name readonly]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `value` | `yyyy-mm-dd` หรือ `{{$var}}` | ว่าง | ค่าเริ่มต้น |
+| `min` | `yyyy-mm-dd` | ไม่มี | วันที่ต่ำสุด |
+| `max` | `yyyy-mm-dd` | ไม่มี | วันที่สูงสุด |
+| `placeholder` | string | ไม่มี | |
+| `readonly` | flag | false | |
+
+**ค่าที่เก็บ:** `string` (yyyy-mm-dd)
+
+---
+
+### 7. Signature
+
+```
+[signature name]
+[signature name width="300" height="150"]
+[signature name value="{{$approval.signature}}"]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `width` | number (px) | auto | ความกว้าง |
+| `height` | number (px) | auto | ความสูง |
+| `value` | `{{$var}}` | ว่าง | ลายเซ็นที่บันทึกไว้ (base64/url) |
+
+**ค่าที่เก็บ:** `string` (base64 image หรือ url)
+
+---
+
+### 8. Image Upload
+
+```
+[image-upload name]                             ← default: upload + camera
+[image-upload name source="upload"]             ← upload อย่างเดียว
+[image-upload name source="camera"]             ← camera อย่างเดียว
+[image-upload name source="both"]               ← ทั้งสอง (default)
+[image-upload* name source="camera"]            ← required + camera only
+[image-upload name width="200" height="200"]
+[image-upload name value="{{$product.photo}}"]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `source` | `upload` `camera` `both` | `both` | แหล่งรับภาพ |
+| `width` | number (px) | auto | ความกว้าง |
+| `height` | number (px) | auto | ความสูง |
+| `value` | `{{$var}}` | ว่าง | รูปที่บันทึกไว้ (base64/url) |
+
+**ค่าที่เก็บ:** `string` (base64 image หรือ url)
+
+---
+
+### 9. File Upload
+
+```
+[file name]                                     ← ไฟล์ทั่วไป
+[file* name]                                    ← required
+[file name accept=".pdf,.xlsx,.doc"]            ← จำกัดประเภทไฟล์
+[file name multiple]                             ← แนบหลายไฟล์
+[file name max-size="10"]                        ← จำกัดขนาด (MB)
+[file name value="{{$attachment.url}}"]
+```
+
+**ตัวอย่างเต็ม:**
+```
+[file* document accept=".pdf,.xlsx" multiple max-size="10"]
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `accept` | mime/extension list | ทุกประเภท | จำกัดประเภทไฟล์ เช่น `.pdf,.xlsx,.doc` |
+| `multiple` | flag | false | อนุญาตแนบหลายไฟล์ |
+| `max-size` | number (MB) | ไม่จำกัด | ขนาดสูงสุดต่อไฟล์ |
+| `value` | `{{$var}}` | ว่าง | ไฟล์ที่แนบไว้ (url) |
+
+**ค่าที่เก็บ:** `string` (url) หรือ `string[]` (urls) ถ้า `multiple`
+
+---
+
+### 10. Search (Fuzzy Search + Auto-fill)
+
+```
+[search name source="customers"]
+[search* name source="customers"]
+[search name source="customers" display="code,name"]
+[search name source="customers" display="code,name" value="code"]
+[search name source="customers" fields="name,address,phone"]
+[search name source="customers" placeholder="พิมพ์รหัสลูกค้า"]
+```
+
+ช่องอื่นรับค่า auto-fill ด้วย:
+```
+{{$name.field}}     ← name ตรงกับชื่อ search field
+```
+
+**ตัวอย่างเต็ม:**
+```
+เซลล์ A: [search customer source="customers" display="code,name" fields="name,address,phone"]
+เซลล์ B: {{$customer.name}}        ← auto-fill ชื่อลูกค้า
+เซลล์ C: {{$customer.address}}     ← auto-fill ที่อยู่
+เซลล์ D: {{$customer.phone}}       ← auto-fill เบอร์
+```
+
+| Attribute | ค่า | Default | หมายเหตุ |
+|-----------|-----|---------|----------|
+| `source` | string | ต้องระบุ | ชื่อ data source (API endpoint / local) |
+| `display` | `field,field` | ใช้ทุก field | field ที่แสดงใน dropdown |
+| `value` | string | field แรกของ display | field ที่เก็บเป็นค่า |
+| `fields` | `field,field,...` | ไม่มี | field ที่ `{{$name.xxx}}` อ้างถึงได้ |
+| `placeholder` | string | ไม่มี | |
+
+**ค่าที่เก็บ:** `string` — ค่า value field ที่เลือก
+
+---
+
+### 11. Visibility (ซ่อน/แสดงตามบริบท)
+
+```
+[hidden-print]เนื้อหาที่ซ่อนตอนพิมพ์[/hidden-print]
+[hidden-screen]เนื้อหาที่ซ่อนบนหน้าจอ[/hidden-screen]
+```
+
+| Tag | หน้าจอ | พิมพ์ |
+|-----|--------|------|
+| `[hidden-print]...[/hidden-print]` | เห็น | ซ่อน |
+| `[hidden-screen]...[/hidden-screen]` | ซ่อน | เห็น |
+
+**ตัวอย่าง:**
+```
+[hidden-print]กรุณากรอกข้อมูลให้ครบถ้วน[/hidden-print]
+[hidden-screen]© 2026 AKT Co.,Ltd. All rights reserved.[/hidden-screen]
+```
+
+---
+
+## ตารางสรุป
+
+| Tag | Type | `*` | Options | ค่าที่เก็บ |
+|-----|------|:---:|---------|-----------|
+| `[input name]` | input | รองรับ | `type` `value` `placeholder` `pattern` `readonly` `disabled` | string |
+| `[textarea name]` | textarea | รองรับ | `rows` `value` `placeholder` `readonly` `disabled` | string |
+| `[select name "..."]` | select | รองรับ | `"opt"` list, `first_as_label` `value` `disabled` | string |
+| `[checkbox name]` | single | ไม่ | `label` `value` | boolean |
+| `[checkbox name "..."]` | group | ไม่ | `"opt"` list, `other` `value` | { selected[], other_text } |
+| `[radio name "..."]` | radio | รองรับ | `"opt"` list, `value` | string |
+| `[date name]` | date | รองรับ | `value` `min` `max` `placeholder` `readonly` | string (yyyy-mm-dd) |
+| `[signature name]` | signature | ไม่ | `width` `height` `value` | string (base64/url) |
+| `[image-upload name]` | image | รองรับ | `source` `width` `height` `value` | string (base64/url) |
+| `[file name]` | file | รองรับ | `accept` `multiple` `max-size` `value` | string / string[] |
+| `[search name]` | search | รองรับ | `source` `display` `value` `fields` `placeholder` | string |
+| `[hidden-print]` | visibility | ไม่ | — | — |
+| `[hidden-screen]` | visibility | ไม่ | — | — |
+
+---
+
+## Common Attributes (ใช้ได้กับทุก tag)
+
+| Attribute | หมายเหตุ |
+|-----------|----------|
+| `value="..."` | ค่าเริ่มต้น — รับ static string หรือ `{{$var}}` |
+
+---
+
+## หมายเหตุ
+
+- ชื่อ field (`name`) ห้ามมีช่องว่าง ใช้ `-` หรือ `_` แทน
+- ตำแหน่ง cell อ้างอิงจาก `data-cell` attribute บน `<td>` (ไม่ต้องระบุใน tag)
+- `*` (required) ใช้ได้กับ input, textarea, select, radio, date, image-upload, file, search
+- `{{$var}}` ใช้ได้ 2 แบบ: display binding ใน text cell / initial value ใน form field
+- `[hidden-print]` และ `[hidden-screen]` เป็น block tag (มี open + close)
+- tag อื่นทั้งหมดเป็น self-closing (ไม่มี close tag)

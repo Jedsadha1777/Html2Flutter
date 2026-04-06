@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'preview_shell.dart';
+import 'form_widgets/form_widgets.dart';
 
 class FormRenderer extends StatefulWidget {
   final Map<String, dynamic> schema;
@@ -115,17 +116,25 @@ class _FormRendererState extends State<FormRenderer> {
       case 'table':
         return _buildTable(node);
       case 'input':
-        return _buildInput(node);
+        return FormInput.fromJson(node);
       case 'select':
-        return _buildSelect(node);
+        return FormSelect.fromJson(node);
       case 'textarea':
-        return _buildTextArea(node);
+        return FormTextarea.fromJson(node);
       case 'date-picker':
-        return _buildDatePicker(node);
+        return FormDate.fromJson(node);
       case 'signature':
-        return _buildSignature(node);
+        return FormSignature.fromJson(node);
       case 'image-upload':
-        return _buildImageUpload(node);
+        return FormImageUpload.fromJson(node);
+      case 'checkbox':
+        return FormCheckbox.fromJson(node);
+      case 'radio':
+        return FormRadio.fromJson(node);
+      case 'file':
+        return FormFile.fromJson(node);
+      case 'search':
+        return FormSearch.fromJson(node);
       case 'spacer':
         return SizedBox(height: (node['height'] as num?)?.toDouble() ?? 8);
       case 'divider':
@@ -464,7 +473,7 @@ class _FormRendererState extends State<FormRenderer> {
 
         if (borderWidth > 0) {
           children.add(Positioned.fill(
-            child: CustomPaint(
+            child: IgnorePointer(child: CustomPaint(
               painter: _TableGridPainter(
                 colStarts: colStarts,
                 rowStarts: rowStarts,
@@ -474,7 +483,7 @@ class _FormRendererState extends State<FormRenderer> {
                 numRows: numRows,
                 numCols: numCols,
               ),
-            ),
+            )),
           ));
         }
 
@@ -554,160 +563,6 @@ class _FormRendererState extends State<FormRenderer> {
       fontStyle: fontStyle,
       decoration: decoration,
       height: lineHeight,
-    );
-  }
-
-  Widget _buildInput(Map<String, dynamic> node) {
-    final name = node['name'] as String? ?? '';
-    final inputType = node['inputType'] as String? ?? 'text';
-    final placeholder = node['placeholder'] as String?;
-    final required = node['required'] == true;
-    final readonly = node['readonly'] == true;
-    final disabled = node['disabled'] == true;
-    final width = _dim(node['width']);
-
-    final ctrl = _controllers.putIfAbsent(name, () => TextEditingController());
-
-    const keyboardMap = {
-      'number': TextInputType.number,
-      'email': TextInputType.emailAddress,
-      'tel': TextInputType.phone,
-      'url': TextInputType.url,
-    };
-
-    Widget field = TextFormField(
-      controller: ctrl,
-      keyboardType: keyboardMap[inputType] ?? TextInputType.text,
-      readOnly: readonly,
-      enabled: !disabled,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        hintText: placeholder,
-        filled: required,
-        fillColor: required ? Colors.yellow.shade50 : null,
-      ),
-      validator: required ? (v) => (v == null || v.isEmpty) ? 'Required' : null : null,
-      onChanged: (v) => _onFieldChanged(name, v),
-    );
-
-    if (width != null) {
-      field = SizedBox(width: width, child: field);
-    }
-    return field;
-  }
-
-  Widget _buildSelect(Map<String, dynamic> node) {
-    final name = node['name'] as String? ?? '';
-    final options = node['options'] as List? ?? [];
-
-    return DropdownButtonFormField<String>(
-      // ignore: deprecated_member_use
-      value: _dropdownValues[name],
-      isDense: true,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      ),
-      items: options.map<DropdownMenuItem<String>>((opt) {
-        return DropdownMenuItem<String>(
-          value: opt['value'] as String? ?? '',
-          child: Text(opt['label'] as String? ?? opt['value'] as String? ?? ''),
-        );
-      }).toList(),
-      onChanged: (v) {
-        setState(() => _dropdownValues[name] = v);
-        _onFieldChanged(name, v);
-      },
-    );
-  }
-
-  Widget _buildTextArea(Map<String, dynamic> node) {
-    final name = node['name'] as String? ?? '';
-    final placeholder = node['placeholder'] as String?;
-    final rows = node['rows'] as int? ?? 3;
-    final width = _dim(node['width']);
-
-    final ctrl = _controllers.putIfAbsent(name, () => TextEditingController());
-
-    Widget field = TextFormField(
-      controller: ctrl,
-      maxLines: rows,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        isDense: true,
-        contentPadding: const EdgeInsets.all(10),
-        hintText: placeholder,
-      ),
-      onChanged: (v) => _onFieldChanged(name, v),
-    );
-
-    if (width != null) {
-      field = SizedBox(width: width, child: field);
-    }
-    return field;
-  }
-
-  Widget _buildDatePicker(Map<String, dynamic> node) {
-    final name = node['name'] as String? ?? '';
-    final placeholder = node['placeholder'] as String? ?? 'Select date...';
-    final ctrl = _controllers.putIfAbsent(name, () => TextEditingController());
-
-    return SizedBox(
-      width: 200,
-      child: TextFormField(
-        controller: ctrl,
-        readOnly: true,
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          hintText: placeholder,
-          suffixIcon: const Icon(Icons.calendar_today, size: 18),
-        ),
-        onTap: () async {
-          final picked = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(1950),
-            lastDate: DateTime(2100),
-          );
-          if (picked != null) {
-            final text =
-                '${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}';
-            ctrl.text = text;
-            _onFieldChanged(name, text);
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildSignature(Map<String, dynamic> node) {
-    final w = _dim(node['width']) ?? 200;
-    final h = _dim(node['height']) ?? 100;
-    return Container(
-      width: w, height: h,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: const Center(child: Text('[ Signature ]', style: TextStyle(color: Colors.grey))),
-    );
-  }
-
-  Widget _buildImageUpload(Map<String, dynamic> node) {
-    final w = _dim(node['width']) ?? 200;
-    final h = _dim(node['height']) ?? 150;
-    return Container(
-      width: w, height: h,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey)),
     );
   }
 

@@ -259,7 +259,19 @@ const TableHandler = {
             widgetContentH = Math.max(widgetContentH, wh);
           } else if (child.type === 'table') {
           if (hasCurrentInline) { totalContentH += Math.ceil(effFontSize * 1.5); hasCurrentInline = false; }
-            const nested = this.buildTable(child, null, null);
+            // Calculate cell's pixel width from parent table's estimatedAvailableWidth + cell width attribute
+            let nestedEstW = null;
+            if (estimatedAvailableWidth != null) {
+              const cellWidthStr = cell.width || cell.styles?.width;
+              if (cellWidthStr) {
+                const d = this.convertDimension(StyleParser.parseDimension(cellWidthStr));
+                if (d && d.unit === '%') nestedEstW = estimatedAvailableWidth * (d.value / 100);
+                else if (d) nestedEstW = d.value;
+              } else {
+                nestedEstW = estimatedAvailableWidth;
+              }
+            }
+            const nested = this.buildTable(child, null, nestedEstW);
             const nestedH = nested.minRowHeights.reduce((a, b) => a + b, 0);
             totalContentH += Math.max(nestedH, Math.ceil(effFontSize * 1.5));
           }
@@ -596,21 +608,32 @@ const TableHandler = {
 
       const effFontSize = p.effFontSize || 16;
       const structuralLines = p.structuralLines || 1;
-      const charW = effFontSize * 0.55;
-      const charsPerLine = Math.max(3, Math.floor(colW / charW));
-      const textLen = this.visualLength(this.extractText(p.cell));
-      if (textLen <= charsPerLine) continue;
-
-      const wrapLines = Math.ceil(textLen / charsPerLine);
-      if (wrapLines <= structuralLines) continue;
+      const text = this.extractText(p.cell);
+      if (!text) continue;
 
       const cs = p.cell.styles || {};
       const pt = cs.paddingTop    ? (this.convertDimension(StyleParser.parseDimension(cs.paddingTop))?.value    ?? cellPadDefault) : cellPadDefault;
       const pb = cs.paddingBottom ? (this.convertDimension(StyleParser.parseDimension(cs.paddingBottom))?.value ?? cellPadDefault) : cellPadDefault;
+      const pl = cs.paddingLeft   ? (this.convertDimension(StyleParser.parseDimension(cs.paddingLeft))?.value   ?? cellPadDefault) : cellPadDefault;
+      const pr = cs.paddingRight  ? (this.convertDimension(StyleParser.parseDimension(cs.paddingRight))?.value  ?? cellPadDefault) : cellPadDefault;
       const bt = cs.borderTopWidth    ? (StyleParser.parseDimension(cs.borderTopWidth)?.value    ?? 0) : 0;
       const bb = cs.borderBottomWidth ? (StyleParser.parseDimension(cs.borderBottomWidth)?.value ?? 0) : 0;
 
-      const cellH = Math.ceil(effFontSize * 1.5 * wrapLines) + pt + pb + bt + bb;
+      const textWidth = colW - pl - pr;
+      if (textWidth <= 0) continue;
+
+      const lineHeight = effFontSize * 1.5;
+      let wrapLines;
+
+      const fontFamily = p.style?.fontFamily || 'Arial';
+      const font = `${effFontSize}px ${fontFamily}`;
+      const prepared = Pretext.prepare(text, font);
+      const result = Pretext.layout(prepared, textWidth, lineHeight);
+      wrapLines = result.lineCount;
+
+      if (wrapLines <= structuralLines) continue;
+
+      const cellH = Math.ceil(lineHeight * wrapLines) + pt + pb + bt + bb;
       if (cellH > minRowHeights[p.row]) {
         minRowHeights[p.row] = cellH;
       }
@@ -663,7 +686,8 @@ const TableHandler = {
       lines.push('    final availableWidth = constraints.maxWidth;');
     }
     lines.push('');
-    lines.push(this.genColWidthCode(columnWidths, numCols));
+    const estW = context.containerWidth || null;
+    lines.push(this.genColWidthCode(columnWidths, numCols, estW));
     lines.push('');
     lines.push(`    final rowHeights = <double>[${rowHeights.map(h => h.toFixed(1)).join(', ')}];`);
     lines.push('');
@@ -701,7 +725,7 @@ const TableHandler = {
     }
 
     lines.push('          Positioned.fill(');
-    lines.push('            child: CustomPaint(');
+    lines.push('            child: IgnorePointer(child: CustomPaint(');
     lines.push('              painter: _TableGridPainter(');
     lines.push('                colStarts: cs,');
     lines.push('                rowStarts: rs,');
@@ -711,7 +735,7 @@ const TableHandler = {
     lines.push(`                numRows: ${numRows},`);
     lines.push(`                numCols: ${numCols},`);
     lines.push('              ),');
-    lines.push('            ),');
+    lines.push('            )),');
     lines.push('          ),');
     lines.push('        ],');
     lines.push('      ),');
@@ -835,7 +859,7 @@ const TableHandler = {
     }
   },
 
-  genColWidthCode(columnWidths, numCols) {
+  genColWidthCode(columnWidths, numCols, estimatedAvailableWidth = null) {
     const lines = [];
     let totalFixed = 0, totalPercent = 0, flexCount = 0;
     for (let i = 0; i < numCols; i++) {
@@ -844,17 +868,49 @@ const TableHandler = {
       else if (w?.type === 'percent') totalPercent += w.value;
       else flexCount++;
     }
+
+    // When container width is known, resolve percent columns to fixed pixel values
+    // so they don't depend on runtime availableWidth (which may be infinity)
+    if (estimatedAvailableWidth != null && totalPercent > 0) {
+      const resolvedWidths = [];
+      let resolvedFixed = 0;
+      for (let i = 0; i < numCols; i++) {
+        const w = columnWidths[i];
+        if (w?.type === 'fixed' || w?.type === 'shrink') {
+          resolvedWidths.push({ type: 'fixed', value: w.value });
+          resolvedFixed += w.value;
+        } else if (w?.type === 'percent') {
+          const px = estimatedAvailableWidth * (w.value / 100);
+          resolvedWidths.push({ type: 'fixed', value: Math.round(px * 10) / 10 });
+          resolvedFixed += px;
+        } else {
+          resolvedWidths.push(null);
+        }
+      }
+      const resolvedFlexSpace = Math.max(0, estimatedAvailableWidth - resolvedFixed);
+      const resolvedFlexUnit = flexCount > 0 ? resolvedFlexSpace / flexCount : 0;
+
+      lines.push(`    final fixedTotal = ${resolvedFixed.toFixed(1)};`);
+      lines.push('    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);');
+      lines.push(`    final flexUnit = availableWidth.isInfinite ? ${resolvedFlexUnit > 0 ? resolvedFlexUnit.toFixed(1) : '200.0'} : flexSpace / ${Math.max(flexCount, 0.001).toFixed(6)};`);
+      lines.push('    final colWidths = <double>[');
+      for (let i = 0; i < numCols; i++) {
+        const rw = resolvedWidths[i];
+        if (rw) lines.push(`      ${rw.value.toFixed(1)},`);
+        else lines.push('      flexUnit,');
+      }
+      lines.push('    ];');
+      return lines.join('\n');
+    }
+
+    // Original path: no known container width, keep runtime percent calculation
     lines.push(`    final fixedTotal = ${totalFixed.toFixed(1)};`);
     if (totalPercent > 0) {
-      // Percent columns = percentage of availableWidth (CSS behavior)
-      // Flex columns = remaining space after fixed + percent allocations
       lines.push(`    final pctUnit = availableWidth.isInfinite ? 0.0 : availableWidth / 100;`);
       lines.push(`    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal - pctUnit * ${totalPercent.toFixed(1)}).clamp(0.0, double.infinity);`);
     } else {
       lines.push('    final flexSpace = availableWidth.isInfinite ? 0.0 : (availableWidth - fixedTotal).clamp(0.0, double.infinity);');
     }
-    // When unconstrained (e.g. inside InteractiveViewer), flexSpace=0 and each flex column
-    // would collapse to 0px. Fall back to 200px per flex unit so form-widget columns are visible.
     lines.push(`    final flexUnit = availableWidth.isInfinite ? 200.0 : flexSpace / ${Math.max(flexCount, 0.001).toFixed(6)};`);
     lines.push('    final colWidths = <double>[');
     for (let i = 0; i < numCols; i++) {
@@ -1069,11 +1125,24 @@ const TableHandler = {
     const hasSpecial = contentChildren.some(c => c.type === 'table' || formTypes.has(c.type));
     if (hasSpecial) {
       const _renderNestedTable = (child) => {
+        // Calculate cell's pixel width to pass as containerWidth for nested table
+        let nestedContainerW = null;
+        if (context.containerWidth != null) {
+          const cellWidthStr = cell.width || cell.styles?.width;
+          if (cellWidthStr) {
+            const d = this.convertDimension(StyleParser.parseDimension(cellWidthStr));
+            if (d && d.unit === '%') nestedContainerW = context.containerWidth * (d.value / 100);
+            else if (d) nestedContainerW = d.value;
+          } else {
+            nestedContainerW = context.containerWidth;
+          }
+        }
         const isolated = {
           controllers: context.controllers,
           dropdowns:   context.dropdowns,
           checkboxes:  context.checkboxes,
           customWidgets: context.customWidgets,
+          containerWidth: nestedContainerW,
           usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false,
         };
         const result = this.generate(child, isolated, style);
@@ -1777,7 +1846,13 @@ const TableHandler = {
       if (w?.type === 'fixed' || w?.type === 'shrink') {
         columnSpecs.push({ type: w.type, value: Math.round(w.value * 10) / 10 });
       } else if (w?.type === 'percent') {
-        columnSpecs.push({ type: 'percent', value: Math.round(w.value * 10) / 10 });
+        // Resolve percent to fixed pixel when container width is known
+        if (estimatedWidth != null) {
+          const px = estimatedWidth * (w.value / 100);
+          columnSpecs.push({ type: 'fixed', value: Math.round(px * 10) / 10 });
+        } else {
+          columnSpecs.push({ type: 'percent', value: Math.round(w.value * 10) / 10 });
+        }
       } else {
         columnSpecs.push({ type: 'flex' });
       }
@@ -1825,8 +1900,15 @@ const TableHandler = {
       if (style.fontSize) cellStyle.fontSize = style.fontSize;
       if (style.fontFamily) cellStyle.fontFamily = style.fontFamily;
       if (style.cellBorder) {
-        const rawBorder = style.rawBorderCss ? this._cssBorderToJson(style.rawBorderCss) : null;
-        cellStyle.cellBorder = rawBorder || this._parseCellBorderToJson(style.cellBorder);
+        const collapsed = node.styles?.borderCollapse === 'collapse';
+        if (collapsed) {
+          // Collapsed: use style.cellBorder which already passed collapse logic (only relevant sides)
+          cellStyle.cellBorder = this._parseCellBorderToJson(style.cellBorder);
+        } else {
+          // Non-collapsed: prefer raw CSS for accuracy
+          const rawBorder = style.rawBorderCss ? this._cssBorderToJson(style.rawBorderCss) : null;
+          cellStyle.cellBorder = rawBorder || this._parseCellBorderToJson(style.cellBorder);
+        }
       }
       if (style.rotateAngle) cellStyle.rotateAngle = style.rotateAngle;
       if (style.textDecoration) cellStyle.textDecoration = style.textDecoration;
@@ -1849,6 +1931,7 @@ const TableHandler = {
       const child = contentBuilder ? contentBuilder(cell) : null;
 
       const placement = { row, col, colEnd, rowEnd };
+      if (cell.dataCell) placement.dataCell = cell.dataCell;
       if (diagLines.length > 0) {
         placement.diagonalLines = diagLines.map(l => ({
           topLeftToBottomRight: String(l.x1) === '0' && String(l.y1) === '0',

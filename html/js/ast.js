@@ -21,7 +21,25 @@ class ElementNode extends ASTNode {
 class TextNode extends ASTNode {
   constructor(content) {
     super('text');
-    this.content = content;
+    this.content = TextNode.normalize(content);
+  }
+
+  static normalize(text) {
+    if (!text) return '';
+    // Collapse HTML source whitespace: newlines, tabs, multiple spaces → single space, then trim
+    let result = '';
+    let prevSpace = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text.charCodeAt(i);
+      // \n=10, \r=13, \t=9, space=32
+      if (ch === 10 || ch === 13 || ch === 9 || ch === 32) {
+        if (!prevSpace) { result += ' '; prevSpace = true; }
+      } else {
+        result += text[i];
+        prevSpace = false;
+      }
+    }
+    return result.trim();
   }
 }
 
@@ -132,6 +150,7 @@ class InputNode extends ASTNode {
     this.readonly = false;
     this.disabled = false;
     this.value = '';
+    this.pattern = null;
   }
 }
 
@@ -175,6 +194,10 @@ class DatePickerNode extends ASTNode {
     this.name = '';
     this.placeholder = '';
     this.required = false;
+    this.readonly = false;
+    this.value = '';
+    this.min = null;
+    this.max = null;
   }
 }
 
@@ -184,6 +207,7 @@ class SignatureNode extends ASTNode {
     this.name = '';
     this.width = null;
     this.height = null;
+    this.value = '';
   }
 }
 
@@ -191,8 +215,60 @@ class ImageUploadNode extends ASTNode {
   constructor() {
     super('image-upload');
     this.name = '';
+    this.source = 'both'; // 'upload', 'camera', 'both'
     this.width = null;
     this.height = null;
+    this.value = '';
+    this.required = false;
+  }
+}
+
+class CheckboxNode extends ASTNode {
+  constructor() {
+    super('checkbox');
+    this.name = '';
+    this.label = null;
+    this.options = [];
+    this.hasOther = false;
+    this.value = null;
+    this.disabled = false;
+  }
+}
+
+class RadioNode extends ASTNode {
+  constructor() {
+    super('radio');
+    this.name = '';
+    this.options = [];
+    this.value = '';
+    this.required = false;
+    this.disabled = false;
+  }
+}
+
+class FileUploadNode extends ASTNode {
+  constructor() {
+    super('file');
+    this.name = '';
+    this.accept = null;
+    this.multiple = false;
+    this.maxSize = null;
+    this.value = '';
+    this.required = false;
+  }
+}
+
+class SearchNode extends ASTNode {
+  constructor() {
+    super('search');
+    this.name = '';
+    this.source = '';
+    this.display = null;
+    this.valueField = null;
+    this.fields = null;
+    this.placeholder = '';
+    this.value = '';
+    this.required = false;
   }
 }
 
@@ -216,6 +292,10 @@ const ASTNodes = {
   DatePickerNode,
   SignatureNode,
   ImageUploadNode,
+  CheckboxNode,
+  RadioNode,
+  FileUploadNode,
+  SearchNode,
 };
 
 if (typeof window !== 'undefined') window.ASTNodes = ASTNodes;

@@ -37,5 +37,22 @@
 .DS_Store
 Thumbs.db
 
+# Node.js
+**/node_modules/
+package-lock.json
+
 # HTML tool
 html/target/
+
+# Backup files (timestamped)
+**/*.bak
+**/*.bak_*
+**/js.bak/
+
+# Tap test files (debugging)
+html_preview/lib/tap_test*.dart
+html_preview/lib/*_noshell.dart
+
+# Reference / pretext
+lib/pretext-main/
+reference/

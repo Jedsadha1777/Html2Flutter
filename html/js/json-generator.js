@@ -51,6 +51,10 @@ const JsonGenerator = {
       case 'date-picker': return this._genDatePicker(node, ctx);
       case 'signature':   return this._genSignature(node, ctx);
       case 'image-upload':return this._genImageUpload(node, ctx);
+      case 'checkbox':    return this._genCheckbox(node, ctx);
+      case 'radio':       return this._genRadio(node, ctx);
+      case 'file':        return this._genFile(node, ctx);
+      case 'search':      return this._genSearch(node, ctx);
       case 'svg':         return null;
       case 'option':      return null;
       case 'tr': case 'td': case 'th':
@@ -485,7 +489,20 @@ const JsonGenerator = {
       const prevFs = ctx._inheritedFontSize;
       const prevFf = ctx._inheritedFontFamily;
       const prevFc = ctx._inheritedColor;
-      ctx.containerWidth = null;
+      // Calculate cell's pixel width for nested content
+      if (prevWidth != null) {
+        const cellWidthStr = cellNode.width || cellNode.styles?.width;
+        if (cellWidthStr) {
+          const d = StyleParser.parseDimension(cellWidthStr);
+          if (d && d.unit === '%') ctx.containerWidth = prevWidth * (d.value / 100);
+          else if (d) ctx.containerWidth = d.value;
+          else ctx.containerWidth = prevWidth;
+        } else {
+          ctx.containerWidth = prevWidth;
+        }
+      } else {
+        ctx.containerWidth = null;
+      }
       if (tableStyles.fontSize) ctx._inheritedFontSize = tableStyles.fontSize;
       if (tableStyles.fontFamily) ctx._inheritedFontFamily = tableStyles.fontFamily;
       if (tableStyles.color) ctx._inheritedColor = tableStyles.color;
@@ -532,6 +549,7 @@ const JsonGenerator = {
     if (node.readonly)    field.readonly = true;
     if (node.disabled)    field.disabled = true;
     if (node.value)       field.value = node.value;
+    if (node.pattern)     field.pattern = node.pattern;
     if (node.styles?.width) field.width = this._parseDim(node.styles.width);
 
     ctx.fields.push({ name, fieldType: 'input', inputType: field.inputType, placeholder: field.placeholder, required: field.required });
@@ -568,6 +586,10 @@ const JsonGenerator = {
     const field = { type: 'date-picker', name };
     if (node.placeholder) field.placeholder = node.placeholder;
     if (node.required)    field.required = true;
+    if (node.readonly)    field.readonly = true;
+    if (node.value)       field.value = node.value;
+    if (node.min)         field.min = node.min;
+    if (node.max)         field.max = node.max;
 
     ctx.fields.push({ name, fieldType: 'date-picker', required: field.required });
     return field;
@@ -578,6 +600,7 @@ const JsonGenerator = {
     const field = { type: 'signature', name };
     if (node.width)  field.width  = this._parseDim(node.width);
     if (node.height) field.height = this._parseDim(node.height);
+    if (node.value)  field.value = node.value;
 
     ctx.fields.push({ name, fieldType: 'signature' });
     return field;
@@ -586,10 +609,64 @@ const JsonGenerator = {
   _genImageUpload(node, ctx) {
     const name = node.name || `image_${ctx.fieldIndex++}`;
     const field = { type: 'image-upload', name };
-    if (node.width)  field.width  = this._parseDim(node.width);
-    if (node.height) field.height = this._parseDim(node.height);
+    if (node.source && node.source !== 'both') field.source = node.source;
+    if (node.width)    field.width  = this._parseDim(node.width);
+    if (node.height)   field.height = this._parseDim(node.height);
+    if (node.value)    field.value = node.value;
+    if (node.required) field.required = true;
 
-    ctx.fields.push({ name, fieldType: 'image-upload' });
+    ctx.fields.push({ name, fieldType: 'image-upload', required: field.required });
+    return field;
+  },
+
+  _genCheckbox(node, ctx) {
+    const name = node.name || `checkbox_${ctx.fieldIndex++}`;
+    const field = { type: 'checkbox', name };
+    if (node.label)    field.label = node.label;
+    if (node.options && node.options.length) field.options = node.options;
+    if (node.hasOther) field.other = true;
+    if (node.value)    field.value = node.value;
+    if (node.disabled) field.disabled = true;
+
+    ctx.fields.push({ name, fieldType: 'checkbox' });
+    return field;
+  },
+
+  _genRadio(node, ctx) {
+    const name = node.name || `radio_${ctx.fieldIndex++}`;
+    const field = { type: 'radio', name, options: node.options || [] };
+    if (node.value)    field.value = node.value;
+    if (node.required) field.required = true;
+    if (node.disabled) field.disabled = true;
+
+    ctx.fields.push({ name, fieldType: 'radio', required: field.required });
+    return field;
+  },
+
+  _genFile(node, ctx) {
+    const name = node.name || `file_${ctx.fieldIndex++}`;
+    const field = { type: 'file', name };
+    if (node.accept)   field.accept = node.accept;
+    if (node.multiple) field.multiple = true;
+    if (node.maxSize)  field.maxSize = node.maxSize;
+    if (node.value)    field.value = node.value;
+    if (node.required) field.required = true;
+
+    ctx.fields.push({ name, fieldType: 'file', required: field.required });
+    return field;
+  },
+
+  _genSearch(node, ctx) {
+    const name = node.name || `search_${ctx.fieldIndex++}`;
+    const field = { type: 'search', name, source: node.source || '' };
+    if (node.display)     field.display = node.display;
+    if (node.valueField)  field.valueField = node.valueField;
+    if (node.fields)      field.fields = node.fields;
+    if (node.placeholder) field.placeholder = node.placeholder;
+    if (node.value)       field.value = node.value;
+    if (node.required)    field.required = true;
+
+    ctx.fields.push({ name, fieldType: 'search', required: field.required });
     return field;
   },
 
@@ -729,8 +806,12 @@ const JsonGenerator = {
   _parseDim(str) {
     if (str == null) return null;
     if (typeof str === 'number') return str;
-    const m = String(str).match(/^([\d.]+)/);
-    return m ? parseFloat(m[1]) : null;
+    const dim = StyleParser.parseDimension(str);
+    if (!dim) return null;
+    // pt → px (1pt = 1.33 logical pixels), rem/em → px (1rem = 16px)
+    if (dim.unit === 'pt')  return Math.round(dim.value * 1.33 * 10) / 10;
+    if (dim.unit === 'rem' || dim.unit === 'em') return Math.round(dim.value * 16 * 10) / 10;
+    return dim.value;
   },
 };
 
