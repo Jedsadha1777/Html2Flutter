@@ -250,7 +250,7 @@ const HTMLParser = {
   // Parses text like: [input* name type="email" placeholder="hint"]
   // Returns AST node or null if not a bracket tag
   parseBracketTag(text) {
-    const match = text.match(/^\[(\w+\*?)\s+(.+)\]$/s);
+    const match = text.match(/^\[([\w-]+\*?)\s+(.+)\]$/s);
     if (!match) return null;
 
     let typeRaw = match[1];

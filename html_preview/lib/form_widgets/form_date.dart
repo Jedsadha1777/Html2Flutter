@@ -79,22 +79,18 @@ class _FormDateState extends State<FormDate> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _pickDate,
-      child: AbsorbPointer(
-        child: TextField(
-          controller: TextEditingController(text: _selected ?? ''),
-          readOnly: true,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            hintText: widget.placeholder ?? 'เลือกวันที่',
-            suffixIcon: const Icon(Icons.calendar_today, size: 18),
-            filled: widget.required,
-            fillColor: widget.required ? Colors.yellow.shade50 : null,
-          ),
-        ),
+    return TextField(
+      controller: TextEditingController(text: _selected ?? ''),
+      readOnly: true,
+      onTap: widget.readonly ? null : _pickDate,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        hintText: widget.placeholder ?? 'เลือกวันที่',
+        suffixIcon: const Icon(Icons.calendar_today, size: 18),
+        filled: widget.required,
+        fillColor: widget.required ? Colors.yellow.shade50 : null,
       ),
     );
   }

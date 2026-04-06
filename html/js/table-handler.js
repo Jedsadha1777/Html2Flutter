@@ -1121,7 +1121,7 @@ const TableHandler = {
     });
 
     // Special interactive widgets (nested table, form controls)
-    const formTypes = new Set(['input','select','textarea','date-picker','signature','image-upload']);
+    const formTypes = new Set(['input','select','textarea','date-picker','signature','image-upload','checkbox','radio','file','search']);
     const hasSpecial = contentChildren.some(c => c.type === 'table' || formTypes.has(c.type));
     if (hasSpecial) {
       const _renderNestedTable = (child) => {
@@ -1143,12 +1143,13 @@ const TableHandler = {
           checkboxes:  context.checkboxes,
           customWidgets: context.customWidgets,
           containerWidth: nestedContainerW,
-          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false,
+          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
         };
         const result = this.generate(child, isolated, style);
         if (isolated.usesDiagonalBorder) context.usesDiagonalBorder = true;
         if (isolated.usesComment)        context.usesComment        = true;
         if (isolated.usesGesture)        context.usesGesture        = true;
+        if (isolated.usesFormWidgets)    context.usesFormWidgets    = true;
         return result;
       };
 
@@ -1161,6 +1162,10 @@ const TableHandler = {
         if (child.type === 'date-picker')   { segments.push(this.datepickerWidget(child, context)); continue; }
         if (child.type === 'signature')     { segments.push(this.signatureWidget(child, context)); continue; }
         if (child.type === 'image-upload')  { segments.push(this.imageUploadWidget(child, context)); continue; }
+        if (child.type === 'checkbox')      { segments.push(this.checkboxWidget(child, context)); continue; }
+        if (child.type === 'radio')         { segments.push(this.radioWidget(child, context)); continue; }
+        if (child.type === 'file')          { segments.push(this.fileWidget(child, context)); continue; }
+        if (child.type === 'search')        { segments.push(this.searchWidget(child, context)); continue; }
         // Non-special sibling content (text, p, div, span, etc.) — render recursively
         const sibling = this._renderMixedChild(child, style, context);
         if (sibling) segments.push(sibling);
@@ -1591,12 +1596,13 @@ const TableHandler = {
           dropdowns:   context.dropdowns,
           checkboxes:  context.checkboxes,
           customWidgets: context.customWidgets,
-          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false,
+          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
         };
         const result = this.generate(child, isolated, style);
         if (isolated.usesDiagonalBorder) context.usesDiagonalBorder = true;
         if (isolated.usesComment)        context.usesComment        = true;
         if (isolated.usesGesture)        context.usesGesture        = true;
+        if (isolated.usesFormWidgets)    context.usesFormWidgets    = true;
         segments.push(result);
       } else if (blockTags.has(child.tagName)) {
         flushInline();
@@ -1746,24 +1752,80 @@ const TableHandler = {
   },
 
   datepickerWidget(node, context) {
+    context.usesFormWidgets = true;
     const name = node.name || `date_${context.controllers.size}`;
-    context.controllers.set(name, { type: 'date', name });
-    const ctrl = `_${this.toCamelCase(name)}Controller`;
-    return `SizedBox(width: 160, child: TextField(controller: ${ctrl}, readOnly: true, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6), suffixIcon: Icon(Icons.calendar_today, size: 16))))`;
+    const props = [`name: '${name}'`];
+    if (node.value) props.push(`value: '${node.value}'`);
+    if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
+    if (node.min) props.push(`min: '${node.min}'`);
+    if (node.max) props.push(`max: '${node.max}'`);
+    if (node.required) props.push('required: true');
+    if (node.readonly) props.push('readonly: true');
+    return `FormDate(${props.join(', ')})`;
   },
 
-  signatureWidget(node) {
-    let width = 200, height = 100;
-    if (node.width)  { const d = StyleParser.parseDimension(node.width);  if (d) width  = d.value; }
-    if (node.height) { const d = StyleParser.parseDimension(node.height); if (d) height = d.value; }
-    return `Container(width: ${width}, height: ${height}, decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(4)), child: const Center(child: Text('[ Signature ]', style: TextStyle(color: Colors.grey))))`;
+  signatureWidget(node, context) {
+    context.usesFormWidgets = true;
+    const name = node.name || 'signature';
+    const props = [`name: '${name}'`];
+    if (node.width) props.push(`width: ${parseFloat(node.width) || 200}`);
+    if (node.height) props.push(`height: ${parseFloat(node.height) || 100}`);
+    return `FormSignature(${props.join(', ')})`;
   },
 
-  imageUploadWidget(node) {
-    let width = 200, height = 150;
-    if (node.width)  { const d = StyleParser.parseDimension(node.width);  if (d) width  = d.value; }
-    if (node.height) { const d = StyleParser.parseDimension(node.height); if (d) height = d.value; }
-    return `Container(width: ${width}, height: ${height}, decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(4)), child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey)))`;
+  imageUploadWidget(node, context) {
+    context.usesFormWidgets = true;
+    const name = node.name || 'image';
+    const props = [`name: '${name}'`];
+    if (node.source && node.source !== 'both') props.push(`source: '${node.source}'`);
+    if (node.width) props.push(`width: ${parseFloat(node.width) || 150}`);
+    if (node.height) props.push(`height: ${parseFloat(node.height) || 150}`);
+    if (node.required) props.push('required: true');
+    return `FormImageUpload(${props.join(', ')})`;
+  },
+
+  checkboxWidget(node, context) {
+    context.usesFormWidgets = true;
+    const name = node.name || `checkbox_${context.checkboxes.size}`;
+    context.checkboxes.set(name, { name });
+    const props = [`name: '${name}'`];
+    if (node.label) props.push(`label: '${node.label}'`);
+    if (node.options && node.options.length) props.push(`options: [${node.options.map(o => `'${o}'`).join(', ')}]`);
+    if (node.hasOther) props.push('hasOther: true');
+    if (node.disabled) props.push('disabled: true');
+    return `FormCheckbox(${props.join(', ')})`;
+  },
+
+  radioWidget(node, context) {
+    context.usesFormWidgets = true;
+    const name = node.name || 'radio';
+    const props = [`name: '${name}'`];
+    if (node.options && node.options.length) props.push(`options: [${node.options.map(o => `'${o}'`).join(', ')}]`);
+    if (node.required) props.push('required: true');
+    if (node.disabled) props.push('disabled: true');
+    return `FormRadio(${props.join(', ')})`;
+  },
+
+  fileWidget(node, context) {
+    context.usesFormWidgets = true;
+    const name = node.name || 'file';
+    const props = [`name: '${name}'`];
+    if (node.accept) props.push(`accept: '${node.accept}'`);
+    if (node.multiple) props.push('multiple: true');
+    if (node.maxSize) props.push(`maxSizeMb: ${node.maxSize}`);
+    if (node.required) props.push('required: true');
+    return `FormFile(${props.join(', ')})`;
+  },
+
+  searchWidget(node, context) {
+    context.usesFormWidgets = true;
+    const name = node.name || 'search';
+    const props = [`name: '${name}'`, `source: '${node.source || ''}'`];
+    if (node.display) props.push(`displayFields: '${node.display}'`);
+    if (node.fields) props.push(`fields: '${node.fields}'`);
+    if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
+    if (node.required) props.push('required: true');
+    return `FormSearch(${props.join(', ')})`;
   },
 
   // ─── Utility ─────────────────────────────────────────────────────────────────

@@ -10,6 +10,7 @@ const DartGenerator = {
       usesTable: false,
       usesDiagonalBorder: false,
       usesComment: false,
+      usesFormWidgets: false,
       bodyStyles: null,
     };
 
@@ -718,40 +719,28 @@ ${ind}),
   },
 
   generateSignature(node, _context) {
-    const ind  = _context.indent;
-    let width = 200, height = 100;
-    if (node.width)  { const d = StyleParser.parseDimension(node.width);  if (d) width  = d.value; }
-    if (node.height) { const d = StyleParser.parseDimension(node.height); if (d) height = d.value; }
-
-    return `Container(
-${ind}width: ${width},
-${ind}height: ${height},
-${ind}decoration: BoxDecoration(
-${ind}  border: Border.all(color: Colors.grey),
-${ind}  borderRadius: BorderRadius.circular(4),
-${ind}),
-${ind}child: const Center(child: Text('[ Signature ]', style: TextStyle(color: Colors.grey))),
-)`;
+    _context.usesFormWidgets = true;
+    const name = node.name || 'signature';
+    const props = [`name: '${name}'`];
+    if (node.width) props.push(`width: ${parseFloat(node.width) || 200}`);
+    if (node.height) props.push(`height: ${parseFloat(node.height) || 100}`);
+    if (node.value) props.push(`value: '${this.escapeString(node.value)}'`);
+    return `FormSignature(${props.join(', ')})`;
   },
 
-  generateImageUpload(node, context) {
-    const ind  = context.indent;
-    let width = 200, height = 150;
-    if (node.width)  { const d = StyleParser.parseDimension(node.width);  if (d) width  = d.value; }
-    if (node.height) { const d = StyleParser.parseDimension(node.height); if (d) height = d.value; }
-
-    return `Container(
-${ind}width: ${width},
-${ind}height: ${height},
-${ind}decoration: BoxDecoration(
-${ind}  border: Border.all(color: Colors.grey),
-${ind}  borderRadius: BorderRadius.circular(4),
-${ind}),
-${ind}child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey)),
-)`;
+  generateImageUpload(node, _context) {
+    _context.usesFormWidgets = true;
+    const name = node.name || 'image';
+    const props = [`name: '${name}'`];
+    if (node.source && node.source !== 'both') props.push(`source: '${node.source}'`);
+    if (node.width) props.push(`width: ${parseFloat(node.width) || 150}`);
+    if (node.height) props.push(`height: ${parseFloat(node.height) || 150}`);
+    if (node.required) props.push('required: true');
+    return `FormImageUpload(${props.join(', ')})`;
   },
 
   generateCheckbox(node, context) {
+    context.usesFormWidgets = true;
     const name = node.name || `checkbox_${context.checkboxes.size}`;
     context.checkboxes.set(name, { name });
     const props = [`name: '${name}'`];
@@ -764,6 +753,7 @@ ${ind}child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 
   },
 
   generateRadio(node, _context) {
+    _context.usesFormWidgets = true;
     const name = node.name || 'radio';
     const props = [`name: '${name}'`];
     if (node.options && node.options.length) props.push(`options: [${node.options.map(o => `'${this.escapeString(o)}'`).join(', ')}]`);
@@ -774,6 +764,7 @@ ${ind}child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 
   },
 
   generateFile(node, _context) {
+    _context.usesFormWidgets = true;
     const name = node.name || 'file';
     const props = [`name: '${name}'`];
     if (node.accept) props.push(`accept: '${node.accept}'`);
@@ -784,6 +775,7 @@ ${ind}child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 
   },
 
   generateSearch(node, _context) {
+    _context.usesFormWidgets = true;
     const name = node.name || 'search';
     const props = [`name: '${name}'`, `source: '${node.source || ''}'`];
     if (node.display) props.push(`displayFields: '${node.display}'`);
@@ -819,6 +811,9 @@ ${ind}child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 
     const imports = new Set(["import 'package:flutter/material.dart';"]);
     if (context.usesGesture) {
       imports.add("import 'package:flutter/gestures.dart';");
+    }
+    if (context.usesFormWidgets || context.checkboxes.size > 0 || context.controllers.size > 0 || context.dropdowns.size > 0) {
+      imports.add("import 'form_widgets/form_widgets.dart';");
     }
     return Array.from(imports).join('\n');
   },
