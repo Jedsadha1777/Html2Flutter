@@ -115,11 +115,7 @@ ${ind}],
   generateChildren(node, context) {
     if (!node.children || node.children.length === 0) return 'const SizedBox.shrink()';
 
-    const visibleChildren = node.children.filter(c => {
-      if (c.type === 'svg') return false;
-      if (c.styles?.position === 'absolute') return false;
-      return true;
-    });
+    const visibleChildren = this._visibleChildren(node);
 
     const children = visibleChildren
       .map(c => this.generateNode(c, context))
@@ -144,20 +140,24 @@ ${ind}],
     return `Text('${this.escapeString(text)}')`;
   },
 
+  _visibleChildren(node) {
+    return (node.children || []).filter(c =>
+      c.type !== 'svg' && c.styles?.position !== 'absolute'
+    );
+  },
+
   hasMixedInlineContent(node) {
     if (!node.children) return false;
-    const visible = node.children.filter(c => c.type !== 'svg' && c.styles?.position !== 'absolute');
+    const visible = this._visibleChildren(node);
     const hasText  = visible.some(c => c.type === 'text' && c.content.trim());
     const hasSpan  = visible.some(c =>
-      ['span','a','b','strong','i','em','u','s','strike'].includes(c.tagName)
+      ['span','a','b','strong','i','em','u','s','strike','del','mark','sub','sup'].includes(c.tagName)
     );
     return hasText || hasSpan;
   },
 
   generateInlineContent(node, context) {
-    const visible = (node.children || []).filter(c =>
-      c.type !== 'svg' && c.styles?.position !== 'absolute'
-    );
+    const visible = this._visibleChildren(node);
 
     const spans = [];
     for (const child of visible) {
@@ -205,8 +205,7 @@ ${ind}],
 
   collectTextSpans(node, _context) {
     const spans = [];
-    for (const child of (node.children || [])) {
-      if (child.type === 'svg' || child.styles?.position === 'absolute') continue;
+    for (const child of this._visibleChildren(node)) {
       if (child.type === 'text') {
         const t = child.content;
         if (t) spans.push(`TextSpan(text: '${this.escapeString(t)}')`);
@@ -391,27 +390,13 @@ ${ind}child: ${childCode},
     const ind    = context.indent;
     const styles = node.styles || {};
 
-    const text = this.escapeString(this.extractAllText(node));
+    const text      = this.escapeString(this.extractAllText(node));
     const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
-
-    const textProps = [];
-    if (styles.fontSize) {
-      const dim = StyleParser.parseDimension(styles.fontSize);
-      if (dim) textProps.push(`fontSize: ${dim.value}`);
-    }
-    if (styles.fontFamily) {
-      const ff = styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
-      if (ff) textProps.push(`fontFamily: '${ff}'`);
-    }
-    if (styles.color) textProps.push(`color: ${StyleParser.colorToFlutter(styles.color)}`);
-    if (styles.fontWeight) {
-      const fw = StyleParser.fontWeightToFlutter(styles.fontWeight);
-      if (fw) textProps.push(`fontWeight: ${fw}`);
-    }
+    const sp        = this.buildTextSpanStyle(styles, 'span');
 
     const textArgs = [`'${text}'`];
     if (alignCode) textArgs.push(`textAlign: ${alignCode}`);
-    if (textProps.length > 0) textArgs.push(`style: TextStyle(${textProps.join(', ')})`);
+    if (sp) textArgs.push(`style: TextStyle(${sp})`);
 
     let inner = `Text(${textArgs.join(', ')})`;
 
@@ -452,24 +437,17 @@ ${ind}child: ${childCode},
     const tag    = node.tagName;
     const styles = node.styles || {};
     const defaults = { h1:28, h2:22, h3:18, h4:16, h5:14, h6:12 };
-    let size = defaults[tag] || 16;
-    if (styles.fontSize) {
-      const dim = StyleParser.parseDimension(styles.fontSize);
-      if (dim) size = dim.value;
-    }
+    const size = (styles.fontSize && StyleParser.parseDimension(styles.fontSize)?.value) || defaults[tag] || 16;
 
-    const textProps = [`fontSize: ${size}`, 'fontWeight: FontWeight.bold'];
-    if (styles.fontFamily) {
-      const ff = styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
-      if (ff) textProps.push(`fontFamily: '${ff}'`);
-    }
-    if (styles.color) textProps.push(`color: ${StyleParser.colorToFlutter(styles.color)}`);
+    // Merge heading defaults (size + bold) with any inline styles
+    const headingStyles = { ...styles, fontSize: `${size}px`, fontWeight: styles.fontWeight || 'bold' };
+    const sp = this.buildTextSpanStyle(headingStyles, 'span');
 
     const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
     const text      = this.escapeString(this.extractAllText(node));
     const textArgs  = [`'${text}'`];
     if (alignCode) textArgs.push(`textAlign: ${alignCode}`);
-    textArgs.push(`style: TextStyle(${textProps.join(', ')})`);
+    textArgs.push(`style: TextStyle(${sp})`);
 
     let inner = `Text(${textArgs.join(', ')})`;
 
@@ -478,25 +456,15 @@ ${ind}child: ${childCode},
     return inner;
   },
 
-  generateBold(node, _context) {
+  _generateStyledText(node, styleProp) {
     const text = this.extractAllText(node);
-    return `Text('${this.escapeString(text)}', style: const TextStyle(fontWeight: FontWeight.bold))`;
+    return `Text('${this.escapeString(text)}', style: const TextStyle(${styleProp}))`;
   },
 
-  generateItalic(node, _context) {
-    const text = this.extractAllText(node);
-    return `Text('${this.escapeString(text)}', style: const TextStyle(fontStyle: FontStyle.italic))`;
-  },
-
-  generateUnderline(node, _context) {
-    const text = this.extractAllText(node);
-    return `Text('${this.escapeString(text)}', style: const TextStyle(decoration: TextDecoration.underline))`;
-  },
-
-  generateStrikethrough(node, _context) {
-    const text = this.extractAllText(node);
-    return `Text('${this.escapeString(text)}', style: const TextStyle(decoration: TextDecoration.lineThrough))`;
-  },
+  generateBold(node, _context)          { return this._generateStyledText(node, 'fontWeight: FontWeight.bold'); },
+  generateItalic(node, _context)        { return this._generateStyledText(node, 'fontStyle: FontStyle.italic'); },
+  generateUnderline(node, _context)     { return this._generateStyledText(node, 'decoration: TextDecoration.underline'); },
+  generateStrikethrough(node, _context) { return this._generateStyledText(node, 'decoration: TextDecoration.lineThrough'); },
 
   generateMark(node, _context) {
     const text = this.extractAllText(node);

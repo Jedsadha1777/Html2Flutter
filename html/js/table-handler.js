@@ -1511,7 +1511,7 @@ const TableHandler = {
         continue;
       }
 
-      const inlineTags = ['span','b','strong','i','em','u','s','strike'];
+      const inlineTags = ['span','b','strong','i','em','u','s','strike','del','mark','sub','sup'];
       if (inlineTags.includes(child.tagName)) {
         const rawText = preserveNewlines
           ? this.extractTextPreserveNewlines(child)
