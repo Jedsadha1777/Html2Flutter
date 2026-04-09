@@ -40,11 +40,14 @@ class _FormSignatureState extends State<FormSignature> {
 
   @override
   Widget build(BuildContext context) {
+    final w = widget.width ?? 200;
+    final h = widget.height ?? 80;
+
     return GestureDetector(
       onTap: () => _openSignaturePage(context),
       child: Container(
-        width: widget.width ?? double.infinity,
-        height: widget.height ?? double.infinity,
+        width: w,
+        height: h,
         decoration: BoxDecoration(
           border: Border.all(color: _hasSigned ? Colors.green : Colors.grey.shade400),
           borderRadius: BorderRadius.circular(4),

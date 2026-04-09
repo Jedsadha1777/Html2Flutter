@@ -383,6 +383,15 @@ class _ScaledContentState extends State<_ScaledContent> {
     final measured = nat != null;
 
     final scaledW = (nat != null) ? nat.width * scale : contentW;
+    final extraH = ((contentW - scaledW) / 2).clamp(0.0, double.infinity);
+
+    final effectivePad = EdgeInsets.fromLTRB(
+      pad.left + extraH,
+      pad.top,
+      pad.right + extraH,
+      pad.bottom,
+    );
+
     final scaledH = (nat != null) ? nat.height * scale : contentH;
 
     return Visibility(
@@ -391,13 +400,13 @@ class _ScaledContentState extends State<_ScaledContent> {
       maintainAnimation: true,
       maintainState: true,
       child: Padding(
-        padding: pad,
+        padding: effectivePad,
         child: ClipRect(
           child: SizedBox(
             width: contentW,
             height: contentH,
             child: Align(
-              alignment: Alignment.center,
+              alignment: Alignment.topLeft,
               child: SizedBox(
                 width: scaledW,
                 height: scaledH,

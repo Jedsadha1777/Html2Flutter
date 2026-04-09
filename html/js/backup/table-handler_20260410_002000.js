@@ -457,10 +457,6 @@ const TableHandler = {
     if (!isPercentWidth) {
       this.estimateShrinkColumnWidths(matrix, columnWidths, this.getPadding(tableNode));
     }
-
-    // Post-processing: extend single-column nowrap text cells into adjacent empty cells
-    // when the text doesn't fit in the column width (Excel-like overflow behavior).
-    this._extendTextOverflow(matrix, columnWidths, this.getPadding(tableNode));
     // Resolve table's own fixed width for refine pass (explicit px on table overrides container estimate)
     let tableEstW = estimatedAvailableWidth;
     const tableWidthStr = tableNode.styles?.width || tableNode.width;
@@ -743,7 +739,6 @@ const TableHandler = {
     lines.push('        children: [');
 
     for (const p of placements) {
-      if (p._absorbed) continue; // skip cells absorbed by text overflow extension
       lines.push(this.renderCell(p, numCols, numRows, context, padding, parentStyle));
     }
 
@@ -1392,64 +1387,6 @@ const TableHandler = {
     return inner ? result : null;
   },
 
-  // Post-processing: extend nowrap text cells into adjacent empty cells when text overflows.
-  // Mimics Excel behavior where text in a cell visually overflows into empty neighbors.
-  _extendTextOverflow(matrix, columnWidths, padding) {
-    for (let pi = 0; pi < matrix.placements.length; pi++) {
-      const p = matrix.placements[pi];
-      if (p.colspan !== 1 || p.rowspan !== 1) continue;
-      if (p.style?.whiteSpace !== 'nowrap') continue;
-      if (this.cellHasFormWidget(p.cell)) continue;
-
-      const text = this.extractText(p.cell);
-      if (!text || !text.trim()) continue;
-
-      // Measure text width
-      const fs = p.effFontSize || 16;
-      const bold = p.style?.fontWeight === 'FontWeight.bold';
-      const charW = fs * (bold ? 0.85 : 0.72);
-      const textPixels = this.visualLength(text.trim()) * charW;
-
-      // Current cell width
-      const cw = columnWidths[p.col];
-      if (!cw || (cw.type !== 'fixed' && cw.type !== 'shrink')) continue;
-      const cellPx = cw.value - padding * 2; // subtract horizontal padding
-      if (textPixels <= cellPx) continue; // text fits — no extension needed
-
-      // Extend into adjacent empty columns to the right
-      let extendTo = p.col + 1;
-      let totalWidth = cw.value;
-      while (extendTo < matrix.numCols) {
-        const slot = matrix.slots[p.row]?.[extendTo];
-        if (!slot) break;
-        const adj = matrix.placements[slot.placementIdx];
-        if (!adj || adj === p) break;
-        if (adj.colspan !== 1 || adj.rowspan !== 1) break;
-        // Adjacent cell must be empty (no text, no form widgets)
-        const adjText = this.extractText(adj.cell);
-        if (adjText && adjText.trim()) break;
-        if (this.cellHasFormWidget(adj.cell)) break;
-
-        // Absorb this empty cell
-        adj._absorbed = true;
-        const adjW = columnWidths[extendTo];
-        totalWidth += adjW?.value || 0;
-        extendTo++;
-
-        if (totalWidth - padding * 2 >= textPixels) break; // enough space
-      }
-
-      if (extendTo > p.col + 1) {
-        // Update placement colspan
-        p.colspan = extendTo - p.col;
-        // Update matrix slots to point to extended placement
-        for (let c = p.col; c < extendTo; c++) {
-          matrix.slots[p.row][c] = { placementIdx: pi, originRow: p.row, originCol: p.col, rowspan: p.rowspan, colspan: p.colspan };
-        }
-      }
-    }
-  },
-
   // Post-processing pass: for each cell that drew a 'top' border, move it to 'bottom' on the
   // above neighbor. This ensures all horizontal lines at a given row boundary are drawn at the
   // same pixel y position (bottom-side convention), fixing 1px misalignment bugs.
@@ -2005,7 +1942,6 @@ const TableHandler = {
 
     const jsonPlacements = [];
     for (const p of placements) {
-      if (p._absorbed) continue; // skip cells absorbed by text overflow extension
       const { cell, row, col, colspan, rowspan, style } = p;
       const colEnd = Math.min(col + colspan, numCols);
       const rowEnd = Math.min(row + rowspan, numRows);

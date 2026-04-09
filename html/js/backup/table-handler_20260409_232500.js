@@ -105,7 +105,7 @@ class TableStyleContext {
       rotateAngle:         opts.rotateAngle         ?? this.rotateAngle,
       whiteSpace:          opts.whiteSpace          ?? this.whiteSpace,
       lineHeight:          opts.lineHeight          ?? this.lineHeight,
-      cellBorder:          'cellBorder' in opts      ? opts.cellBorder : this.cellBorder,
+      cellBorder:          opts.cellBorder          ?? this.cellBorder,
       textTransform:       opts.textTransform       ?? this.textTransform,
       rawBgColor:          opts.rawBgColor          ?? this.rawBgColor,
       rawTextColor:        opts.rawTextColor        ?? this.rawTextColor,
@@ -203,7 +203,6 @@ const TableHandler = {
       const rowFontSize = rowStyle.fontSize || baseOpts.fontSize || 16;
       const blockTagsH = new Set(['div','p','h1','h2','h3','h4','h5','h6','ul','ol']);
       let maxCellHeight = 0;
-      let maxTextCellHeight = 0;  // text content only (excludes widget estimates)
 
       for (const cell of row.cells) {
         // Effective font size: use cell's own fontSize if set, otherwise row/body default
@@ -300,36 +299,27 @@ const TableHandler = {
         const contentH = Math.max(totalContentH, widgetContentH);
         const cellH    = contentH + pt + pb + bt + bb;
         maxCellHeight = Math.max(maxCellHeight, cellH);
-
-        const textCellH = totalContentH + pt + pb + bt + bb;
-        maxTextCellHeight = Math.max(maxTextCellHeight, textCellH);
       }
 
-      // Determine explicit row height from <tr style="height:"> or cell height attrs
-      let explicitRowH = null;
+      let minHeight = Math.max(maxCellHeight, 20);
+
       if (row.node?.styles?.height) {
         const dim = this.convertDimension(StyleParser.parseDimension(row.node.styles.height));
-        if (dim && dim.unit !== '%') explicitRowH = dim.value;
+        if (dim && dim.unit !== '%') minHeight = Math.max(minHeight, dim.value);
       } else {
         for (const cell of row.cells) {
-          const hStr = cell.styles?.height || cell.height;
-          if (hStr) {
-            const dim = this.convertDimension(StyleParser.parseDimension(hStr));
-            if (dim && dim.unit !== '%') explicitRowH = Math.max(explicitRowH || 0, dim.value);
+          if (cell.styles?.height) {
+            const dim = this.convertDimension(StyleParser.parseDimension(cell.styles.height));
+            if (dim && dim.unit !== '%') minHeight = Math.max(minHeight, dim.value);
+          }
+          if (cell.height) {
+            const dim = this.convertDimension(StyleParser.parseDimension(cell.height));
+            if (dim && dim.unit !== '%') minHeight = Math.max(minHeight, dim.value);
           }
         }
       }
-
-      let minHeight;
-      if (explicitRowH != null) {
-        // When row has explicit height: use max of explicit height and text content height.
-        // Widget estimates (textarea, signature, etc.) are excluded — they inflated heights
-        // far beyond what the HTML author intended.
-        minHeight = Math.max(maxTextCellHeight, explicitRowH, 20);
-      } else {
-        // No explicit height: use full content height including widgets.
-        minHeight = Math.max(maxCellHeight, 20);
-      }
+      // DEBUG: log rows with large heights (will be removed)
+      if (minHeight > 100) console.log(`[buildTable] row=${rowIdx} minHeight=${minHeight} maxCellHeight=${maxCellHeight} trHeight=${row.node?.styles?.height}`);
       minRowHeights.push(minHeight);
       rowData.push({ ...row, style: rowStyle });
 
@@ -457,10 +447,6 @@ const TableHandler = {
     if (!isPercentWidth) {
       this.estimateShrinkColumnWidths(matrix, columnWidths, this.getPadding(tableNode));
     }
-
-    // Post-processing: extend single-column nowrap text cells into adjacent empty cells
-    // when the text doesn't fit in the column width (Excel-like overflow behavior).
-    this._extendTextOverflow(matrix, columnWidths, this.getPadding(tableNode));
     // Resolve table's own fixed width for refine pass (explicit px on table overrides container estimate)
     let tableEstW = estimatedAvailableWidth;
     const tableWidthStr = tableNode.styles?.width || tableNode.width;
@@ -612,6 +598,9 @@ const TableHandler = {
       const ws = p.cell.styles?.whiteSpace || p.style?.whiteSpace;
       if (ws === 'nowrap') continue;
 
+      // DEBUG: log cells that pass the nowrap check (will be removed)
+      const _dbgText = this.extractText(p.cell);
+      if (_dbgText) console.log(`[refineRowHeights] row=${p.row} col=${p.col} colspan=${p.colspan} ws="${ws}" text="${_dbgText.slice(0,40)}"`);
 
       // Sum widths across the entire colspan span
       let colW = 0;
@@ -743,7 +732,6 @@ const TableHandler = {
     lines.push('        children: [');
 
     for (const p of placements) {
-      if (p._absorbed) continue; // skip cells absorbed by text overflow extension
       lines.push(this.renderCell(p, numCols, numRows, context, padding, parentStyle));
     }
 
@@ -1392,64 +1380,6 @@ const TableHandler = {
     return inner ? result : null;
   },
 
-  // Post-processing: extend nowrap text cells into adjacent empty cells when text overflows.
-  // Mimics Excel behavior where text in a cell visually overflows into empty neighbors.
-  _extendTextOverflow(matrix, columnWidths, padding) {
-    for (let pi = 0; pi < matrix.placements.length; pi++) {
-      const p = matrix.placements[pi];
-      if (p.colspan !== 1 || p.rowspan !== 1) continue;
-      if (p.style?.whiteSpace !== 'nowrap') continue;
-      if (this.cellHasFormWidget(p.cell)) continue;
-
-      const text = this.extractText(p.cell);
-      if (!text || !text.trim()) continue;
-
-      // Measure text width
-      const fs = p.effFontSize || 16;
-      const bold = p.style?.fontWeight === 'FontWeight.bold';
-      const charW = fs * (bold ? 0.85 : 0.72);
-      const textPixels = this.visualLength(text.trim()) * charW;
-
-      // Current cell width
-      const cw = columnWidths[p.col];
-      if (!cw || (cw.type !== 'fixed' && cw.type !== 'shrink')) continue;
-      const cellPx = cw.value - padding * 2; // subtract horizontal padding
-      if (textPixels <= cellPx) continue; // text fits — no extension needed
-
-      // Extend into adjacent empty columns to the right
-      let extendTo = p.col + 1;
-      let totalWidth = cw.value;
-      while (extendTo < matrix.numCols) {
-        const slot = matrix.slots[p.row]?.[extendTo];
-        if (!slot) break;
-        const adj = matrix.placements[slot.placementIdx];
-        if (!adj || adj === p) break;
-        if (adj.colspan !== 1 || adj.rowspan !== 1) break;
-        // Adjacent cell must be empty (no text, no form widgets)
-        const adjText = this.extractText(adj.cell);
-        if (adjText && adjText.trim()) break;
-        if (this.cellHasFormWidget(adj.cell)) break;
-
-        // Absorb this empty cell
-        adj._absorbed = true;
-        const adjW = columnWidths[extendTo];
-        totalWidth += adjW?.value || 0;
-        extendTo++;
-
-        if (totalWidth - padding * 2 >= textPixels) break; // enough space
-      }
-
-      if (extendTo > p.col + 1) {
-        // Update placement colspan
-        p.colspan = extendTo - p.col;
-        // Update matrix slots to point to extended placement
-        for (let c = p.col; c < extendTo; c++) {
-          matrix.slots[p.row][c] = { placementIdx: pi, originRow: p.row, originCol: p.col, rowspan: p.rowspan, colspan: p.colspan };
-        }
-      }
-    }
-  },
-
   // Post-processing pass: for each cell that drew a 'top' border, move it to 'bottom' on the
   // above neighbor. This ensures all horizontal lines at a given row boundary are drawn at the
   // same pixel y position (bottom-side convention), fixing 1px misalignment bugs.
@@ -2005,7 +1935,6 @@ const TableHandler = {
 
     const jsonPlacements = [];
     for (const p of placements) {
-      if (p._absorbed) continue; // skip cells absorbed by text overflow extension
       const { cell, row, col, colspan, rowspan, style } = p;
       const colEnd = Math.min(col + colspan, numCols);
       const rowEnd = Math.min(row + rowspan, numRows);
