@@ -9,7 +9,6 @@ const DartGenerator = {
       usesGesture: false,
       usesTable: false,
       usesDiagonalBorder: false,
-      usesDashedBorder: false,
       usesComment: false,
       usesFormWidgets: false,
       bodyStyles: null,
@@ -781,9 +780,6 @@ ${ind}),
     if (context.usesGesture) {
       imports.add("import 'package:flutter/gestures.dart';");
     }
-    if (context.usesDashedBorder) {
-      imports.add("import 'dart:math' as math;");
-    }
     if (context.usesFormWidgets || context.checkboxes.size > 0 || context.controllers.size > 0 || context.dropdowns.size > 0) {
       imports.add("import 'form_widgets/form_widgets.dart';");
     }
@@ -908,70 +904,6 @@ const _bk = Colors.black;` +
       old.strokeWidth != strokeWidth ||
       old.topLeftToBottomRight != topLeftToBottomRight ||
       old.bottomLeftToTopRight != bottomLeftToTopRight;
-}`);
-    }
-
-    if (context.usesDashedBorder) {
-      parts.push(`class _DashSide {
-  final Color color;
-  final double width;
-  final bool dotted;
-  final String side;
-  const _DashSide._(this.side, {required this.color, required this.width, this.dotted = false});
-  const _DashSide.top({required Color color, required double width, bool dotted = false}) : this._('top', color: color, width: width, dotted: dotted);
-  const _DashSide.right({required Color color, required double width, bool dotted = false}) : this._('right', color: color, width: width, dotted: dotted);
-  const _DashSide.bottom({required Color color, required double width, bool dotted = false}) : this._('bottom', color: color, width: width, dotted: dotted);
-  const _DashSide.left({required Color color, required double width, bool dotted = false}) : this._('left', color: color, width: width, dotted: dotted);
-}
-
-class _DashedBorderPainter extends CustomPainter {
-  final List<_DashSide> sides;
-  const _DashedBorderPainter({required this.sides});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (final s in sides) {
-      final paint = Paint()
-        ..color = s.color
-        ..strokeWidth = s.width
-        ..style = PaintingStyle.stroke;
-      final dashLen = s.dotted ? s.width : s.width * 3;
-      final gapLen = s.dotted ? s.width * 2 : s.width * 3;
-      switch (s.side) {
-        case 'top':    _drawDash(canvas, paint, Offset.zero, Offset(size.width, 0), dashLen, gapLen); break;
-        case 'bottom': _drawDash(canvas, paint, Offset(0, size.height), Offset(size.width, size.height), dashLen, gapLen); break;
-        case 'left':   _drawDash(canvas, paint, Offset.zero, Offset(0, size.height), dashLen, gapLen); break;
-        case 'right':  _drawDash(canvas, paint, Offset(size.width, 0), Offset(size.width, size.height), dashLen, gapLen); break;
-      }
-    }
-  }
-
-  void _drawDash(Canvas canvas, Paint paint, Offset start, Offset end, double dashLen, double gapLen) {
-    final dx = end.dx - start.dx;
-    final dy = end.dy - start.dy;
-    final totalLen = math.sqrt(dx * dx + dy * dy);
-    if (totalLen == 0) return;
-    final ux = dx / totalLen;
-    final uy = dy / totalLen;
-    double pos = 0;
-    bool draw = true;
-    while (pos < totalLen) {
-      final double seg = draw ? dashLen : gapLen;
-      final double segEnd = (pos + seg).clamp(0.0, totalLen);
-      if (draw) {
-        canvas.drawLine(
-          Offset(start.dx + ux * pos, start.dy + uy * pos),
-          Offset(start.dx + ux * segEnd, start.dy + uy * segEnd),
-          paint,
-        );
-      }
-      pos = segEnd;
-      draw = !draw;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorderPainter old) => true;
 }`);
     }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'preview_shell.dart';
 
 void main() => runApp(PreviewShell(pages: [_content()]));
@@ -2134,15 +2135,15 @@ class _DashedBorderPainter extends CustomPainter {
   void _drawDash(Canvas canvas, Paint paint, Offset start, Offset end, double dashLen, double gapLen) {
     final dx = end.dx - start.dx;
     final dy = end.dy - start.dy;
-    final totalLen = (dx * dx + dy * dy).sqrt();
+    final totalLen = math.sqrt(dx * dx + dy * dy);
     if (totalLen == 0) return;
     final ux = dx / totalLen;
     final uy = dy / totalLen;
     double pos = 0;
     bool draw = true;
     while (pos < totalLen) {
-      final seg = draw ? dashLen : gapLen;
-      final segEnd = (pos + seg).clamp(0.0, totalLen);
+      final double seg = draw ? dashLen : gapLen;
+      final double segEnd = (pos + seg).clamp(0.0, totalLen);
       if (draw) {
         canvas.drawLine(
           Offset(start.dx + ux * pos, start.dy + uy * pos),

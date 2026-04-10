@@ -82,7 +82,6 @@ class TableStyleContext {
     this.whiteSpace    = opts.whiteSpace    || null;
     this.lineHeight    = opts.lineHeight    || null;   // Flutter TextStyle.height ratio (line-height / font-size)
     this.cellBorder    = opts.cellBorder    || null;   // Flutter Border() string
-    this.borderDash    = opts.borderDash    || null;   // {top,right,bottom,left} → 'dashed'|'dotted'|null per side
     this.textTransform = opts.textTransform || null;   // 'uppercase', 'lowercase', 'capitalize'
     // Raw CSS values for JSON output (avoids parsing Flutter strings back)
     this.rawBgColor    = opts.rawBgColor    || null;
@@ -107,7 +106,6 @@ class TableStyleContext {
       whiteSpace:          opts.whiteSpace          ?? this.whiteSpace,
       lineHeight:          opts.lineHeight          ?? this.lineHeight,
       cellBorder:          'cellBorder' in opts      ? opts.cellBorder : this.cellBorder,
-      borderDash:          'borderDash' in opts     ? opts.borderDash : this.borderDash,
       textTransform:       opts.textTransform       ?? this.textTransform,
       rawBgColor:          opts.rawBgColor          ?? this.rawBgColor,
       rawTextColor:        opts.rawTextColor        ?? this.rawTextColor,
@@ -424,13 +422,9 @@ const TableHandler = {
             const drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
             const drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
 
-            const result = StyleParser.cellBorderCollapsedWithDash(cell.styles, drawTop, drawLeft);
-            border = result?.border || StyleParser.cellBorderCollapsed(cell.styles, drawTop, drawLeft);
-            if (result?.dash) cellStyle = cellStyle.copyWith({ borderDash: result.dash });
+            border = StyleParser.cellBorderCollapsed(cell.styles, drawTop, drawLeft);
           } else {
-            const result = StyleParser.cellBorderWithDash(cell.styles);
-            border = result?.border || StyleParser.cellBorderToFlutter(cell.styles);
-            if (result?.dash) cellStyle = cellStyle.copyWith({ borderDash: result.dash });
+            border = StyleParser.cellBorderToFlutter(cell.styles);
           }
           if (border) cellStyle = cellStyle.copyWith({ cellBorder: border, rawBorderCss: cell.styles || null });
         }
@@ -969,11 +963,10 @@ const TableHandler = {
     const hasRotation  = style.rotateAngle != null && style.rotateAngle !== 0;
     const hasDiagonal  = diagLines.length > 0;
     const hasGradient  = !!style.bgGradient;
-    const hasDashedBorder = !!style.borderDash;
-    const borderHelper = hasDashedBorder ? null : this.borderToHelper(style.cellBorder);
+    const borderHelper = this.borderToHelper(style.cellBorder);
     const complexBorder = style.cellBorder && !borderHelper;
 
-    if (hasRotation || hasDiagonal || hasGradient || complexBorder || hasDashedBorder) {
+    if (hasRotation || hasDiagonal || hasGradient || complexBorder) {
       // ── Verbose fallback ──────────────────────────────────────────────
       let containerChild;
       if (style.cellBorder || style.bgGradient) {
@@ -994,33 +987,7 @@ const TableHandler = {
         } else {
           decorProps.push(`color: ${style.bgColor || 'Colors.transparent'}`);
         }
-        // For dashed/dotted borders: use solid border for non-dashed sides only,
-        // dashed sides will be drawn by _DashedBorderPainter overlay
-        if (style.cellBorder && !hasDashedBorder) {
-          decorProps.push(`border: ${style.cellBorder}`);
-        } else if (style.cellBorder && hasDashedBorder) {
-          // Build solid-only border (exclude dashed/dotted sides)
-          const solidParts = [];
-          const dash = style.borderDash || {};
-          const borderStr = style.cellBorder;
-          if (borderStr.includes('top:') && !dash.top) {
-            const side = this.extractBorderSide(borderStr, 'top');
-            if (side) solidParts.push(`top: ${side}`);
-          }
-          if (borderStr.includes('right:') && !dash.right) {
-            const side = this.extractBorderSide(borderStr, 'right');
-            if (side) solidParts.push(`right: ${side}`);
-          }
-          if (borderStr.includes('bottom:') && !dash.bottom) {
-            const side = this.extractBorderSide(borderStr, 'bottom');
-            if (side) solidParts.push(`bottom: ${side}`);
-          }
-          if (borderStr.includes('left:') && !dash.left) {
-            const side = this.extractBorderSide(borderStr, 'left');
-            if (side) solidParts.push(`left: ${side}`);
-          }
-          if (solidParts.length > 0) decorProps.push(`border: Border(${solidParts.join(', ')})`);
-        }
+        if (style.cellBorder) decorProps.push(`border: ${style.cellBorder}`);
         containerChild = `Container(
               decoration: BoxDecoration(${decorProps.join(', ')}),
               padding: ${cellPadding}, alignment: ${alignment}, child: ${content})`;
@@ -1041,20 +1008,6 @@ const TableHandler = {
         const diagWidth = (diagLines[0]?.strokeWidth || 1).toFixed(1);
         context.usesDiagonalBorder = true;
         child = `Stack(children: [${child}, Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _DiagonalBorderPainter(color: ${diagColor}, strokeWidth: ${diagWidth}, topLeftToBottomRight: ${tlbr}, bottomLeftToTopRight: ${bltr}))))])`;
-      }
-      if (hasDashedBorder) {
-        context.usesDashedBorder = true;
-        const dash = style.borderDash;
-        const dashSides = [];
-        for (const side of ['top', 'right', 'bottom', 'left']) {
-          const info = dash[side];
-          if (!info) continue;
-          const isDotted = info.cssStyle === 'dotted';
-          dashSides.push(`_DashSide.${side}(color: ${info.color}, width: ${info.width}, dotted: ${isDotted})`);
-        }
-        if (dashSides.length > 0) {
-          child = `Stack(children: [${child}, Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _DashedBorderPainter(sides: [${dashSides.join(', ')}]))))])`;
-        }
       }
       return `          Positioned(left: cs[${col}], top: rs[${row}], width: cs[${colEnd}] - cs[${col}], height: rs[${rowEnd}] - rs[${row}], child: ${child}),`;
     }
@@ -1213,11 +1166,10 @@ const TableHandler = {
           checkboxes:  context.checkboxes,
           customWidgets: context.customWidgets,
           containerWidth: nestedContainerW,
-          usesTable: true, usesDiagonalBorder: false, usesDashedBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
+          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
         };
         const result = this.generate(child, isolated, style);
         if (isolated.usesDiagonalBorder) context.usesDiagonalBorder = true;
-        if (isolated.usesDashedBorder)   context.usesDashedBorder   = true;
         if (isolated.usesComment)        context.usesComment        = true;
         if (isolated.usesGesture)        context.usesGesture        = true;
         if (isolated.usesFormWidgets)    context.usesFormWidgets    = true;
@@ -1725,11 +1677,10 @@ const TableHandler = {
           dropdowns:   context.dropdowns,
           checkboxes:  context.checkboxes,
           customWidgets: context.customWidgets,
-          usesTable: true, usesDiagonalBorder: false, usesDashedBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
+          usesTable: true, usesDiagonalBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
         };
         const result = this.generate(child, isolated, style);
         if (isolated.usesDiagonalBorder) context.usesDiagonalBorder = true;
-        if (isolated.usesDashedBorder)   context.usesDashedBorder   = true;
         if (isolated.usesComment)        context.usesComment        = true;
         if (isolated.usesGesture)        context.usesGesture        = true;
         if (isolated.usesFormWidgets)    context.usesFormWidgets    = true;

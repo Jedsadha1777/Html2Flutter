@@ -350,19 +350,6 @@ const StyleParser = {
     return `BorderSide(color: ${c}, width: ${w})`;
   },
 
-  // Returns border style info: { side: 'BorderSide(...)', cssStyle: 'dashed'|'dotted'|'solid'|... }
-  borderSideInfo(prefix, styles) {
-    const width  = styles[`${prefix}Width`];
-    const color  = styles[`${prefix}Color`];
-    const style  = styles[`${prefix}Style`] || 'solid';
-    if (!width && !color) return null;
-    if (style === 'none' || style === 'hidden') return null;
-    const w = this.parseDimension(width || '1px')?.value ?? 1;
-    if (w === 0) return null;
-    const c = color ? this.colorToFlutter(color) : 'Colors.black';
-    return { side: `BorderSide(color: ${c}, width: ${w})`, cssStyle: style, width: w, flutterColor: c };
-  },
-
   cellBorderToFlutter(styles) {
     const top    = this.borderSideToFlutter('borderTop', styles);
     const right  = this.borderSideToFlutter('borderRight', styles);
@@ -375,58 +362,6 @@ const StyleParser = {
     if (bottom) parts.push(`bottom: ${bottom}`);
     if (left)   parts.push(`left: ${left}`);
     return `Border(${parts.join(', ')})`;
-  },
-
-  // Returns { border: 'Border(...)', dash: {top,right,bottom,left} } with CSS style info per side
-  cellBorderWithDash(styles) {
-    const ti = this.borderSideInfo('borderTop', styles);
-    const ri = this.borderSideInfo('borderRight', styles);
-    const bi = this.borderSideInfo('borderBottom', styles);
-    const li = this.borderSideInfo('borderLeft', styles);
-    if (!ti && !ri && !bi && !li) return null;
-    const parts = [];
-    if (ti) parts.push(`top: ${ti.side}`);
-    if (ri) parts.push(`right: ${ri.side}`);
-    if (bi) parts.push(`bottom: ${bi.side}`);
-    if (li) parts.push(`left: ${li.side}`);
-    const border = parts.length > 0 ? `Border(${parts.join(', ')})` : null;
-    const hasDash = [ti,ri,bi,li].some(s => s && s.cssStyle !== 'solid');
-    const _di = (info) => info ? { cssStyle: info.cssStyle, width: info.width, color: info.flutterColor } : null;
-    const dash = hasDash ? {
-      top: (ti && ti.cssStyle !== 'solid') ? _di(ti) : null,
-      right: (ri && ri.cssStyle !== 'solid') ? _di(ri) : null,
-      bottom: (bi && bi.cssStyle !== 'solid') ? _di(bi) : null,
-      left: (li && li.cssStyle !== 'solid') ? _di(li) : null,
-    } : null;
-    return { border, dash };
-  },
-
-  cellBorderCollapsedWithDash(styles, isFirstRow, isFirstCol) {
-    const ti = this.borderSideInfo('borderTop', styles);
-    const li = this.borderSideInfo('borderLeft', styles);
-    const ri = this.borderSideInfo('borderRight', styles);
-    const bi = this.borderSideInfo('borderBottom', styles);
-    const sides = [];
-    if (ti && isFirstRow) sides.push(`top: ${ti.side}`);
-    if (li && isFirstCol) sides.push(`left: ${li.side}`);
-    if (ri) sides.push(`right: ${ri.side}`);
-    if (bi) sides.push(`bottom: ${bi.side}`);
-    if (sides.length === 0) return null;
-    const border = `Border(${sides.join(', ')})`;
-    const _di = (info) => info ? { cssStyle: info.cssStyle, width: info.width, color: info.flutterColor } : null;
-    const activeSides = [];
-    if (ti && isFirstRow) activeSides.push({ key: 'top', info: ti });
-    if (li && isFirstCol) activeSides.push({ key: 'left', info: li });
-    if (ri) activeSides.push({ key: 'right', info: ri });
-    if (bi) activeSides.push({ key: 'bottom', info: bi });
-    const hasDash = activeSides.some(s => s.info.cssStyle !== 'solid');
-    const dash = hasDash ? {
-      top: (ti && isFirstRow && ti.cssStyle !== 'solid') ? _di(ti) : null,
-      right: (ri && ri.cssStyle !== 'solid') ? _di(ri) : null,
-      bottom: (bi && bi.cssStyle !== 'solid') ? _di(bi) : null,
-      left: (li && isFirstCol && li.cssStyle !== 'solid') ? _di(li) : null,
-    } : null;
-    return { border, dash };
   },
 
   // border-collapse: avoid double lines by shared-edge rule.
