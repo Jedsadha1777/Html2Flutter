@@ -613,32 +613,21 @@ function getCellBorders(r, c, borderInfo, cell) {
 }
 
 function getBorderString(style, color) {
-    const s = Number(style);
-    // Luckysheet border style number → name → CSS
-    // 1:Thin  2:Hair  3:Dotted  4:Dashed  5:DashDot  6:DashDotDot
-    // 7:Double  8:Medium  9:MediumDashed  10:MediumDashDot
-    // 11:MediumDashDotDot  12:SlantedDashDot  13:Thick
-    switch (s) {
-        case 1:  return '1px solid ' + color;         // Thin
-        case 2:  return '1px dotted ' + color;        // Hair (hairline dotted in Excel)
-        case 3:  return '1px dotted ' + color;        // Dotted
-        case 4:  return '1px dashed ' + color;        // Dashed
-        case 5:  return '1px dashed ' + color;        // DashDot (CSS ≈ dashed)
-        case 6:  return '1px dashed ' + color;        // DashDotDot (CSS ≈ dashed)
-        case 7:  return '3px double ' + color;        // Double
-        case 8:  return '2px solid ' + color;         // Medium
-        case 9:  return '2px dashed ' + color;        // MediumDashed
-        case 10: return '2px dashed ' + color;        // MediumDashDot (CSS ≈ dashed)
-        case 11: return '2px dashed ' + color;        // MediumDashDotDot (CSS ≈ dashed)
-        case 12: return '2px dashed ' + color;        // SlantedDashDot (CSS ≈ dashed)
-        case 13: return '3px solid ' + color;         // Thick
-        default: return '1px solid ' + color;
-    }
+    const width = getBorderStyleWidth(style);
+    return width + ' solid ' + color;
+}
+
+function getBorderStyleWidth(style) {
+    if (style === 1 || style === '1') return '1px';
+    if (style === 2 || style === '2') return '2px';
+    if (style === 3 || style === '3') return '3px';
+    if (style === 13 || style === '13') return '3px';
+    return '1px';
 }
 
 function createDiagonalBorderSVG(diagonalBorder, width, height) {
     const type = diagonalBorder.type;
-    const strokeWidth = parseInt(getBorderString(diagonalBorder.style, '#000').match(/^(\d+)px/)?.[1]) || 1;
+    const strokeWidth = parseInt(getBorderStyleWidth(diagonalBorder.style)) || 1;
     const color = diagonalBorder.color || '#000000';
     
     let lines = '';
