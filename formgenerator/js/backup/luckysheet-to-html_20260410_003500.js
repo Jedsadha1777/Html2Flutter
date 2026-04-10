@@ -204,7 +204,7 @@ function luckysheetToHtml() {
                 // Text wrap and overflow
                 if (cell.tb === 2) {
                     style += 'white-space: pre-wrap; word-wrap: break-word; ';
-                } else if (cell.tb === 1) {
+                } else if (cell.tb === 3) {
                     style += 'overflow: visible; white-space: nowrap; ';
                 } else {
                     style += 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ';
