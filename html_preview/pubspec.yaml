@@ -88,5 +88,14 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  fonts:
+    - family: Cordia New
+      fonts:
+        - asset: fonts/CordiaNew-Regular.ttf
+        - asset: fonts/CordiaNew-Bold.ttf
+          weight: 700
+        - asset: fonts/CordiaNew-Italic.ttf
+          style: italic
+        - asset: fonts/CordiaNew-BoldItalic.ttf
+          weight: 700
+          style: italic
