@@ -221,15 +221,9 @@ const App = {
       } else {
         const ctrlSection  = ctrlLines  ? '\n  // ============ CONTROLLERS ============\n' + indent2(ctrlLines)  + '\n' : '';
         const stateSection = stateLines ? '\n  // ============ STATE VARIABLES ============\n' + indent2(stateLines) + '\n' : '';
-        const hasCaptureKey = stateLines.includes('_captureKey');
-        const pageMethods  = widgetCodes.map((raw, i) => {
-          const body = raw.replace(/^child:\s*/, '');
-          // Only wrap first page with RepaintBoundary when captureKey exists (one key → one boundary)
-          const wrapped = hasCaptureKey && i === 0
-            ? `RepaintBoundary(key: _captureKey, child: ${body})`
-            : body;
-          return `  Widget _page${i + 1}() => ${wrapped};`;
-        }).join('\n\n');
+        const pageMethods  = widgetCodes.map((raw, i) =>
+          `  Widget _page${i + 1}() => ${raw.replace(/^child:\s*/, '')};`
+        ).join('\n\n');
         const pageListInBuild = widgetCodes.map((_, i) => `      _page${i + 1}(),`).join('\n');
         lines.push(
           'void main() => runApp(const _App());',
@@ -261,10 +255,6 @@ const App = {
       } else {
         const ctrlSection  = ctrlLines  ? '\n  // ============ CONTROLLERS ============\n' + indent2(ctrlLines)  + '\n' : '';
         const stateSection = stateLines ? '\n  // ============ STATE VARIABLES ============\n' + indent2(stateLines) + '\n' : '';
-        const hasCaptureKey = stateLines.includes('_captureKey');
-        const buildBody = hasCaptureKey
-          ? `RepaintBoundary(key: _captureKey, child: ${rawWidget})`
-          : rawWidget;
         lines.push(
           'void main() => runApp(PreviewShell(pages: [_ContentWidget()]));',
           '',
@@ -278,7 +268,7 @@ const App = {
           ctrlSection,
           stateSection,
           '  @override',
-          `  Widget build(BuildContext context) => ${buildBody};`,
+          `  Widget build(BuildContext context) => ${rawWidget};`,
           '}',
         );
       }

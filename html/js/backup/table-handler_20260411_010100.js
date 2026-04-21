@@ -1211,9 +1211,6 @@ const TableHandler = {
           controllers: context.controllers,
           dropdowns:   context.dropdowns,
           checkboxes:  context.checkboxes,
-          dateFields:  context.dateFields  || new Map(),
-          searchFields: context.searchFields || new Map(),
-          signatureFields: context.signatureFields || new Map(),
           customWidgets: context.customWidgets,
           containerWidth: nestedContainerW,
           usesTable: true, usesDiagonalBorder: false, usesDashedBorder: false, usesComment: false, usesGesture: false, usesFormWidgets: false,
@@ -1857,7 +1854,7 @@ const TableHandler = {
       const dim = this.convertDimension(StyleParser.parseDimension(wStr));
       if (dim && dim.unit !== '%') wCode = dim.value.toFixed(1);
     }
-    const tf = `TextField(controller: ${ctrl}, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
+    const tf = `TextField(controller: ${ctrl}, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8)))`;
     return wCode ? `ConstrainedBox(constraints: const BoxConstraints(maxWidth: ${wCode}), child: ${tf})` : tf;
   },
 
@@ -1881,38 +1878,28 @@ const TableHandler = {
     context.controllers.set(name, { type: 'textarea', name });
     const ctrl = `_${this.toCamelCase(name)}Controller`;
     const rows = node.rows || 3;
-    return `TextField(controller: ${ctrl}, maxLines: ${rows}, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
+    return `TextField(controller: ${ctrl}, maxLines: ${rows}, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8)))`;
   },
 
   datepickerWidget(node, context) {
     context.usesFormWidgets = true;
     const name = node.name || `date_${context.controllers.size}`;
-    context.dateFields = context.dateFields || new Map();
-    context.dateFields.set(name, { name });
-    const varName = `_${this.toCamelCase(name)}`;
     const props = [`name: '${name}'`];
+    if (node.value) props.push(`value: '${node.value}'`);
     if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
     if (node.min) props.push(`min: '${node.min}'`);
     if (node.max) props.push(`max: '${node.max}'`);
     if (node.required) props.push('required: true');
     if (node.readonly) props.push('readonly: true');
-    props.push(`snapMode: _snapMode`);
-    props.push(`value: ${varName}`);
-    props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
     return `FormDate(${props.join(', ')})`;
   },
 
   signatureWidget(node, context) {
     context.usesFormWidgets = true;
     const name = node.name || 'signature';
-    context.signatureFields = context.signatureFields || new Map();
-    context.signatureFields.set(name, { name });
-    const varName = `_${this.toCamelCase(name)}Bytes`;
     const props = [`name: '${name}'`];
     if (node.width) props.push(`width: ${parseFloat(node.width) || 200}`);
     if (node.height) props.push(`height: ${parseFloat(node.height) || 100}`);
-    props.push(`initialData: ${varName}`);
-    props.push(`onSigned: (v) => setState(() => ${varName} = v)`);
     return `FormSignature(${props.join(', ')})`;
   },
 
@@ -1963,18 +1950,11 @@ const TableHandler = {
   searchWidget(node, context) {
     context.usesFormWidgets = true;
     const name = node.name || 'search';
-    context.searchFields = context.searchFields || new Map();
-    context.searchFields.set(name, { name, fields: node.fields });
-    const varName = `_${this.toCamelCase(name)}`;
-    const fieldsKey = node.fields || name;
     const props = [`name: '${name}'`, `source: '${node.source || ''}'`];
     if (node.display) props.push(`displayFields: '${node.display}'`);
     if (node.fields) props.push(`fields: '${node.fields}'`);
     if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
     if (node.required) props.push('required: true');
-    props.push(`snapMode: _snapMode`);
-    props.push(`value: ${varName}`);
-    props.push(`onSelected: (v) => setState(() => ${varName} = v?['${fieldsKey}'] as String?)`);
     return `FormSearch(${props.join(', ')})`;
   },
 

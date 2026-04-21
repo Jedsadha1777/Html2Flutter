@@ -5,9 +5,6 @@ const DartGenerator = {
       controllers: new Map(),
       dropdowns: new Map(),
       checkboxes: new Map(),
-      dateFields: new Map(),
-      searchFields: new Map(),
-      signatureFields: new Map(),
       customWidgets: new Set(),
       usesGesture: false,
       usesTable: false,
@@ -763,49 +760,11 @@ ${ind}),
     for (const [name] of context.controllers) {
       lines.push(`final ${this.toControllerName(name)} = TextEditingController();`);
     }
-    // Controller map + auto dispose (for save/load draft workflows)
-    if (context.controllers.size > 0) {
-      lines.push('');
-      lines.push('Map<String, TextEditingController> get _controllerMap => {');
-      for (const [name] of context.controllers) {
-        const key = this.toCamelCase(name);
-        const ctrl = this.toControllerName(name);
-        lines.push(`  '${key}': ${ctrl},`);
-      }
-      lines.push('};');
-      lines.push('');
-      lines.push('@override');
-      lines.push('void dispose() {');
-      lines.push('  for (final c in _controllerMap.values) { c.dispose(); }');
-      lines.push('  super.dispose();');
-      lines.push('}');
-    }
     return lines.join('\n');
   },
 
   generateStateVariables(context) {
     const lines = [];
-    const dateFields = context.dateFields || new Map();
-    const searchFields = context.searchFields || new Map();
-    const signatureFields = context.signatureFields || new Map();
-    // Snap-mode toggle + capture key for screenshot feature (always emit when any form widget exists)
-    const hasAnyForm = context.controllers.size > 0 || context.dropdowns.size > 0 || context.checkboxes.size > 0
-      || dateFields.size > 0 || searchFields.size > 0 || signatureFields.size > 0 || context.usesFormWidgets;
-    if (hasAnyForm) {
-      lines.push('bool _snapMode = false;');
-      lines.push('final GlobalKey _captureKey = GlobalKey();');
-      lines.push('');
-    }
-    // Non-controller state for FormDate (String? date) / FormSearch (String? value) / FormSignature (Uint8List? bytes)
-    for (const [name] of dateFields) {
-      lines.push(`String? _${this.toCamelCase(name)};`);
-    }
-    for (const [name] of searchFields) {
-      lines.push(`String? _${this.toCamelCase(name)};`);
-    }
-    for (const [name] of signatureFields) {
-      lines.push(`Uint8List? _${this.toCamelCase(name)}Bytes;`);
-    }
     for (const [name, info] of context.dropdowns) {
       const varName    = this.toVariableName(name);
       const firstValue = info.options[0]?.value || '';
@@ -813,13 +772,6 @@ ${ind}),
     }
     for (const [name] of context.checkboxes) {
       lines.push(`bool ${this.toVariableName(name)} = false;`);
-    }
-    // Snap-aware input decoration getter
-    if (hasAnyForm) {
-      lines.push('');
-      lines.push('InputDecoration get _inputDecoration => _snapMode');
-      lines.push("    ? const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4))");
-      lines.push("    : const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8));");
     }
     return lines.join('\n');
   },
@@ -831,9 +783,6 @@ ${ind}),
     }
     if (context.usesDashedBorder) {
       imports.add("import 'dart:math' as math;");
-    }
-    if (context.signatureFields && context.signatureFields.size > 0) {
-      imports.add("import 'dart:typed_data';");
     }
     if (context.usesFormWidgets || context.checkboxes.size > 0 || context.controllers.size > 0 || context.dropdowns.size > 0) {
       imports.add("import 'form_widgets/form_widgets.dart';");
