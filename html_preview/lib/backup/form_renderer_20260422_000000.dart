@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'preview_shell.dart';
 import 'form_widgets/form_widgets.dart';
@@ -17,22 +16,14 @@ class FormRenderer extends StatefulWidget {
   });
 
   @override
-  State<FormRenderer> createState() => FormRendererState();
+  State<FormRenderer> createState() => _FormRendererState();
 }
 
-class FormRendererState extends State<FormRenderer> {
+class _FormRendererState extends State<FormRenderer> {
   final _formKey = GlobalKey<FormState>();
-  final GlobalKey _captureKey = GlobalKey();
-  bool _snapMode = false;
-
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, String?> _dropdownValues = {};
   final Map<String, bool> _checkboxValues = {};
-  // Non-controller widgets (FormDate/FormSearch/FormSignature/FormImageUpload/FormFile/FormRadio)
-  final Map<String, String?> _dateValues = {};
-  final Map<String, String?> _searchValues = {};
-  final Map<String, Uint8List?> _signatureBytes = {};
-  final Map<String, dynamic> _otherValues = {};
 
   String? _currentWhiteSpace;
   String? _currentTextAlign;
@@ -40,14 +31,6 @@ class FormRendererState extends State<FormRenderer> {
 
   List<dynamic> get _pages => widget.schema['pages'] as List? ?? [];
   List<dynamic> get _fields => widget.schema['fields'] as List? ?? [];
-
-  GlobalKey get captureKey => _captureKey;
-  bool get snapMode => _snapMode;
-
-  /// Toggle snap mode (hides input borders for screenshot capture)
-  void setSnapMode(bool value) {
-    if (_snapMode != value) setState(() => _snapMode = value);
-  }
 
   @override
   void initState() {
@@ -63,10 +46,6 @@ class FormRendererState extends State<FormRenderer> {
       _controllers.clear();
       _dropdownValues.clear();
       _checkboxValues.clear();
-      _dateValues.clear();
-      _searchValues.clear();
-      _signatureBytes.clear();
-      _otherValues.clear();
       _initFields();
     }
   }
@@ -75,32 +54,15 @@ class FormRendererState extends State<FormRenderer> {
     for (final f in _fields) {
       final name = f['name'] as String? ?? '';
       final type = f['fieldType'] as String? ?? '';
-      switch (type) {
-        case 'select':
-          final options = f['options'] as List? ?? [];
-          _dropdownValues[name] = options.isNotEmpty
-              ? (options.first['value'] as String? ?? '')
-              : null;
-          break;
-        case 'checkbox':
-          _checkboxValues[name] = false;
-          break;
-        case 'date-picker':
-          _dateValues[name] = null;
-          break;
-        case 'search':
-          _searchValues[name] = null;
-          break;
-        case 'signature':
-          _signatureBytes[name] = null;
-          break;
-        case 'radio':
-        case 'image-upload':
-        case 'file':
-          _otherValues[name] = null;
-          break;
-        default:
-          _controllers[name] = TextEditingController();
+      if (type == 'select') {
+        final options = f['options'] as List? ?? [];
+        _dropdownValues[name] = options.isNotEmpty
+            ? (options.first['value'] as String? ?? '')
+            : null;
+      } else if (type == 'checkbox') {
+        _checkboxValues[name] = false;
+      } else {
+        _controllers[name] = TextEditingController();
       }
     }
   }
@@ -116,10 +78,6 @@ class FormRendererState extends State<FormRenderer> {
     _controllers.forEach((k, c) => values[k] = c.text);
     _dropdownValues.forEach((k, v) => values[k] = v);
     _checkboxValues.forEach((k, v) => values[k] = v);
-    _dateValues.forEach((k, v) => values[k] = v);
-    _searchValues.forEach((k, v) => values[k] = v);
-    _signatureBytes.forEach((k, v) => values[k] = v != null ? base64Encode(v) : null);
-    _otherValues.forEach((k, v) => values[k] = v);
     return values;
   }
 
@@ -127,20 +85,13 @@ class FormRendererState extends State<FormRenderer> {
     widget.onChanged?.call(name, value);
   }
 
-  /// Snap-aware input decoration used by TextField wrappers in tables
-  InputDecoration get inputDecoration => _snapMode
-      ? const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4))
-      : const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8));
-
   @override
   Widget build(BuildContext context) {
     if (_pages.isEmpty) {
       return const Center(child: Text('No pages in schema'));
     }
 
-    final pageWidgets = _pages
-        .map((p) => RepaintBoundary(key: _captureKey, child: _buildNode(p)))
-        .toList();
+    final pageWidgets = _pages.map((p) => _buildNode(p)).toList();
 
     return Form(
       key: _formKey,
@@ -153,8 +104,6 @@ class FormRendererState extends State<FormRenderer> {
     if (node is! Map<String, dynamic>) return const SizedBox.shrink();
 
     final type = node['type'] as String? ?? '';
-    final name = node['name'] as String? ?? '';
-
     switch (type) {
       case 'column':
         return _buildColumn(node);
@@ -167,85 +116,25 @@ class FormRendererState extends State<FormRenderer> {
       case 'table':
         return _buildTable(node);
       case 'input':
-        return FormInput.fromJson(
-          node,
-          controller: _controllers[name],
-          onChanged: (v) => _onFieldChanged(name, v),
-        );
+        return FormInput.fromJson(node);
       case 'select':
-        return FormSelect.fromJson(
-          node,
-          onChanged: (v) {
-            setState(() => _dropdownValues[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormSelect.fromJson(node);
       case 'textarea':
-        return FormTextarea.fromJson(
-          node,
-          controller: _controllers[name],
-          onChanged: (v) => _onFieldChanged(name, v),
-        );
+        return FormTextarea.fromJson(node);
       case 'date-picker':
-        return FormDate.fromJson(
-          node,
-          onChanged: (v) {
-            setState(() => _dateValues[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormDate.fromJson(node);
       case 'signature':
-        return FormSignature.fromJson(
-          node,
-          onSigned: (v) {
-            setState(() => _signatureBytes[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormSignature.fromJson(node);
       case 'image-upload':
-        return FormImageUpload.fromJson(
-          node,
-          onPicked: (v) {
-            setState(() => _otherValues[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormImageUpload.fromJson(node);
       case 'checkbox':
-        return FormCheckbox.fromJson(
-          node,
-          onChanged: (v) {
-            if (v is bool) {
-              setState(() => _checkboxValues[name] = v);
-            } else {
-              setState(() => _otherValues[name] = v);
-            }
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormCheckbox.fromJson(node);
       case 'radio':
-        return FormRadio.fromJson(
-          node,
-          onChanged: (v) {
-            setState(() => _otherValues[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormRadio.fromJson(node);
       case 'file':
-        return FormFile.fromJson(
-          node,
-          onPicked: (v) {
-            setState(() => _otherValues[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormFile.fromJson(node);
       case 'search':
-        return FormSearch.fromJson(
-          node,
-          onSelected: (v) {
-            setState(() => _searchValues[name] = v != null ? (v['name'] as String? ?? v.values.first?.toString()) : null);
-            _onFieldChanged(name, v);
-          },
-        );
+        return FormSearch.fromJson(node);
       case 'spacer':
         return SizedBox(height: (node['height'] as num?)?.toDouble() ?? 8);
       case 'divider':
