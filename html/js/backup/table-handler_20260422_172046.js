@@ -250,7 +250,7 @@ const TableHandler = {
             if (hasCurrentInline) { totalContentH += Math.ceil(effFontSize * 1.5); hasCurrentInline = false; }
             // rows * lineHeight + contentPadding(8+8) + border(1+1)
             widgetContentH = Math.max(widgetContentH, Math.ceil((child.rows || 3) * effFontSize * 1.5) + 18);
-          } else if (child.type === 'input' || child.type === 'date-picker' || child.type === 'time-picker') {
+          } else if (child.type === 'input' || child.type === 'date-picker') {
             // fontSize + contentPadding(8+8) + border(1+1)
             widgetContentH = Math.max(widgetContentH, Math.ceil(effFontSize + 18));
           } else if (child.type === 'select') {
@@ -293,24 +293,18 @@ const TableHandler = {
             totalContentH += Math.ceil(effFontSize * 1.5);
           }
         }
-        // Truly-empty cells (no inline/block/widget content) must not inflate row height
-        // via their declared font-size. Only fall back to one-line height for the cell's
-        // own rendered height; row height calculations use the pre-fallback value.
-        const cellIsEmpty = totalContentH === 0 && widgetContentH === 0;
-        const contentHForCell = cellIsEmpty ? Math.ceil(effFontSize * 1.5) : totalContentH;
+        if (totalContentH === 0 && widgetContentH === 0) totalContentH = Math.ceil(effFontSize * 1.5);
 
         // structuralLines: how many lines at maxChildFs (for refineRowHeights wrapping estimate)
-        const structuralLines = Math.max(1, Math.round(contentHForCell / Math.ceil(maxChildFs * 1.5)));
+        const structuralLines = Math.max(1, Math.round(totalContentH / Math.ceil(maxChildFs * 1.5)));
         cellHeightMap.set(cell, { effFontSize: maxChildFs, structuralLines });
 
-        const contentH = Math.max(contentHForCell, widgetContentH);
+        const contentH = Math.max(totalContentH, widgetContentH);
         const cellH    = contentH + pt + pb + bt + bb;
         maxCellHeight = Math.max(maxCellHeight, cellH);
 
-        if (!cellIsEmpty) {
-          const textCellH = totalContentH + pt + pb + bt + bb;
-          maxTextCellHeight = Math.max(maxTextCellHeight, textCellH);
-        }
+        const textCellH = totalContentH + pt + pb + bt + bb;
+        maxTextCellHeight = Math.max(maxTextCellHeight, textCellH);
       }
 
       // Determine explicit row height from <tr style="height:"> or cell height attrs
@@ -423,22 +417,12 @@ const TableHandler = {
             const leftHasRight = (leftPlacement?.style?.cellBorder ?? '').includes('right:');
 
             // Draw top when above has no bottom; draw left when left has no right.
-            // When a neighbor already drew the shared edge, resolve the CSS border-conflict:
-            // if the current cell's side wins (CSS 2.1 §17.6.2.1) we overwrite the neighbor's
-            // side with our own so the stronger border is rendered.
             // Both are handled on the current cell ("first-fix" approach) so colspan/rowspan
             // cells get a border that spans their full width/height.
             // A post-processing pass (_convertLeftToRight) will shift left→right on neighbors
             // for pixel-accurate vertical alignment once all rows are in the matrix.
-            let drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
-            let drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
-
-            if (!drawTop && abovePlacement && this._borderSideWins(cell.styles, 'borderTop', abovePlacement.cell?.styles, 'borderBottom')) {
-              this._overwriteNeighborSide(abovePlacement, 'bottom', cell.styles, 'borderTop');
-            }
-            if (!drawLeft && leftPlacement && this._borderSideWins(cell.styles, 'borderLeft', leftPlacement.cell?.styles, 'borderRight')) {
-              this._overwriteNeighborSide(leftPlacement, 'right', cell.styles, 'borderLeft');
-            }
+            const drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
+            const drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
 
             const result = StyleParser.cellBorderCollapsedWithDash(cell.styles, drawTop, drawLeft);
             border = result?.border || StyleParser.cellBorderCollapsed(cell.styles, drawTop, drawLeft);
@@ -865,7 +849,7 @@ const TableHandler = {
 
   // Returns true if the cell (or any descendant) is an interactive form widget.
   cellHasFormWidget(cell) {
-    const formTypes = new Set(['input', 'select', 'textarea', 'date-picker', 'time-picker', 'signature', 'image-upload', 'table']);
+    const formTypes = new Set(['input', 'select', 'textarea', 'date-picker', 'signature', 'image-upload', 'table']);
     if (formTypes.has(cell.type)) return true;
     for (const child of (cell.children || [])) {
       if (this.cellHasFormWidget(child)) return true;
@@ -1066,11 +1050,7 @@ const TableHandler = {
           const info = dash[side];
           if (!info) continue;
           const isDotted = info.cssStyle === 'dotted';
-          const isDoubled = info.cssStyle === 'double';
-          const args = [`color: ${info.color}`, `width: ${info.width}`];
-          if (isDotted) args.push(`dotted: true`);
-          if (isDoubled) args.push(`doubled: true`);
-          dashSides.push(`_DashSide.${side}(${args.join(', ')})`);
+          dashSides.push(`_DashSide.${side}(color: ${info.color}, width: ${info.width}, dotted: ${isDotted})`);
         }
         if (dashSides.length > 0) {
           child = `Stack(children: [${child}, Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _DashedBorderPainter(sides: [${dashSides.join(', ')}]))))])`;
@@ -1211,7 +1191,7 @@ const TableHandler = {
     });
 
     // Special interactive widgets (nested table, form controls)
-    const formTypes = new Set(['input','select','textarea','date-picker','time-picker','signature','image-upload','checkbox','radio','file','search']);
+    const formTypes = new Set(['input','select','textarea','date-picker','signature','image-upload','checkbox','radio','file','search']);
     const hasSpecial = contentChildren.some(c => c.type === 'table' || formTypes.has(c.type));
     if (hasSpecial) {
       const _renderNestedTable = (child) => {
@@ -1254,7 +1234,6 @@ const TableHandler = {
         if (child.type === 'select')        { segments.push(this.selectWidget(child, context)); continue; }
         if (child.type === 'textarea')      { segments.push(this.textareaWidget(child, context)); continue; }
         if (child.type === 'date-picker')   { segments.push(this.datepickerWidget(child, context)); continue; }
-        if (child.type === 'time-picker')   { segments.push(this.timepickerWidget(child, context)); continue; }
         if (child.type === 'signature')     { segments.push(this.signatureWidget(child, context)); continue; }
         if (child.type === 'image-upload')  { segments.push(this.imageUploadWidget(child, context)); continue; }
         if (child.type === 'checkbox')      { segments.push(this.checkboxWidget(child, context)); continue; }
@@ -1520,45 +1499,6 @@ const TableHandler = {
         }
       }
     }
-  },
-
-  // CSS 2.1 §17.6.2.1 border-conflict resolution.
-  // Returns true if side A (on cell A) should beat side B (on cell B) at a shared edge.
-  _borderSideWins(aStyles, aPrefix, bStyles, bPrefix) {
-    if (!aStyles) return false;
-    if (!bStyles) return true;
-    const aStyle = (aStyles[`${aPrefix}Style`] || 'solid').toLowerCase();
-    const bStyle = (bStyles[`${bPrefix}Style`] || 'solid').toLowerCase();
-    if (aStyle === 'hidden') return true;
-    if (bStyle === 'hidden') return false;
-    if (aStyle === 'none') return false;
-    if (bStyle === 'none') return true;
-    const aW = StyleParser.parseDimension(aStyles[`${aPrefix}Width`] || '1px')?.value ?? 1;
-    const bW = StyleParser.parseDimension(bStyles[`${bPrefix}Width`] || '1px')?.value ?? 1;
-    if (aW !== bW) return aW > bW;
-    const order = { double: 8, solid: 7, dashed: 6, dotted: 5, ridge: 4, outset: 3, groove: 2, inset: 1 };
-    return (order[aStyle] ?? 0) > (order[bStyle] ?? 0);
-  },
-
-  // Replace `neighborSide` on the neighbor placement with a BorderSide derived from
-  // `sourceStyles[sourcePrefix]`. Also updates the neighbor's borderDash entry so dashed/
-  // dotted/double styles survive the overwrite.
-  _overwriteNeighborSide(neighborPlacement, neighborSide, sourceStyles, sourcePrefix) {
-    const info = StyleParser.borderSideInfo(sourcePrefix, sourceStyles);
-    if (!info) return;
-    let updated = this.removeBorderSide(neighborPlacement.style?.cellBorder, neighborSide);
-    updated = this.addBorderSide(updated, neighborSide, info.side);
-    const prevDash = neighborPlacement.style?.borderDash || null;
-    const nextDashEntry = info.cssStyle !== 'solid'
-      ? { cssStyle: info.cssStyle, width: info.width, color: info.flutterColor }
-      : null;
-    const mergedDash = (prevDash || nextDashEntry)
-      ? { ...(prevDash || {}), [neighborSide]: nextDashEntry }
-      : null;
-    const patch = { cellBorder: updated };
-    if (mergedDash && Object.values(mergedDash).some(v => v)) patch.borderDash = mergedDash;
-    else if (prevDash) patch.borderDash = null;
-    neighborPlacement.style = neighborPlacement.style.copyWith(patch);
   },
 
   // Post-processing pass: for each cell that drew a 'top' border, move it to 'bottom' on the
@@ -1940,20 +1880,8 @@ const TableHandler = {
     const name = node.name || `textarea_${context.controllers.size}`;
     context.controllers.set(name, { type: 'textarea', name });
     const ctrl = `_${this.toCamelCase(name)}Controller`;
-    // expands:true lets the field fill its cell instead of capping at the HTML "rows" hint,
-    // which only defines a preferred size — the cell itself already dictates the real bounds.
-    const field = `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
-
-    const mw = (node.maxWidth != null && isFinite(node.maxWidth))  ? parseFloat(node.maxWidth)  : null;
-    const mh = (node.maxHeight != null && isFinite(node.maxHeight)) ? parseFloat(node.maxHeight) : null;
-    if (mw == null && mh == null) return field;
-
-    const sizeArgs = [];
-    if (mw != null) sizeArgs.push(`width: ${mw}`);
-    if (mh != null) sizeArgs.push(`height: ${mh}`);
-    // Use Align to prevent the SizedBox from being stretched by the cell's fill constraints,
-    // so width/height actually caps instead of being overridden.
-    return `Align(alignment: Alignment.topLeft, child: SizedBox(${sizeArgs.join(', ')}, child: ${field}))`;
+    const rows = node.rows || 3;
+    return `TextField(controller: ${ctrl}, maxLines: ${rows}, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
   },
 
   datepickerWidget(node, context) {
@@ -1972,25 +1900,6 @@ const TableHandler = {
     props.push(`value: ${varName}`);
     props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
     return `FormDate(${props.join(', ')})`;
-  },
-
-  timepickerWidget(node, context) {
-    context.usesFormWidgets = true;
-    const name = node.name || `time_${context.controllers.size}`;
-    context.timeFields = context.timeFields || new Map();
-    context.timeFields.set(name, { name });
-    const varName = `_${this.toCamelCase(name)}`;
-    const props = [`name: '${name}'`];
-    if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
-    if (node.min) props.push(`min: '${node.min}'`);
-    if (node.max) props.push(`max: '${node.max}'`);
-    if (node.step) props.push(`step: ${parseInt(node.step, 10)}`);
-    if (node.required) props.push('required: true');
-    if (node.readonly) props.push('readonly: true');
-    props.push(`snapMode: _snapMode`);
-    props.push(`value: ${varName}`);
-    props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
-    return `FormTime(${props.join(', ')})`;
   },
 
   signatureWidget(node, context) {
@@ -2213,21 +2122,6 @@ const TableHandler = {
           const rawBorder = style.rawBorderCss ? this._cssBorderToJson(style.rawBorderCss) : null;
           cellStyle.cellBorder = rawBorder || this._parseCellBorderToJson(style.cellBorder);
         }
-      }
-      // Emit borderDash info for dashed/dotted/double sides (renderer draws overlay painter)
-      if (style.borderDash) {
-        const dashJson = {};
-        for (const side of ['top', 'right', 'bottom', 'left']) {
-          const info = style.borderDash[side];
-          if (info) {
-            dashJson[side] = {
-              cssStyle: info.cssStyle,
-              width: info.width,
-              color: this._flutterColorToHex(info.color),
-            };
-          }
-        }
-        if (Object.keys(dashJson).length > 0) cellStyle.borderDash = dashJson;
       }
       if (style.rotateAngle) cellStyle.rotateAngle = style.rotateAngle;
       if (style.textDecoration) cellStyle.textDecoration = style.textDecoration;

@@ -635,31 +635,15 @@ ${ind}},
 
     const ctrl = this.toControllerName(name);
 
-    // max-width takes precedence over CSS width; falls back to CSS width, then double.infinity
     let width = 'double.infinity';
-    if (node.maxWidth != null && isFinite(node.maxWidth)) {
-      width = parseFloat(node.maxWidth);
-    } else if (node.styles?.width) {
+    if (node.styles?.width) {
       const dim = StyleParser.parseDimension(node.styles.width);
       if (dim && dim.unit !== '%') width = dim.value;
     }
 
-    // max-height: fixed SizedBox height + expands:true; else fall back to rows-capped maxLines
-    const useExpand = node.maxHeight != null && isFinite(node.maxHeight);
-    const heightLine = useExpand ? `${ind}height: ${parseFloat(node.maxHeight)},\n` : '';
-    const tfBody = useExpand
-      ? `TextField(
-${ind}  controller: ${ctrl},
-${ind}  maxLines: null, minLines: null, expands: true,
-${ind}  textAlignVertical: TextAlignVertical.top,
-${ind}  decoration: InputDecoration(
-${ind}    border: const OutlineInputBorder(),
-${ind}    isDense: true,
-${ind}    contentPadding: const EdgeInsets.all(10),
-${placeholder ? `${ind}    hintText: '${this.escapeString(placeholder)}',` : ''}
-${ind}  ),
-${ind})`
-      : `TextField(
+    return `SizedBox(
+${ind}width: ${width},
+${ind}child: TextField(
 ${ind}  controller: ${ctrl},
 ${ind}  maxLines: ${rows},
 ${ind}  decoration: InputDecoration(
@@ -668,11 +652,7 @@ ${ind}    isDense: true,
 ${ind}    contentPadding: const EdgeInsets.all(10),
 ${placeholder ? `${ind}    hintText: '${this.escapeString(placeholder)}',` : ''}
 ${ind}  ),
-${ind})`;
-
-    return `SizedBox(
-${ind}width: ${width},
-${heightLine}${ind}child: ${tfBody},
+${ind}),
 )`;
   },
 

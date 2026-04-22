@@ -6,7 +6,6 @@ const DartGenerator = {
       dropdowns: new Map(),
       checkboxes: new Map(),
       dateFields: new Map(),
-      timeFields: new Map(),
       searchFields: new Map(),
       signatureFields: new Map(),
       customWidgets: new Set(),
@@ -90,7 +89,6 @@ const DartGenerator = {
       case 'select':      return this.generateSelect(node, context);
       case 'textarea':    return this.generateTextArea(node, context);
       case 'date-picker': return this.generateDatePicker(node, context);
-      case 'time-picker': return this.generateTimePicker(node, context);
       case 'signature':   return this.generateSignature(node, context);
       case 'image-upload':return this.generateImageUpload(node, context);
       case 'checkbox':    return this.generateCheckbox(node, context);
@@ -635,31 +633,15 @@ ${ind}},
 
     const ctrl = this.toControllerName(name);
 
-    // max-width takes precedence over CSS width; falls back to CSS width, then double.infinity
     let width = 'double.infinity';
-    if (node.maxWidth != null && isFinite(node.maxWidth)) {
-      width = parseFloat(node.maxWidth);
-    } else if (node.styles?.width) {
+    if (node.styles?.width) {
       const dim = StyleParser.parseDimension(node.styles.width);
       if (dim && dim.unit !== '%') width = dim.value;
     }
 
-    // max-height: fixed SizedBox height + expands:true; else fall back to rows-capped maxLines
-    const useExpand = node.maxHeight != null && isFinite(node.maxHeight);
-    const heightLine = useExpand ? `${ind}height: ${parseFloat(node.maxHeight)},\n` : '';
-    const tfBody = useExpand
-      ? `TextField(
-${ind}  controller: ${ctrl},
-${ind}  maxLines: null, minLines: null, expands: true,
-${ind}  textAlignVertical: TextAlignVertical.top,
-${ind}  decoration: InputDecoration(
-${ind}    border: const OutlineInputBorder(),
-${ind}    isDense: true,
-${ind}    contentPadding: const EdgeInsets.all(10),
-${placeholder ? `${ind}    hintText: '${this.escapeString(placeholder)}',` : ''}
-${ind}  ),
-${ind})`
-      : `TextField(
+    return `SizedBox(
+${ind}width: ${width},
+${ind}child: TextField(
 ${ind}  controller: ${ctrl},
 ${ind}  maxLines: ${rows},
 ${ind}  decoration: InputDecoration(
@@ -668,11 +650,7 @@ ${ind}    isDense: true,
 ${ind}    contentPadding: const EdgeInsets.all(10),
 ${placeholder ? `${ind}    hintText: '${this.escapeString(placeholder)}',` : ''}
 ${ind}  ),
-${ind})`;
-
-    return `SizedBox(
-${ind}width: ${width},
-${heightLine}${ind}child: ${tfBody},
+${ind}),
 )`;
   },
 
@@ -706,40 +684,6 @@ ${ind}      lastDate: DateTime(2100),
 ${ind}    );
 ${ind}    if (picked != null) {
 ${ind}      ${ctrl}.text = '\${picked.day.toString().padLeft(2, '0')}-\${picked.month.toString().padLeft(2, '0')}-\${picked.year}';
-${ind}    }
-${ind}  },
-${ind}),
-)`;
-  },
-
-  generateTimePicker(node, context) {
-    const ind         = context.indent;
-    const name        = node.name || `time_${context.controllers.size}`;
-    const placeholder = node.placeholder || 'เลือกเวลา...';
-
-    context.controllers.set(name, { type: 'time', name });
-
-    const ctrl = this.toControllerName(name);
-
-    return `SizedBox(
-${ind}width: 160,
-${ind}child: TextField(
-${ind}  controller: ${ctrl},
-${ind}  readOnly: true,
-${ind}  decoration: InputDecoration(
-${ind}    border: const OutlineInputBorder(),
-${ind}    isDense: true,
-${ind}    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-${ind}    hintText: '${this.escapeString(placeholder)}',
-${ind}    suffixIcon: const Icon(Icons.access_time, size: 18),
-${ind}  ),
-${ind}  onTap: () async {
-${ind}    final picked = await showTimePicker(
-${ind}      context: context,
-${ind}      initialTime: TimeOfDay.now(),
-${ind}    );
-${ind}    if (picked != null) {
-${ind}      ${ctrl}.text = '\${picked.hour.toString().padLeft(2, '0')}:\${picked.minute.toString().padLeft(2, '0')}';
 ${ind}    }
 ${ind}  },
 ${ind}),
@@ -842,12 +786,11 @@ ${ind}),
   generateStateVariables(context) {
     const lines = [];
     const dateFields = context.dateFields || new Map();
-    const timeFields = context.timeFields || new Map();
     const searchFields = context.searchFields || new Map();
     const signatureFields = context.signatureFields || new Map();
     // Snap-mode toggle + capture key for screenshot feature (always emit when any form widget exists)
     const hasAnyForm = context.controllers.size > 0 || context.dropdowns.size > 0 || context.checkboxes.size > 0
-      || dateFields.size > 0 || timeFields.size > 0 || searchFields.size > 0 || signatureFields.size > 0 || context.usesFormWidgets;
+      || dateFields.size > 0 || searchFields.size > 0 || signatureFields.size > 0 || context.usesFormWidgets;
     if (hasAnyForm) {
       lines.push('bool _snapMode = false;');
       lines.push('final GlobalKey _captureKey = GlobalKey();');
@@ -855,9 +798,6 @@ ${ind}),
     }
     // Non-controller state for FormDate (String? date) / FormSearch (String? value) / FormSignature (Uint8List? bytes)
     for (const [name] of dateFields) {
-      lines.push(`String? _${this.toCamelCase(name)};`);
-    }
-    for (const [name] of timeFields) {
       lines.push(`String? _${this.toCamelCase(name)};`);
     }
     for (const [name] of searchFields) {
@@ -1027,13 +967,12 @@ const _bk = Colors.black;` +
   final Color color;
   final double width;
   final bool dotted;
-  final bool doubled;
   final String side;
-  const _DashSide._(this.side, {required this.color, required this.width, this.dotted = false, this.doubled = false});
-  const _DashSide.top({required Color color, required double width, bool dotted = false, bool doubled = false}) : this._('top', color: color, width: width, dotted: dotted, doubled: doubled);
-  const _DashSide.right({required Color color, required double width, bool dotted = false, bool doubled = false}) : this._('right', color: color, width: width, dotted: dotted, doubled: doubled);
-  const _DashSide.bottom({required Color color, required double width, bool dotted = false, bool doubled = false}) : this._('bottom', color: color, width: width, dotted: dotted, doubled: doubled);
-  const _DashSide.left({required Color color, required double width, bool dotted = false, bool doubled = false}) : this._('left', color: color, width: width, dotted: dotted, doubled: doubled);
+  const _DashSide._(this.side, {required this.color, required this.width, this.dotted = false});
+  const _DashSide.top({required Color color, required double width, bool dotted = false}) : this._('top', color: color, width: width, dotted: dotted);
+  const _DashSide.right({required Color color, required double width, bool dotted = false}) : this._('right', color: color, width: width, dotted: dotted);
+  const _DashSide.bottom({required Color color, required double width, bool dotted = false}) : this._('bottom', color: color, width: width, dotted: dotted);
+  const _DashSide.left({required Color color, required double width, bool dotted = false}) : this._('left', color: color, width: width, dotted: dotted);
 }
 
 class _DashedBorderPainter extends CustomPainter {
@@ -1043,10 +982,6 @@ class _DashedBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final s in sides) {
-      if (s.doubled) {
-        _drawDouble(canvas, s, size);
-        continue;
-      }
       final paint = Paint()
         ..color = s.color
         ..strokeWidth = s.width
@@ -1059,36 +994,6 @@ class _DashedBorderPainter extends CustomPainter {
         case 'left':   _drawDash(canvas, paint, Offset.zero, Offset(0, size.height), dashLen, gapLen); break;
         case 'right':  _drawDash(canvas, paint, Offset(size.width, 0), Offset(size.width, size.height), dashLen, gapLen); break;
       }
-    }
-  }
-
-  // CSS "double": two parallel solid lines of thickness W/3 with a W/3 gap, drawn inside
-  // the cell so total visual span equals the specified width W.
-  void _drawDouble(Canvas canvas, _DashSide s, Size size) {
-    final lineW = s.width / 3.0;
-    final paint = Paint()
-      ..color = s.color
-      ..strokeWidth = lineW
-      ..style = PaintingStyle.stroke;
-    final outer = lineW / 2.0;         // stroke centerline of the outer line, from the edge
-    final inner = s.width - lineW / 2.0; // stroke centerline of the inner line, from the edge
-    switch (s.side) {
-      case 'top':
-        canvas.drawLine(Offset(0, outer), Offset(size.width, outer), paint);
-        canvas.drawLine(Offset(0, inner), Offset(size.width, inner), paint);
-        break;
-      case 'bottom':
-        canvas.drawLine(Offset(0, size.height - outer), Offset(size.width, size.height - outer), paint);
-        canvas.drawLine(Offset(0, size.height - inner), Offset(size.width, size.height - inner), paint);
-        break;
-      case 'left':
-        canvas.drawLine(Offset(outer, 0), Offset(outer, size.height), paint);
-        canvas.drawLine(Offset(inner, 0), Offset(inner, size.height), paint);
-        break;
-      case 'right':
-        canvas.drawLine(Offset(size.width - outer, 0), Offset(size.width - outer, size.height), paint);
-        canvas.drawLine(Offset(size.width - inner, 0), Offset(size.width - inner, size.height), paint);
-        break;
     }
   }
 

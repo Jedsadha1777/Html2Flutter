@@ -185,8 +185,6 @@ class TextAreaNode extends ASTNode {
     this.required = false;
     this.readonly = false;
     this.disabled = false;
-    this.maxWidth = null;
-    this.maxHeight = null;
   }
 }
 
@@ -200,20 +198,6 @@ class DatePickerNode extends ASTNode {
     this.value = '';
     this.min = null;
     this.max = null;
-  }
-}
-
-class TimePickerNode extends ASTNode {
-  constructor() {
-    super('time-picker');
-    this.name = '';
-    this.placeholder = '';
-    this.required = false;
-    this.readonly = false;
-    this.value = '';
-    this.min = null;
-    this.max = null;
-    this.step = null;
   }
 }
 
@@ -306,7 +290,6 @@ const ASTNodes = {
   OptionNode,
   TextAreaNode,
   DatePickerNode,
-  TimePickerNode,
   SignatureNode,
   ImageUploadNode,
   CheckboxNode,

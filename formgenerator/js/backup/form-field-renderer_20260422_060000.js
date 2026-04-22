@@ -228,13 +228,7 @@
         case 'textarea': {
             var rows = n.attrs.rows || '3';
             var tv = n.attrs.value || '';
-            var taStyle = '';
-            if (n.attrs['max-width'])  taStyle += 'max-width:'  + esc(n.attrs['max-width'])  + 'px;';
-            if (n.attrs['max-height']) taStyle += 'max-height:' + esc(n.attrs['max-height']) + 'px;';
-            var taMW = n.attrs['max-width']  ? ' data-max-width="'  + esc(n.attrs['max-width'])  + '"' : '';
-            var taMH = n.attrs['max-height'] ? ' data-max-height="' + esc(n.attrs['max-height']) + '"' : '';
-            var taStyleAttr = taStyle ? ' style="' + taStyle + '"' : '';
-            return '<textarea' + id + taMW + taMH + ' class="w-full border rounded px-2 py-1" rows="' + esc(rows) + '"' + ph + req + ro + dis + taStyleAttr + '>' + esc(tv) + '</textarea>';
+            return '<textarea' + id + ' class="w-full border rounded px-2 py-1" rows="' + esc(rows) + '"' + ph + req + ro + dis + '>' + esc(tv) + '</textarea>';
         }
 
         // --- SELECT ---

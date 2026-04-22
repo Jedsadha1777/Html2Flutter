@@ -199,28 +199,7 @@ const App = {
     const indent2 = (s) => s ? s.split('\n').map(l => l ? '  ' + l : '').join('\n') : '';
     const multiPage = widgetCodes.length > 1;
 
-    // Default form suffix — baked into class names at generation time.
-    // ถ้าอยาก integrate หลายฟอร์มในโปรเจ็กต์เดียว: rename FormWidget1/FormWidgetState1
-    // ในไฟล์นี้ผ่าน IDE Rename Symbol (F2) หรือ find/replace — ไม่ต้อง regenerate
-    const suffix = '1';
-    const widgetClass = `FormWidget${suffix}`;
-    const stateClass = `FormWidgetState${suffix}`;
-
-    const header = [
-      '// ─────────────────────────────────────────────────────────────────────────',
-      `// FORM SUFFIX: "${suffix}"`,
-      `//   Classes in this file: ${widgetClass}, ${stateClass}`,
-      '//',
-      '// หากต้องการ integrate หลายฟอร์มในโปรเจ็กต์เดียวกัน — rename ใน IDE:',
-      `//   ${widgetClass}  →  FormWidget2 (หรือชื่ออื่น)`,
-      `//   ${stateClass}  →  FormWidgetState2`,
-      '// VS Code: F2 บน class name | JetBrains: Shift+F6',
-      '// ─────────────────────────────────────────────────────────────────────────',
-    ];
-
     const lines = [
-      ...header,
-      '',
       importSection,
       "import 'preview_shell.dart';",
       '',
@@ -253,15 +232,15 @@ const App = {
         }).join('\n\n');
         const pageListInBuild = widgetCodes.map((_, i) => `      _page${i + 1}(),`).join('\n');
         lines.push(
-          `void main() => runApp(const ${widgetClass}());`,
+          'void main() => runApp(const _App());',
           '',
-          `class ${widgetClass} extends StatefulWidget {`,
-          `  const ${widgetClass}({super.key});`,
+          'class _App extends StatefulWidget {',
+          '  const _App({super.key});',
           '  @override',
-          `  State<${widgetClass}> createState() => ${stateClass}();`,
+          '  State<_App> createState() => _AppState();',
           '}',
           '',
-          `class ${stateClass} extends State<${widgetClass}> {`,
+          'class _AppState extends State<_App> {',
           ctrlSection,
           stateSection,
           '  @override',
@@ -287,15 +266,15 @@ const App = {
           ? `RepaintBoundary(key: _captureKey, child: ${rawWidget})`
           : rawWidget;
         lines.push(
-          `void main() => runApp(PreviewShell(pages: [${widgetClass}()]));`,
+          'void main() => runApp(PreviewShell(pages: [_ContentWidget()]));',
           '',
-          `class ${widgetClass} extends StatefulWidget {`,
-          `  const ${widgetClass}({super.key});`,
+          'class _ContentWidget extends StatefulWidget {',
+          '  const _ContentWidget({super.key});',
           '  @override',
-          `  State<${widgetClass}> createState() => ${stateClass}();`,
+          '  State<_ContentWidget> createState() => _ContentWidgetState();',
           '}',
           '',
-          `class ${stateClass} extends State<${widgetClass}> {`,
+          'class _ContentWidgetState extends State<_ContentWidget> {',
           ctrlSection,
           stateSection,
           '  @override',

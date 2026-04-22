@@ -679,7 +679,6 @@ function initLuckysheetEditor(wrapperId, config) {
                 html += '<div style="' + sectionStyle + '"><label style="' + labelStyle + '">Rows</label><input type="number" id="fd_rows" value="3" min="1" max="20" style="' + inputStyle + '"></div>';
                 html += '<div style="' + sectionStyle + '"><label style="' + labelStyle + '">Placeholder</label><input type="text" id="fd_placeholder" style="' + inputStyle + '"></div>';
                 html += '<div style="' + sectionStyle + '"><label style="' + labelStyle + '">Value</label><input type="text" id="fd_value" style="' + inputStyle + '"></div>';
-                html += '<div style="display:flex;gap:8px;' + sectionStyle + '"><div style="flex:1"><label style="' + labelStyle + '">Max width (px)</label><input type="number" id="fd_max_width" placeholder="เท่า cell" min="1" style="' + inputStyle + '"></div><div style="flex:1"><label style="' + labelStyle + '">Max height (px)</label><input type="number" id="fd_max_height" placeholder="เท่า cell" min="1" style="' + inputStyle + '"></div></div>';
                 html += '<div style="' + sectionStyle + '"><label style="' + checkStyle + '"><input type="checkbox" id="fd_readonly"> readonly</label></div>';
             }
 
@@ -828,10 +827,6 @@ function initLuckysheetEditor(wrapperId, config) {
                 if (ph) parts.push('placeholder="' + ph + '"');
                 const v = getVal(dialog, 'fd_value');
                 if (v) parts.push('value="' + v + '"');
-                const mw = getVal(dialog, 'fd_max_width');
-                if (mw) parts.push('max-width="' + mw + '"');
-                const mh = getVal(dialog, 'fd_max_height');
-                if (mh) parts.push('max-height="' + mh + '"');
                 if (getVal(dialog, 'fd_readonly')) parts.push('readonly');
             }
 

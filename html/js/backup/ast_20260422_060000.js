@@ -185,8 +185,6 @@ class TextAreaNode extends ASTNode {
     this.required = false;
     this.readonly = false;
     this.disabled = false;
-    this.maxWidth = null;
-    this.maxHeight = null;
   }
 }
 

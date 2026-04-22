@@ -52,7 +52,6 @@ const HTMLParser = {
       case 'option':   node = this.parseOption(element); break;
       case 'textarea': node = this.parseTextArea(element); break;
       case 'date-picker':  node = this.parseDatePicker(element); break;
-      case 'time-picker':  node = this.parseTimePicker(element); break;
       case 'signature':    node = this.parseSignature(element); break;
       case 'image-upload': node = this.parseImageUpload(element); break;
       case 'svg':      node = this.parseSVG(element); break;
@@ -220,10 +219,6 @@ const HTMLParser = {
     node.required    = element.hasAttribute('required');
     node.readonly    = element.hasAttribute('readonly');
     node.disabled    = element.hasAttribute('disabled');
-    const mw = this.getAttrValue(element, 'max-width');
-    const mh = this.getAttrValue(element, 'max-height');
-    node.maxWidth    = mw ? parseFloat(mw) : null;
-    node.maxHeight   = mh ? parseFloat(mh) : null;
     return node;
   },
 
@@ -232,20 +227,6 @@ const HTMLParser = {
     node.name        = this.getAttrValue(element, 'name') || '';
     node.placeholder = this.getAttrValue(element, 'placeholder') || '';
     node.required    = element.hasAttribute('required');
-    return node;
-  },
-
-  parseTimePicker(element) {
-    const node = new ASTNodes.TimePickerNode();
-    node.name        = this.getAttrValue(element, 'name') || '';
-    node.placeholder = this.getAttrValue(element, 'placeholder') || '';
-    node.required    = element.hasAttribute('required');
-    node.readonly    = element.hasAttribute('readonly');
-    node.value       = this.getAttrValue(element, 'value') || '';
-    node.min         = this.getAttrValue(element, 'min') || null;
-    node.max         = this.getAttrValue(element, 'max') || null;
-    const step = this.getAttrValue(element, 'step');
-    node.step = step ? parseInt(step, 10) : null;
     return node;
   },
 
@@ -288,7 +269,6 @@ const HTMLParser = {
       case 'checkbox': return this._buildCheckboxNode(name, attrs, options);
       case 'radio':    return this._buildRadioNode(name, required, attrs, options);
       case 'date':     return this._buildDateNode(name, required, attrs);
-      case 'time':     return this._buildTimeNode(name, required, attrs);
       case 'signature':return this._buildSignatureNode(name, attrs);
       case 'image-upload': return this._buildImageUploadNode(name, required, attrs);
       case 'file':     return this._buildFileNode(name, required, attrs);
@@ -351,8 +331,6 @@ const HTMLParser = {
     node.required    = required;
     node.readonly    = attrs.readonly === true;
     node.disabled    = attrs.disabled === true;
-    node.maxWidth    = attrs['max-width']  ? parseFloat(attrs['max-width'])  : null;
-    node.maxHeight   = attrs['max-height'] ? parseFloat(attrs['max-height']) : null;
     return node;
   },
 
@@ -401,19 +379,6 @@ const HTMLParser = {
     node.value       = attrs.value || '';
     node.min         = attrs.min || null;
     node.max         = attrs.max || null;
-    node.required    = required;
-    node.readonly    = attrs.readonly === true;
-    return node;
-  },
-
-  _buildTimeNode(name, required, attrs) {
-    const node = new ASTNodes.TimePickerNode();
-    node.name        = name;
-    node.placeholder = attrs.placeholder || '';
-    node.value       = attrs.value || '';
-    node.min         = attrs.min || null;
-    node.max         = attrs.max || null;
-    node.step        = attrs.step ? parseInt(attrs.step, 10) : null;
     node.required    = required;
     node.readonly    = attrs.readonly === true;
     return node;
