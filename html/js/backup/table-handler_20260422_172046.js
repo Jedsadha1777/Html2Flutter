@@ -417,22 +417,12 @@ const TableHandler = {
             const leftHasRight = (leftPlacement?.style?.cellBorder ?? '').includes('right:');
 
             // Draw top when above has no bottom; draw left when left has no right.
-            // When a neighbor already drew the shared edge, resolve the CSS border-conflict:
-            // if the current cell's side wins (CSS 2.1 §17.6.2.1) we overwrite the neighbor's
-            // side with our own so the stronger border is rendered.
             // Both are handled on the current cell ("first-fix" approach) so colspan/rowspan
             // cells get a border that spans their full width/height.
             // A post-processing pass (_convertLeftToRight) will shift left→right on neighbors
             // for pixel-accurate vertical alignment once all rows are in the matrix.
-            let drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
-            let drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
-
-            if (!drawTop && abovePlacement && this._borderSideWins(cell.styles, 'borderTop', abovePlacement.cell?.styles, 'borderBottom')) {
-              this._overwriteNeighborSide(abovePlacement, 'bottom', cell.styles, 'borderTop');
-            }
-            if (!drawLeft && leftPlacement && this._borderSideWins(cell.styles, 'borderLeft', leftPlacement.cell?.styles, 'borderRight')) {
-              this._overwriteNeighborSide(leftPlacement, 'right', cell.styles, 'borderLeft');
-            }
+            const drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
+            const drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
 
             const result = StyleParser.cellBorderCollapsedWithDash(cell.styles, drawTop, drawLeft);
             border = result?.border || StyleParser.cellBorderCollapsed(cell.styles, drawTop, drawLeft);
@@ -1509,45 +1499,6 @@ const TableHandler = {
         }
       }
     }
-  },
-
-  // CSS 2.1 §17.6.2.1 border-conflict resolution.
-  // Returns true if side A (on cell A) should beat side B (on cell B) at a shared edge.
-  _borderSideWins(aStyles, aPrefix, bStyles, bPrefix) {
-    if (!aStyles) return false;
-    if (!bStyles) return true;
-    const aStyle = (aStyles[`${aPrefix}Style`] || 'solid').toLowerCase();
-    const bStyle = (bStyles[`${bPrefix}Style`] || 'solid').toLowerCase();
-    if (aStyle === 'hidden') return true;
-    if (bStyle === 'hidden') return false;
-    if (aStyle === 'none') return false;
-    if (bStyle === 'none') return true;
-    const aW = StyleParser.parseDimension(aStyles[`${aPrefix}Width`] || '1px')?.value ?? 1;
-    const bW = StyleParser.parseDimension(bStyles[`${bPrefix}Width`] || '1px')?.value ?? 1;
-    if (aW !== bW) return aW > bW;
-    const order = { double: 8, solid: 7, dashed: 6, dotted: 5, ridge: 4, outset: 3, groove: 2, inset: 1 };
-    return (order[aStyle] ?? 0) > (order[bStyle] ?? 0);
-  },
-
-  // Replace `neighborSide` on the neighbor placement with a BorderSide derived from
-  // `sourceStyles[sourcePrefix]`. Also updates the neighbor's borderDash entry so dashed/
-  // dotted/double styles survive the overwrite.
-  _overwriteNeighborSide(neighborPlacement, neighborSide, sourceStyles, sourcePrefix) {
-    const info = StyleParser.borderSideInfo(sourcePrefix, sourceStyles);
-    if (!info) return;
-    let updated = this.removeBorderSide(neighborPlacement.style?.cellBorder, neighborSide);
-    updated = this.addBorderSide(updated, neighborSide, info.side);
-    const prevDash = neighborPlacement.style?.borderDash || null;
-    const nextDashEntry = info.cssStyle !== 'solid'
-      ? { cssStyle: info.cssStyle, width: info.width, color: info.flutterColor }
-      : null;
-    const mergedDash = (prevDash || nextDashEntry)
-      ? { ...(prevDash || {}), [neighborSide]: nextDashEntry }
-      : null;
-    const patch = { cellBorder: updated };
-    if (mergedDash && Object.values(mergedDash).some(v => v)) patch.borderDash = mergedDash;
-    else if (prevDash) patch.borderDash = null;
-    neighborPlacement.style = neighborPlacement.style.copyWith(patch);
   },
 
   // Post-processing pass: for each cell that drew a 'top' border, move it to 'bottom' on the
