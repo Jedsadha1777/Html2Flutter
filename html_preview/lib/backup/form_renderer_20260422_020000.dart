@@ -31,7 +31,6 @@ class FormRendererState extends State<FormRenderer> {
   final Map<String, bool> _checkboxValues = {};
   // Non-controller widgets (FormDate/FormSearch/FormSignature/FormImageUpload/FormFile/FormRadio)
   final Map<String, String?> _dateValues = {};
-  final Map<String, String?> _timeValues = {};
   final Map<String, String?> _searchValues = {};
   final Map<String, Uint8List?> _signatureBytes = {};
   final Map<String, dynamic> _otherValues = {};
@@ -66,7 +65,6 @@ class FormRendererState extends State<FormRenderer> {
       _dropdownValues.clear();
       _checkboxValues.clear();
       _dateValues.clear();
-      _timeValues.clear();
       _searchValues.clear();
       _signatureBytes.clear();
       _otherValues.clear();
@@ -90,9 +88,6 @@ class FormRendererState extends State<FormRenderer> {
           break;
         case 'date-picker':
           _dateValues[name] = null;
-          break;
-        case 'time-picker':
-          _timeValues[name] = null;
           break;
         case 'search':
           _searchValues[name] = null;
@@ -123,7 +118,6 @@ class FormRendererState extends State<FormRenderer> {
     _dropdownValues.forEach((k, v) => values[k] = v);
     _checkboxValues.forEach((k, v) => values[k] = v);
     _dateValues.forEach((k, v) => values[k] = v);
-    _timeValues.forEach((k, v) => values[k] = v);
     _searchValues.forEach((k, v) => values[k] = v);
     _signatureBytes.forEach((k, v) => values[k] = v != null ? base64Encode(v) : null);
     _otherValues.forEach((k, v) => values[k] = v);
@@ -198,14 +192,6 @@ class FormRendererState extends State<FormRenderer> {
           node,
           onChanged: (v) {
             setState(() => _dateValues[name] = v);
-            _onFieldChanged(name, v);
-          },
-        );
-      case 'time-picker':
-        return FormTime.fromJson(
-          node,
-          onChanged: (v) {
-            setState(() => _timeValues[name] = v);
             _onFieldChanged(name, v);
           },
         );
@@ -500,32 +486,7 @@ class FormRendererState extends State<FormRenderer> {
       final padMap = pMap['padding'] as Map<String, dynamic>?;
 
       final bg = _color(cellStyle['backgroundColor']);
-      final borderDashData = cellStyle['borderDash'] as Map<String, dynamic>?;
-      final dashSides = <_DashSide>[];
-      final dashSkipSides = <String>{};
-      if (borderDashData != null) {
-        for (final side in const ['top', 'right', 'bottom', 'left']) {
-          final entry = borderDashData[side];
-          if (entry is Map<String, dynamic>) {
-            final cssStyle = (entry['cssStyle'] as String?) ?? 'solid';
-            final w = (entry['width'] as num?)?.toDouble() ?? 1.0;
-            final c = _color(entry['color']) ?? Colors.black;
-            final dotted = cssStyle == 'dotted';
-            final doubled = cssStyle == 'double';
-            switch (side) {
-              case 'top':    dashSides.add(_DashSide.top(color: c, width: w, dotted: dotted, doubled: doubled)); break;
-              case 'right':  dashSides.add(_DashSide.right(color: c, width: w, dotted: dotted, doubled: doubled)); break;
-              case 'bottom': dashSides.add(_DashSide.bottom(color: c, width: w, dotted: dotted, doubled: doubled)); break;
-              case 'left':   dashSides.add(_DashSide.left(color: c, width: w, dotted: dotted, doubled: doubled)); break;
-            }
-            dashSkipSides.add(side);
-          }
-        }
-      }
-      final cellBorder = _parseCellBorder(
-        cellStyle['cellBorder'] as Map<String, dynamic>?,
-        skipSides: dashSkipSides.isEmpty ? null : dashSkipSides,
-      );
+      final cellBorder = _parseCellBorder(cellStyle['cellBorder'] as Map<String, dynamic>?);
       final gradientData = cellStyle['gradient'] as Map<String, dynamic>?;
 
       final pad = padMap != null
@@ -586,15 +547,6 @@ class FormRendererState extends State<FormRenderer> {
         alignment: align,
         child: content,
       );
-
-      if (dashSides.isNotEmpty) {
-        cellWidget = Stack(children: [
-          cellWidget,
-          Positioned.fill(child: IgnorePointer(
-            child: CustomPaint(painter: _DashedBorderPainter(sides: dashSides)),
-          )),
-        ]);
-      }
 
       final rotateAngle = cellStyle['rotateAngle'];
       if (rotateAngle != null && rotateAngle != 0) {
@@ -684,25 +636,18 @@ class FormRendererState extends State<FormRenderer> {
     return layoutBuilder;
   }
 
-  /// Parse structured cell border JSON into Flutter Border.
-  /// [skipSides] — sides listed here are rendered as dashed/dotted/double overlay elsewhere,
-  /// so skip them here to avoid drawing a solid line on top of the overlay.
-  Border? _parseCellBorder(Map<String, dynamic>? data, {Set<String>? skipSides}) {
+  /// Parse structured cell border JSON into Flutter Border
+  Border? _parseCellBorder(Map<String, dynamic>? data) {
     if (data == null) return null;
     BorderSide side(Map<String, dynamic> s) => BorderSide(
       color: _color(s['color']) ?? Colors.black,
       width: (s['width'] as num?)?.toDouble() ?? 1,
     );
-    BorderSide resolve(String key) {
-      if (skipSides != null && skipSides.contains(key)) return BorderSide.none;
-      final v = data[key];
-      return v is Map<String, dynamic> ? side(v) : BorderSide.none;
-    }
     return Border(
-      top: resolve('top'),
-      bottom: resolve('bottom'),
-      left: resolve('left'),
-      right: resolve('right'),
+      top: data['top'] is Map<String, dynamic> ? side(data['top']) : BorderSide.none,
+      bottom: data['bottom'] is Map<String, dynamic> ? side(data['bottom']) : BorderSide.none,
+      left: data['left'] is Map<String, dynamic> ? side(data['left']) : BorderSide.none,
+      right: data['right'] is Map<String, dynamic> ? side(data['right']) : BorderSide.none,
     );
   }
 

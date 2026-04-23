@@ -5,7 +5,7 @@
     // AST-based Tag Parser — scans character by character, no fragile regex
     // =========================================================================
 
-    var TAG_TYPES = ['input','textarea','select','checkbox','radio','date','time',
+    var TAG_TYPES = ['input','textarea','select','checkbox','radio','date',
                      'signature','image-upload','file','search'];
     var KNOWN_FLAGS = ['readonly','disabled','other','first_as_label','multiple'];
 
@@ -228,13 +228,7 @@
         case 'textarea': {
             var rows = n.attrs.rows || '3';
             var tv = n.attrs.value || '';
-            var taStyle = '';
-            if (n.attrs['max-width'])  taStyle += 'max-width:'  + esc(n.attrs['max-width'])  + 'px;';
-            if (n.attrs['max-height']) taStyle += 'max-height:' + esc(n.attrs['max-height']) + 'px;';
-            var taMW = n.attrs['max-width']  ? ' data-max-width="'  + esc(n.attrs['max-width'])  + '"' : '';
-            var taMH = n.attrs['max-height'] ? ' data-max-height="' + esc(n.attrs['max-height']) + '"' : '';
-            var taStyleAttr = taStyle ? ' style="' + taStyle + '"' : '';
-            return '<textarea' + id + taMW + taMH + ' class="w-full border rounded px-2 py-1" rows="' + esc(rows) + '"' + ph + req + ro + dis + taStyleAttr + '>' + esc(tv) + '</textarea>';
+            return '<textarea' + id + ' class="w-full border rounded px-2 py-1" rows="' + esc(rows) + '"' + ph + req + ro + dis + '>' + esc(tv) + '</textarea>';
         }
 
         // --- SELECT ---
@@ -299,14 +293,6 @@
             var mn = n.attrs.min ? ' min="' + esc(n.attrs.min) + '"' : '';
             var mx = n.attrs.max ? ' max="' + esc(n.attrs.max) + '"' : '';
             return '<input type="date"' + id + ' class="border rounded px-2 py-1"' + val + mn + mx + ph + req + ro + dis + '>';
-        }
-
-        // --- TIME ---
-        case 'time': {
-            var tmn = n.attrs.min ? ' min="' + esc(n.attrs.min) + '"' : '';
-            var tmx = n.attrs.max ? ' max="' + esc(n.attrs.max) + '"' : '';
-            var tstep = n.attrs.step ? ' step="' + esc(n.attrs.step) + '"' : '';
-            return '<input type="time"' + id + ' class="border rounded px-2 py-1"' + val + tmn + tmx + tstep + ph + req + ro + dis + '>';
         }
 
         // --- SIGNATURE ---

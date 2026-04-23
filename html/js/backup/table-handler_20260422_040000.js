@@ -250,7 +250,7 @@ const TableHandler = {
             if (hasCurrentInline) { totalContentH += Math.ceil(effFontSize * 1.5); hasCurrentInline = false; }
             // rows * lineHeight + contentPadding(8+8) + border(1+1)
             widgetContentH = Math.max(widgetContentH, Math.ceil((child.rows || 3) * effFontSize * 1.5) + 18);
-          } else if (child.type === 'input' || child.type === 'date-picker' || child.type === 'time-picker') {
+          } else if (child.type === 'input' || child.type === 'date-picker') {
             // fontSize + contentPadding(8+8) + border(1+1)
             widgetContentH = Math.max(widgetContentH, Math.ceil(effFontSize + 18));
           } else if (child.type === 'select') {
@@ -865,7 +865,7 @@ const TableHandler = {
 
   // Returns true if the cell (or any descendant) is an interactive form widget.
   cellHasFormWidget(cell) {
-    const formTypes = new Set(['input', 'select', 'textarea', 'date-picker', 'time-picker', 'signature', 'image-upload', 'table']);
+    const formTypes = new Set(['input', 'select', 'textarea', 'date-picker', 'signature', 'image-upload', 'table']);
     if (formTypes.has(cell.type)) return true;
     for (const child of (cell.children || [])) {
       if (this.cellHasFormWidget(child)) return true;
@@ -1211,7 +1211,7 @@ const TableHandler = {
     });
 
     // Special interactive widgets (nested table, form controls)
-    const formTypes = new Set(['input','select','textarea','date-picker','time-picker','signature','image-upload','checkbox','radio','file','search']);
+    const formTypes = new Set(['input','select','textarea','date-picker','signature','image-upload','checkbox','radio','file','search']);
     const hasSpecial = contentChildren.some(c => c.type === 'table' || formTypes.has(c.type));
     if (hasSpecial) {
       const _renderNestedTable = (child) => {
@@ -1254,7 +1254,6 @@ const TableHandler = {
         if (child.type === 'select')        { segments.push(this.selectWidget(child, context)); continue; }
         if (child.type === 'textarea')      { segments.push(this.textareaWidget(child, context)); continue; }
         if (child.type === 'date-picker')   { segments.push(this.datepickerWidget(child, context)); continue; }
-        if (child.type === 'time-picker')   { segments.push(this.timepickerWidget(child, context)); continue; }
         if (child.type === 'signature')     { segments.push(this.signatureWidget(child, context)); continue; }
         if (child.type === 'image-upload')  { segments.push(this.imageUploadWidget(child, context)); continue; }
         if (child.type === 'checkbox')      { segments.push(this.checkboxWidget(child, context)); continue; }
@@ -1942,18 +1941,7 @@ const TableHandler = {
     const ctrl = `_${this.toCamelCase(name)}Controller`;
     // expands:true lets the field fill its cell instead of capping at the HTML "rows" hint,
     // which only defines a preferred size — the cell itself already dictates the real bounds.
-    const field = `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
-
-    const mw = (node.maxWidth != null && isFinite(node.maxWidth))  ? parseFloat(node.maxWidth)  : null;
-    const mh = (node.maxHeight != null && isFinite(node.maxHeight)) ? parseFloat(node.maxHeight) : null;
-    if (mw == null && mh == null) return field;
-
-    const sizeArgs = [];
-    if (mw != null) sizeArgs.push(`width: ${mw}`);
-    if (mh != null) sizeArgs.push(`height: ${mh}`);
-    // Use Align to prevent the SizedBox from being stretched by the cell's fill constraints,
-    // so width/height actually caps instead of being overridden.
-    return `Align(alignment: Alignment.topLeft, child: SizedBox(${sizeArgs.join(', ')}, child: ${field}))`;
+    return `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
   },
 
   datepickerWidget(node, context) {
@@ -1972,25 +1960,6 @@ const TableHandler = {
     props.push(`value: ${varName}`);
     props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
     return `FormDate(${props.join(', ')})`;
-  },
-
-  timepickerWidget(node, context) {
-    context.usesFormWidgets = true;
-    const name = node.name || `time_${context.controllers.size}`;
-    context.timeFields = context.timeFields || new Map();
-    context.timeFields.set(name, { name });
-    const varName = `_${this.toCamelCase(name)}`;
-    const props = [`name: '${name}'`];
-    if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
-    if (node.min) props.push(`min: '${node.min}'`);
-    if (node.max) props.push(`max: '${node.max}'`);
-    if (node.step) props.push(`step: ${parseInt(node.step, 10)}`);
-    if (node.required) props.push('required: true');
-    if (node.readonly) props.push('readonly: true');
-    props.push(`snapMode: _snapMode`);
-    props.push(`value: ${varName}`);
-    props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
-    return `FormTime(${props.join(', ')})`;
   },
 
   signatureWidget(node, context) {

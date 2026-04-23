@@ -577,8 +577,6 @@ const JsonGenerator = {
     if (node.required)    field.required = true;
     if (node.readonly)    field.readonly = true;
     if (node.styles?.width) field.width = this._parseDim(node.styles.width);
-    if (node.maxWidth  != null && isFinite(node.maxWidth))  field.maxWidth  = parseFloat(node.maxWidth);
-    if (node.maxHeight != null && isFinite(node.maxHeight)) field.maxHeight = parseFloat(node.maxHeight);
 
     ctx.fields.push({ name, fieldType: 'textarea', placeholder: field.placeholder, required: field.required });
     return field;

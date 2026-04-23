@@ -6,7 +6,6 @@ const DartGenerator = {
       dropdowns: new Map(),
       checkboxes: new Map(),
       dateFields: new Map(),
-      timeFields: new Map(),
       searchFields: new Map(),
       signatureFields: new Map(),
       customWidgets: new Set(),
@@ -90,7 +89,6 @@ const DartGenerator = {
       case 'select':      return this.generateSelect(node, context);
       case 'textarea':    return this.generateTextArea(node, context);
       case 'date-picker': return this.generateDatePicker(node, context);
-      case 'time-picker': return this.generateTimePicker(node, context);
       case 'signature':   return this.generateSignature(node, context);
       case 'image-upload':return this.generateImageUpload(node, context);
       case 'checkbox':    return this.generateCheckbox(node, context);
@@ -635,31 +633,15 @@ ${ind}},
 
     const ctrl = this.toControllerName(name);
 
-    // max-width takes precedence over CSS width; falls back to CSS width, then double.infinity
     let width = 'double.infinity';
-    if (node.maxWidth != null && isFinite(node.maxWidth)) {
-      width = parseFloat(node.maxWidth);
-    } else if (node.styles?.width) {
+    if (node.styles?.width) {
       const dim = StyleParser.parseDimension(node.styles.width);
       if (dim && dim.unit !== '%') width = dim.value;
     }
 
-    // max-height: fixed SizedBox height + expands:true; else fall back to rows-capped maxLines
-    const useExpand = node.maxHeight != null && isFinite(node.maxHeight);
-    const heightLine = useExpand ? `${ind}height: ${parseFloat(node.maxHeight)},\n` : '';
-    const tfBody = useExpand
-      ? `TextField(
-${ind}  controller: ${ctrl},
-${ind}  maxLines: null, minLines: null, expands: true,
-${ind}  textAlignVertical: TextAlignVertical.top,
-${ind}  decoration: InputDecoration(
-${ind}    border: const OutlineInputBorder(),
-${ind}    isDense: true,
-${ind}    contentPadding: const EdgeInsets.all(10),
-${placeholder ? `${ind}    hintText: '${this.escapeString(placeholder)}',` : ''}
-${ind}  ),
-${ind})`
-      : `TextField(
+    return `SizedBox(
+${ind}width: ${width},
+${ind}child: TextField(
 ${ind}  controller: ${ctrl},
 ${ind}  maxLines: ${rows},
 ${ind}  decoration: InputDecoration(
@@ -668,11 +650,7 @@ ${ind}    isDense: true,
 ${ind}    contentPadding: const EdgeInsets.all(10),
 ${placeholder ? `${ind}    hintText: '${this.escapeString(placeholder)}',` : ''}
 ${ind}  ),
-${ind})`;
-
-    return `SizedBox(
-${ind}width: ${width},
-${heightLine}${ind}child: ${tfBody},
+${ind}),
 )`;
   },
 
@@ -706,40 +684,6 @@ ${ind}      lastDate: DateTime(2100),
 ${ind}    );
 ${ind}    if (picked != null) {
 ${ind}      ${ctrl}.text = '\${picked.day.toString().padLeft(2, '0')}-\${picked.month.toString().padLeft(2, '0')}-\${picked.year}';
-${ind}    }
-${ind}  },
-${ind}),
-)`;
-  },
-
-  generateTimePicker(node, context) {
-    const ind         = context.indent;
-    const name        = node.name || `time_${context.controllers.size}`;
-    const placeholder = node.placeholder || 'เลือกเวลา...';
-
-    context.controllers.set(name, { type: 'time', name });
-
-    const ctrl = this.toControllerName(name);
-
-    return `SizedBox(
-${ind}width: 160,
-${ind}child: TextField(
-${ind}  controller: ${ctrl},
-${ind}  readOnly: true,
-${ind}  decoration: InputDecoration(
-${ind}    border: const OutlineInputBorder(),
-${ind}    isDense: true,
-${ind}    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-${ind}    hintText: '${this.escapeString(placeholder)}',
-${ind}    suffixIcon: const Icon(Icons.access_time, size: 18),
-${ind}  ),
-${ind}  onTap: () async {
-${ind}    final picked = await showTimePicker(
-${ind}      context: context,
-${ind}      initialTime: TimeOfDay.now(),
-${ind}    );
-${ind}    if (picked != null) {
-${ind}      ${ctrl}.text = '\${picked.hour.toString().padLeft(2, '0')}:\${picked.minute.toString().padLeft(2, '0')}';
 ${ind}    }
 ${ind}  },
 ${ind}),
@@ -842,12 +786,11 @@ ${ind}),
   generateStateVariables(context) {
     const lines = [];
     const dateFields = context.dateFields || new Map();
-    const timeFields = context.timeFields || new Map();
     const searchFields = context.searchFields || new Map();
     const signatureFields = context.signatureFields || new Map();
     // Snap-mode toggle + capture key for screenshot feature (always emit when any form widget exists)
     const hasAnyForm = context.controllers.size > 0 || context.dropdowns.size > 0 || context.checkboxes.size > 0
-      || dateFields.size > 0 || timeFields.size > 0 || searchFields.size > 0 || signatureFields.size > 0 || context.usesFormWidgets;
+      || dateFields.size > 0 || searchFields.size > 0 || signatureFields.size > 0 || context.usesFormWidgets;
     if (hasAnyForm) {
       lines.push('bool _snapMode = false;');
       lines.push('final GlobalKey _captureKey = GlobalKey();');
@@ -855,9 +798,6 @@ ${ind}),
     }
     // Non-controller state for FormDate (String? date) / FormSearch (String? value) / FormSignature (Uint8List? bytes)
     for (const [name] of dateFields) {
-      lines.push(`String? _${this.toCamelCase(name)};`);
-    }
-    for (const [name] of timeFields) {
       lines.push(`String? _${this.toCamelCase(name)};`);
     }
     for (const [name] of searchFields) {

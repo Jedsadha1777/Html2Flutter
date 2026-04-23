@@ -220,10 +220,6 @@ const HTMLParser = {
     node.required    = element.hasAttribute('required');
     node.readonly    = element.hasAttribute('readonly');
     node.disabled    = element.hasAttribute('disabled');
-    const mw = this.getAttrValue(element, 'max-width');
-    const mh = this.getAttrValue(element, 'max-height');
-    node.maxWidth    = mw ? parseFloat(mw) : null;
-    node.maxHeight   = mh ? parseFloat(mh) : null;
     return node;
   },
 
@@ -351,8 +347,6 @@ const HTMLParser = {
     node.required    = required;
     node.readonly    = attrs.readonly === true;
     node.disabled    = attrs.disabled === true;
-    node.maxWidth    = attrs['max-width']  ? parseFloat(attrs['max-width'])  : null;
-    node.maxHeight   = attrs['max-height'] ? parseFloat(attrs['max-height']) : null;
     return node;
   },
 

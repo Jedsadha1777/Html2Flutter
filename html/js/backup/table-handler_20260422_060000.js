@@ -1942,18 +1942,7 @@ const TableHandler = {
     const ctrl = `_${this.toCamelCase(name)}Controller`;
     // expands:true lets the field fill its cell instead of capping at the HTML "rows" hint,
     // which only defines a preferred size — the cell itself already dictates the real bounds.
-    const field = `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
-
-    const mw = (node.maxWidth != null && isFinite(node.maxWidth))  ? parseFloat(node.maxWidth)  : null;
-    const mh = (node.maxHeight != null && isFinite(node.maxHeight)) ? parseFloat(node.maxHeight) : null;
-    if (mw == null && mh == null) return field;
-
-    const sizeArgs = [];
-    if (mw != null) sizeArgs.push(`width: ${mw}`);
-    if (mh != null) sizeArgs.push(`height: ${mh}`);
-    // Use Align to prevent the SizedBox from being stretched by the cell's fill constraints,
-    // so width/height actually caps instead of being overridden.
-    return `Align(alignment: Alignment.topLeft, child: SizedBox(${sizeArgs.join(', ')}, child: ${field}))`;
+    return `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
   },
 
   datepickerWidget(node, context) {

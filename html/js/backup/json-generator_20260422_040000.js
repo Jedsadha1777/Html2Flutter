@@ -49,7 +49,6 @@ const JsonGenerator = {
       case 'select':      return this._genSelect(node, ctx);
       case 'textarea':    return this._genTextArea(node, ctx);
       case 'date-picker': return this._genDatePicker(node, ctx);
-      case 'time-picker': return this._genTimePicker(node, ctx);
       case 'signature':   return this._genSignature(node, ctx);
       case 'image-upload':return this._genImageUpload(node, ctx);
       case 'checkbox':    return this._genCheckbox(node, ctx);
@@ -577,8 +576,6 @@ const JsonGenerator = {
     if (node.required)    field.required = true;
     if (node.readonly)    field.readonly = true;
     if (node.styles?.width) field.width = this._parseDim(node.styles.width);
-    if (node.maxWidth  != null && isFinite(node.maxWidth))  field.maxWidth  = parseFloat(node.maxWidth);
-    if (node.maxHeight != null && isFinite(node.maxHeight)) field.maxHeight = parseFloat(node.maxHeight);
 
     ctx.fields.push({ name, fieldType: 'textarea', placeholder: field.placeholder, required: field.required });
     return field;
@@ -595,21 +592,6 @@ const JsonGenerator = {
     if (node.max)         field.max = node.max;
 
     ctx.fields.push({ name, fieldType: 'date-picker', required: field.required });
-    return field;
-  },
-
-  _genTimePicker(node, ctx) {
-    const name = node.name || `time_${ctx.fieldIndex++}`;
-    const field = { type: 'time-picker', name };
-    if (node.placeholder) field.placeholder = node.placeholder;
-    if (node.required)    field.required = true;
-    if (node.readonly)    field.readonly = true;
-    if (node.value)       field.value = node.value;
-    if (node.min)         field.min = node.min;
-    if (node.max)         field.max = node.max;
-    if (node.step)        field.step = node.step;
-
-    ctx.fields.push({ name, fieldType: 'time-picker', required: field.required });
     return field;
   },
 
