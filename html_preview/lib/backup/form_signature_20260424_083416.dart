@@ -4,7 +4,6 @@ import 'package:signature/signature.dart';
 
 class FormSignature extends StatefulWidget {
   final String name;
-  final String? label;
   final double? width;
   final double? height;
   final String? value;
@@ -13,7 +12,6 @@ class FormSignature extends StatefulWidget {
   const FormSignature({
     super.key,
     required this.name,
-    this.label,
     this.width,
     this.height,
     this.value,
@@ -25,7 +23,6 @@ class FormSignature extends StatefulWidget {
   }) {
     return FormSignature(
       name: json['name'] as String? ?? '',
-      label: json['label'] as String?,
       width: (json['width'] as num?)?.toDouble(),
       height: (json['height'] as num?)?.toDouble(),
       value: json['value'] as String?,
@@ -90,7 +87,7 @@ class _FormSignatureState extends State<FormSignature> {
 
   Future<void> _openSignaturePage(BuildContext context) async {
     final result = await Navigator.of(context).push<Uint8List>(
-      MaterialPageRoute(builder: (_) => _SignaturePage(name: widget.name, label: widget.label)),
+      MaterialPageRoute(builder: (_) => _SignaturePage(name: widget.name)),
     );
     if (result != null) {
       setState(() {
@@ -104,8 +101,7 @@ class _FormSignatureState extends State<FormSignature> {
 
 class _SignaturePage extends StatefulWidget {
   final String name;
-  final String? label;
-  const _SignaturePage({required this.name, this.label});
+  const _SignaturePage({required this.name});
 
   @override
   State<_SignaturePage> createState() => _SignaturePageState();
@@ -130,10 +126,7 @@ class _SignaturePageState extends State<_SignaturePage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFFAD193C),
-        title: Text(
-          (widget.label != null && widget.label!.isNotEmpty)
-            ? widget.label!
-            : 'Signature: ${widget.name}',
+        title: Text('Signature: ${widget.name}',
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),

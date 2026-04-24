@@ -715,7 +715,6 @@ function initLuckysheetEditor(wrapperId, config) {
             }
 
             if (fieldName === 'signature') {
-                html += '<div style="' + sectionStyle + '"><label style="' + labelStyle + '">Label (แสดงในหน้าเซ็น)</label><input type="text" id="fd_label" placeholder="เช่น ช่างซ่อมบำรุง" style="' + inputStyle + '"></div>';
                 html += '<div style="display:flex;gap:8px;' + sectionStyle + '"><div style="flex:1"><label style="' + labelStyle + '">Width (px)</label><input type="number" id="fd_width" placeholder="auto" style="' + inputStyle + '"></div><div style="flex:1"><label style="' + labelStyle + '">Height (px)</label><input type="number" id="fd_height" placeholder="auto" style="' + inputStyle + '"></div></div>';
             }
 
@@ -883,8 +882,6 @@ function initLuckysheetEditor(wrapperId, config) {
             }
 
             if (field === 'signature') {
-                const lab = getVal(dialog, 'fd_label');
-                if (lab) parts.push('label="' + lab + '"');
                 const w = getVal(dialog, 'fd_width');
                 if (w) parts.push('width="' + w + '"');
                 const h = getVal(dialog, 'fd_height');

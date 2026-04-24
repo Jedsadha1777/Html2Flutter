@@ -252,7 +252,6 @@ const HTMLParser = {
   parseSignature(element) {
     const node = new ASTNodes.SignatureNode();
     node.name   = this.getAttrValue(element, 'name') || '';
-    node.label  = this.getAttrValue(element, 'label') || '';
     node.width  = this.getAttrValue(element, 'width');
     node.height = this.getAttrValue(element, 'height');
     return node;
@@ -423,7 +422,6 @@ const HTMLParser = {
   _buildSignatureNode(name, attrs) {
     const node = new ASTNodes.SignatureNode();
     node.name   = name;
-    node.label  = attrs.label || '';
     node.width  = attrs.width || null;
     node.height = attrs.height || null;
     node.value  = attrs.value || '';

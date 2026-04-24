@@ -221,7 +221,6 @@ class SignatureNode extends ASTNode {
   constructor() {
     super('signature');
     this.name = '';
-    this.label = '';
     this.width = null;
     this.height = null;
     this.value = '';
