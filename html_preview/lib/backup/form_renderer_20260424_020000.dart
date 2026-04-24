@@ -167,8 +167,6 @@ class FormRendererState extends State<FormRenderer> {
         return _buildColumn(node);
       case 'container':
         return _buildContainer(node);
-      case 'stack':
-        return _buildStack(node);
       case 'text':
         return _buildText(node);
       case 'richtext':
@@ -311,97 +309,28 @@ class FormRendererState extends State<FormRenderer> {
       finalBorder = Border(left: borderLeft);
     }
 
-    final paddingRaw = style['padding'] as Map<String, dynamic>?;
-    final marginRaw = style['margin'] as Map<String, dynamic>?;
-    final hAlign = _marginHAlign(marginRaw);
-    final needsLB = _edgeInsetsIsResponsive(paddingRaw) || _edgeInsetsIsResponsive(marginRaw);
-
-    Widget build(double parentW, double vpW, double vpH) {
-      Widget result = Container(
-        width: width,
-        height: _dim(style['height']),
-        padding: paddingRaw != null ? _resolveEdgeInsets(paddingRaw, parentW, vpW, vpH) : null,
-        margin: marginRaw != null ? _resolveEdgeInsets(marginRaw, parentW, vpW, vpH) : null,
-        decoration: BoxDecoration(
-          color: _color(style['backgroundColor']),
-          border: finalBorder,
-          borderRadius: style['borderRadius'] != null
-              ? BorderRadius.circular((style['borderRadius'] as num).toDouble())
-              : null,
-        ),
-        child: child,
-      );
-
-      if (hAlign != null) {
-        result = Align(alignment: hAlign, child: result);
-      }
-
-      final rotate = style['rotateAngle'];
-      if (rotate != null && rotate != 0) {
-        final radians = (rotate as num).toDouble() * 3.14159265 / 180;
-        result = Transform.rotate(angle: radians, child: result);
-      }
-
-      return result;
-    }
-
-    if (needsLB) {
-      return LayoutBuilder(
-        builder: (ctx, constraints) {
-          final vp = MediaQuery.of(ctx).size;
-          final parentW = constraints.maxWidth.isFinite ? constraints.maxWidth : vp.width;
-          return build(parentW, vp.width, vp.height);
-        },
-      );
-    }
-
-    return build(0, 0, 0);
-  }
-
-  Widget _buildStack(Map<String, dynamic> node) {
-    final rawChildren = (node['children'] as List?) ?? const [];
-    final children = <Widget>[];
-    for (final c in rawChildren) {
-      if (c is! Map<String, dynamic>) continue;
-      if (c['type'] == 'positioned') {
-        final built = _buildPositioned(c);
-        if (built != null) children.add(built);
-      } else {
-        children.add(_buildNode(c));
-      }
-    }
-    return Stack(children: children);
-  }
-
-  // Over-constrained resolution: if left+right+width all given, drop right
-  // (matches CSS LTR behavior and avoids Flutter's Positioned assertion).
-  Widget? _buildPositioned(Map<String, dynamic> node) {
-    final child = _buildNode(node['child']);
-    double? left   = (node['left']   as num?)?.toDouble();
-    double? top    = (node['top']    as num?)?.toDouble();
-    double? right  = (node['right']  as num?)?.toDouble();
-    double? bottom = (node['bottom'] as num?)?.toDouble();
-    final width   = (node['width']  as num?)?.toDouble();
-    final height  = (node['height'] as num?)?.toDouble();
-
-    if (left != null && right != null && width != null) right = null;
-    if (top != null && bottom != null && height != null) bottom = null;
-
-    final stretched = left == 0 && right == 0 && top == 0 && bottom == 0
-        && width == null && height == null;
-    if (stretched) {
-      return Positioned.fill(child: child);
-    }
-
-    return Positioned(
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
+    Widget result = Container(
       width: width,
-      height: height,
+      height: _dim(style['height']),
+      padding: _edgeInsets(style['padding']),
+      margin: _edgeInsets(style['margin']),
+      decoration: BoxDecoration(
+        color: _color(style['backgroundColor']),
+        border: finalBorder,
+        borderRadius: style['borderRadius'] != null
+            ? BorderRadius.circular((style['borderRadius'] as num).toDouble())
+            : null,
+      ),
       child: child,
     );
+
+    final rotate = style['rotateAngle'];
+    if (rotate != null && rotate != 0) {
+      final radians = (rotate as num).toDouble() * 3.14159265 / 180;
+      result = Transform.rotate(angle: radians, child: result);
+    }
+
+    return result;
   }
 
   Border? _parseContainerBorder(Map<String, dynamic>? data) {
@@ -968,64 +897,12 @@ class FormRendererState extends State<FormRenderer> {
     if (v == null) return null;
     if (v is Map<String, dynamic>) {
       return EdgeInsets.fromLTRB(
-        _sideToPx(v['left']),
-        _sideToPx(v['top']),
-        _sideToPx(v['right']),
-        _sideToPx(v['bottom']),
+        (v['left'] as num?)?.toDouble() ?? 0,
+        (v['top'] as num?)?.toDouble() ?? 0,
+        (v['right'] as num?)?.toDouble() ?? 0,
+        (v['bottom'] as num?)?.toDouble() ?? 0,
       );
     }
-    return null;
-  }
-
-  // Non-responsive side resolver. Numbers pass through as px; tagged values
-  // (pct/vh/vw/auto) degrade to 0 because this path has no parent-size context.
-  double _sideToPx(dynamic v) {
-    if (v == null) return 0;
-    if (v is num) return v.toDouble();
-    return 0;
-  }
-
-  bool _isResponsiveSide(dynamic v) =>
-      v is Map && (v['t'] == 'pct' || v['t'] == 'vh' || v['t'] == 'vw');
-
-  bool _isAutoSide(dynamic v) => v is Map && v['t'] == 'auto';
-
-  bool _edgeInsetsIsResponsive(Map<String, dynamic>? m) {
-    if (m == null) return false;
-    return _isResponsiveSide(m['top']) || _isResponsiveSide(m['right']) ||
-           _isResponsiveSide(m['bottom']) || _isResponsiveSide(m['left']);
-  }
-
-  double _resolveSide(dynamic v, double parentW, double viewportW, double viewportH) {
-    if (v == null) return 0;
-    if (v is num) return v.toDouble();
-    if (v is Map) {
-      final t = v['t'];
-      final val = (v['v'] as num?)?.toDouble() ?? 0;
-      if (t == 'pct') return parentW * val / 100;
-      if (t == 'vw')  return viewportW * val / 100;
-      if (t == 'vh')  return viewportH * val / 100;
-    }
-    return 0;
-  }
-
-  EdgeInsets _resolveEdgeInsets(Map<String, dynamic>? m, double parentW, double viewportW, double viewportH) {
-    if (m == null) return EdgeInsets.zero;
-    return EdgeInsets.fromLTRB(
-      _resolveSide(m['left'],   parentW, viewportW, viewportH),
-      _resolveSide(m['top'],    parentW, viewportW, viewportH),
-      _resolveSide(m['right'],  parentW, viewportW, viewportH),
-      _resolveSide(m['bottom'], parentW, viewportW, viewportH),
-    );
-  }
-
-  AlignmentGeometry? _marginHAlign(Map<String, dynamic>? m) {
-    if (m == null) return null;
-    final l = _isAutoSide(m['left']);
-    final r = _isAutoSide(m['right']);
-    if (l && r) return Alignment.topCenter;
-    if (l && !r) return Alignment.topRight;
-    if (!l && r) return Alignment.topLeft;
     return null;
   }
 }

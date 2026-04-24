@@ -167,8 +167,6 @@ class FormRendererState extends State<FormRenderer> {
         return _buildColumn(node);
       case 'container':
         return _buildContainer(node);
-      case 'stack':
-        return _buildStack(node);
       case 'text':
         return _buildText(node);
       case 'richtext':
@@ -356,52 +354,6 @@ class FormRendererState extends State<FormRenderer> {
     }
 
     return build(0, 0, 0);
-  }
-
-  Widget _buildStack(Map<String, dynamic> node) {
-    final rawChildren = (node['children'] as List?) ?? const [];
-    final children = <Widget>[];
-    for (final c in rawChildren) {
-      if (c is! Map<String, dynamic>) continue;
-      if (c['type'] == 'positioned') {
-        final built = _buildPositioned(c);
-        if (built != null) children.add(built);
-      } else {
-        children.add(_buildNode(c));
-      }
-    }
-    return Stack(children: children);
-  }
-
-  // Over-constrained resolution: if left+right+width all given, drop right
-  // (matches CSS LTR behavior and avoids Flutter's Positioned assertion).
-  Widget? _buildPositioned(Map<String, dynamic> node) {
-    final child = _buildNode(node['child']);
-    double? left   = (node['left']   as num?)?.toDouble();
-    double? top    = (node['top']    as num?)?.toDouble();
-    double? right  = (node['right']  as num?)?.toDouble();
-    double? bottom = (node['bottom'] as num?)?.toDouble();
-    final width   = (node['width']  as num?)?.toDouble();
-    final height  = (node['height'] as num?)?.toDouble();
-
-    if (left != null && right != null && width != null) right = null;
-    if (top != null && bottom != null && height != null) bottom = null;
-
-    final stretched = left == 0 && right == 0 && top == 0 && bottom == 0
-        && width == null && height == null;
-    if (stretched) {
-      return Positioned.fill(child: child);
-    }
-
-    return Positioned(
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
-      width: width,
-      height: height,
-      child: child,
-    );
   }
 
   Border? _parseContainerBorder(Map<String, dynamic>? data) {

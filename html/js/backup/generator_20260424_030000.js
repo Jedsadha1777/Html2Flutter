@@ -317,75 +317,9 @@ ${ind}],
     }
   },
 
-  _hasAbsoluteChildren(node) {
-    return (node.children || []).some(c => c.styles?.position === 'absolute');
-  },
-
-  // Generate a positioned child code for Stack. Phase 1: px only for offsets + width/height.
-  // Over-constrained (left+right+width): drop right. (top+bottom+height): drop bottom.
-  generatePositioned(childNode, context) {
-    const styles = childNode.styles || {};
-    const childCode = this.generateNode(childNode, context);
-    if (!childCode) return null;
-
-    const ind = context.indent;
-    const dim = (v) => {
-      if (!v) return null;
-      const d = StyleParser.parseDimension(v);
-      if (!d || d.unit === '%') return null;
-      return d.value;
-    };
-
-    let left   = dim(styles.left);
-    let top    = dim(styles.top);
-    let right  = dim(styles.right);
-    let bottom = dim(styles.bottom);
-    const width  = dim(styles.width);
-    const height = dim(styles.height);
-
-    if (left != null && right != null && width != null) right = null;
-    if (top != null && bottom != null && height != null) bottom = null;
-
-    const stretched = left === 0 && right === 0 && top === 0 && bottom === 0
-      && width == null && height == null;
-    if (stretched) {
-      return `Positioned.fill(\n${ind}child: ${childCode},\n)`;
-    }
-
-    const parts = [];
-    if (left   != null) parts.push(`left: ${left}`);
-    if (top    != null) parts.push(`top: ${top}`);
-    if (right  != null) parts.push(`right: ${right}`);
-    if (bottom != null) parts.push(`bottom: ${bottom}`);
-    if (width  != null) parts.push(`width: ${width}`);
-    if (height != null) parts.push(`height: ${height}`);
-    parts.push(`child: ${childCode}`);
-    return `Positioned(\n${parts.map(p => `${ind}${p}`).join(',\n')},\n)`;
-  },
-
-  // Generate a Stack for position:relative container with absolute children.
-  generateStack(node, context) {
-    const ind = context.indent;
-    const childrenCode = [];
-    for (const child of (node.children || [])) {
-      if (child.type === 'svg') continue;
-      if (child.styles?.position === 'absolute') {
-        const pos = this.generatePositioned(child, context);
-        if (pos) childrenCode.push(pos);
-      } else {
-        const c = this.generateNode(child, context);
-        if (c) childrenCode.push(c);
-      }
-    }
-    if (childrenCode.length === 0) return '';
-    const kids = childrenCode.map(c => `${ind}${c}`).join(',\n');
-    return `Stack(\n${ind}children: [\n${kids},\n${ind}],\n)`;
-  },
-
   generateDiv(node, context) {
     const ind    = context.indent;
     const styles = node.styles || {};
-    const isStackParent = styles.position === 'relative' && this._hasAbsoluteChildren(node);
 
     const decorationProps = [];
     const containerProps  = [];
@@ -439,11 +373,9 @@ ${ind}],
     const prevContainerWidth = context.containerWidth;
     if (fixedWidth != null) context.containerWidth = fixedWidth;
 
-    const childCode = isStackParent
-      ? this.generateStack(node, context)
-      : this.hasMixedInlineContent(node)
-          ? (this.generateInlineContent(node, context) || this.generateChildren(node, context))
-          : this.generateChildren(node, context);
+    const childCode = this.hasMixedInlineContent(node)
+      ? (this.generateInlineContent(node, context) || this.generateChildren(node, context))
+      : this.generateChildren(node, context);
 
     context.containerWidth = prevContainerWidth;
 

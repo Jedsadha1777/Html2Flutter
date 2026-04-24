@@ -289,11 +289,6 @@ const JsonGenerator = {
   _genContainer(node, ctx) {
     const styles = node.styles || {};
 
-    // position: relative parent with absolute children → emit Stack
-    if (styles.position === 'relative' && this._hasAbsoluteChildren(node)) {
-      return this._genStack(node, ctx);
-    }
-
     const prevContainerWidth = ctx.containerWidth;
     if (styles.width) {
       const dim = this._parseDim(styles.width);
@@ -318,62 +313,6 @@ const JsonGenerator = {
 
     if (Object.keys(s).length === 0) return child;
     return { type: 'container', style: s, child };
-  },
-
-  _hasAbsoluteChildren(node) {
-    return (node.children || []).some(c => c.styles?.position === 'absolute');
-  },
-
-  // Emit a stack node for a relative parent. Absolute children become positioned wrappers;
-  // non-absolute children pass through as regular Stack children.
-  _genStack(node, ctx) {
-    const styles = node.styles || {};
-    const children = [];
-
-    for (const child of (node.children || [])) {
-      if (child.type === 'svg') continue;
-      if (child.styles?.position === 'absolute') {
-        const pos = this._genPositioned(child, ctx);
-        if (pos) children.push(pos);
-      } else {
-        const gen = this._generateNode(child, ctx);
-        if (gen) children.push(gen);
-      }
-    }
-
-    if (children.length === 0) return null;
-
-    const stackNode = { type: 'stack', children };
-    const containerStyle = this._extractContainerStyle(styles);
-    if (styles.rotateAngle != null && styles.rotateAngle !== 0) {
-      containerStyle.rotateAngle = styles.rotateAngle;
-    }
-    if (Object.keys(containerStyle).length === 0) return stackNode;
-    return { type: 'container', style: containerStyle, child: stackNode };
-  },
-
-  // Wrap an absolute-positioned child with a positioned node carrying its offset/size.
-  // Phase 1: px only for left/top/right/bottom/width/height.
-  // Over-constrained resolution (left+right+width) is handled at render time.
-  _genPositioned(childNode, ctx) {
-    const styles = childNode.styles || {};
-    const inner = this._generateNode(childNode, ctx);
-    if (!inner) return null;
-
-    const positioned = { type: 'positioned', child: inner };
-    const left   = this._parseDim(styles.left);
-    const top    = this._parseDim(styles.top);
-    const right  = this._parseDim(styles.right);
-    const bottom = this._parseDim(styles.bottom);
-    const width  = this._parseDim(styles.width);
-    const height = this._parseDim(styles.height);
-    if (left   != null) positioned.left   = left;
-    if (top    != null) positioned.top    = top;
-    if (right  != null) positioned.right  = right;
-    if (bottom != null) positioned.bottom = bottom;
-    if (width  != null) positioned.width  = width;
-    if (height != null) positioned.height = height;
-    return positioned;
   },
 
   _genParagraph(node, ctx) {

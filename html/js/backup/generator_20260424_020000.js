@@ -317,75 +317,9 @@ ${ind}],
     }
   },
 
-  _hasAbsoluteChildren(node) {
-    return (node.children || []).some(c => c.styles?.position === 'absolute');
-  },
-
-  // Generate a positioned child code for Stack. Phase 1: px only for offsets + width/height.
-  // Over-constrained (left+right+width): drop right. (top+bottom+height): drop bottom.
-  generatePositioned(childNode, context) {
-    const styles = childNode.styles || {};
-    const childCode = this.generateNode(childNode, context);
-    if (!childCode) return null;
-
-    const ind = context.indent;
-    const dim = (v) => {
-      if (!v) return null;
-      const d = StyleParser.parseDimension(v);
-      if (!d || d.unit === '%') return null;
-      return d.value;
-    };
-
-    let left   = dim(styles.left);
-    let top    = dim(styles.top);
-    let right  = dim(styles.right);
-    let bottom = dim(styles.bottom);
-    const width  = dim(styles.width);
-    const height = dim(styles.height);
-
-    if (left != null && right != null && width != null) right = null;
-    if (top != null && bottom != null && height != null) bottom = null;
-
-    const stretched = left === 0 && right === 0 && top === 0 && bottom === 0
-      && width == null && height == null;
-    if (stretched) {
-      return `Positioned.fill(\n${ind}child: ${childCode},\n)`;
-    }
-
-    const parts = [];
-    if (left   != null) parts.push(`left: ${left}`);
-    if (top    != null) parts.push(`top: ${top}`);
-    if (right  != null) parts.push(`right: ${right}`);
-    if (bottom != null) parts.push(`bottom: ${bottom}`);
-    if (width  != null) parts.push(`width: ${width}`);
-    if (height != null) parts.push(`height: ${height}`);
-    parts.push(`child: ${childCode}`);
-    return `Positioned(\n${parts.map(p => `${ind}${p}`).join(',\n')},\n)`;
-  },
-
-  // Generate a Stack for position:relative container with absolute children.
-  generateStack(node, context) {
-    const ind = context.indent;
-    const childrenCode = [];
-    for (const child of (node.children || [])) {
-      if (child.type === 'svg') continue;
-      if (child.styles?.position === 'absolute') {
-        const pos = this.generatePositioned(child, context);
-        if (pos) childrenCode.push(pos);
-      } else {
-        const c = this.generateNode(child, context);
-        if (c) childrenCode.push(c);
-      }
-    }
-    if (childrenCode.length === 0) return '';
-    const kids = childrenCode.map(c => `${ind}${c}`).join(',\n');
-    return `Stack(\n${ind}children: [\n${kids},\n${ind}],\n)`;
-  },
-
   generateDiv(node, context) {
     const ind    = context.indent;
     const styles = node.styles || {};
-    const isStackParent = styles.position === 'relative' && this._hasAbsoluteChildren(node);
 
     const decorationProps = [];
     const containerProps  = [];
@@ -409,15 +343,11 @@ ${ind}],
       decorationProps.push(`borderRadius: BorderRadius.circular(${r})`);
     }
 
-    const paddingSides = this._boxSides(styles, 'padding');
-    const marginSides  = this._boxSides(styles, 'margin');
-    const paddingCode  = this._sidesToEdgeInsetsCode(paddingSides);
-    const marginCode   = this._sidesToEdgeInsetsCode(marginSides);
-    const hasResponsiveBox = this._sideHasResponsive(paddingSides) || this._sideHasResponsive(marginSides);
-    const marginHAlign = this._sideHAlign(marginSides);
+    const padding = this.generateEdgeInsets(styles, 'padding');
+    if (padding) containerProps.push(`padding: ${padding}`);
 
-    if (paddingCode) containerProps.push(`padding: ${paddingCode}`);
-    if (marginCode)  containerProps.push(`margin: ${marginCode}`);
+    const margin = this.generateEdgeInsets(styles, 'margin');
+    if (margin) containerProps.push(`margin: ${margin}`);
 
     let fixedWidth = null;
     if (styles.width) {
@@ -439,11 +369,9 @@ ${ind}],
     const prevContainerWidth = context.containerWidth;
     if (fixedWidth != null) context.containerWidth = fixedWidth;
 
-    const childCode = isStackParent
-      ? this.generateStack(node, context)
-      : this.hasMixedInlineContent(node)
-          ? (this.generateInlineContent(node, context) || this.generateChildren(node, context))
-          : this.generateChildren(node, context);
+    const childCode = this.hasMixedInlineContent(node)
+      ? (this.generateInlineContent(node, context) || this.generateChildren(node, context))
+      : this.generateChildren(node, context);
 
     context.containerWidth = prevContainerWidth;
 
@@ -452,26 +380,8 @@ ${containerProps.map(p => `${ind}${p},`).join('\n')}
 ${ind}child: ${childCode},
 )`;
 
-    // margin: auto centering — Align replaces UnconstrainedBox (both unbound the child).
-    if (marginHAlign) {
-      const alignExpr = marginHAlign === 'center' ? 'Alignment.topCenter'
-                      : marginHAlign === 'right'  ? 'Alignment.topRight'
-                      :                             'Alignment.topLeft';
-      code = `Align(\n${ind}alignment: ${alignExpr},\n${ind}child: ${code},\n)`;
-    } else if (fixedWidth != null) {
+    if (fixedWidth != null) {
       code = `UnconstrainedBox(\n${ind}alignment: Alignment.topLeft,\n${ind}child: ${code},\n)`;
-    }
-
-    // Responsive padding/margin (%, vh, vw) needs parent-size context at runtime.
-    if (hasResponsiveBox) {
-      code = `LayoutBuilder(
-${ind}builder: (context, constraints) {
-${ind}  final parentW = constraints.maxWidth.isFinite ? constraints.maxWidth : MediaQuery.of(context).size.width;
-${ind}  final vpW = MediaQuery.of(context).size.width;
-${ind}  final vpH = MediaQuery.of(context).size.height;
-${ind}  return ${code};
-${ind}},
-)`;
     }
 
     if (styles.rotateAngle != null && styles.rotateAngle !== 0) {
@@ -1271,89 +1181,21 @@ class _DashedBorderPainter extends CustomPainter {
     return parts.join('\n\n');
   },
 
-  // Safe version for callers that don't wrap with LayoutBuilder (e.g. paragraph/heading).
-  // Responsive/auto sides degrade to 0 — caller only gets const EdgeInsets or null.
   generateEdgeInsets(styles, prefix) {
-    const sides = this._boxSides(styles, prefix);
-    if (!sides) return null;
-    const flatten = v => (typeof v === 'number') ? v : 0;
-    const safe = {
-      top:    flatten(sides.top),
-      right:  flatten(sides.right),
-      bottom: flatten(sides.bottom),
-      left:   flatten(sides.left),
-    };
-    return this._sidesToEdgeInsetsCode(safe);
-  },
+    const top    = styles[`${prefix}Top`];
+    const right  = styles[`${prefix}Right`];
+    const bottom = styles[`${prefix}Bottom`];
+    const left   = styles[`${prefix}Left`];
+    if (!top && !right && !bottom && !left) return null;
 
-  // Parse a single box-side value. Returns:
-  //   - number (px)
-  //   - { t:'pct', v:N } | { t:'vh', v:N } | { t:'vw', v:N } for responsive
-  //   - { t:'auto' } for margin horizontal centering
-  //   - null if absent/invalid
-  _parseBoxSide(str) {
-    if (str == null) return null;
-    const s = String(str).trim();
-    if (s === 'auto') return { t: 'auto' };
-    const dim = StyleParser.parseDimension(s);
-    if (!dim) return null;
-    if (dim.unit === '%')  return { t: 'pct', v: dim.value };
-    if (dim.unit === 'vh') return { t: 'vh', v: dim.value };
-    if (dim.unit === 'vw') return { t: 'vw', v: dim.value };
-    return dim.value;
-  },
+    const t = StyleParser.parseDimension(top)?.value    || 0;
+    const r = StyleParser.parseDimension(right)?.value  || 0;
+    const b = StyleParser.parseDimension(bottom)?.value || 0;
+    const l = StyleParser.parseDimension(left)?.value   || 0;
 
-  _boxSides(styles, prefix) {
-    const top    = this._parseBoxSide(styles[`${prefix}Top`]);
-    const right  = this._parseBoxSide(styles[`${prefix}Right`]);
-    const bottom = this._parseBoxSide(styles[`${prefix}Bottom`]);
-    const left   = this._parseBoxSide(styles[`${prefix}Left`]);
-    if (top == null && right == null && bottom == null && left == null) return null;
-    return { top, right, bottom, left };
-  },
-
-  _sideHasResponsive(sides) {
-    if (!sides) return false;
-    const chk = s => typeof s === 'object' && s && (s.t === 'pct' || s.t === 'vh' || s.t === 'vw');
-    return chk(sides.top) || chk(sides.right) || chk(sides.bottom) || chk(sides.left);
-  },
-
-  // Returns 'center' | 'left' | 'right' | null based on margin horizontal auto.
-  _sideHAlign(margin) {
-    if (!margin) return null;
-    const isAuto = s => typeof s === 'object' && s && s.t === 'auto';
-    const l = isAuto(margin.left), r = isAuto(margin.right);
-    if (l && r) return 'center';
-    if (l && !r) return 'right';
-    if (!l && r) return 'left';
-    return null;
-  },
-
-  // Emit a Dart expression for a side, referencing runtime vars parentW/vpW/vpH when needed.
-  _sideToDart(v) {
-    if (v == null) return '0';
-    if (typeof v === 'number') return String(v);
-    if (v.t === 'pct') return `(parentW * ${(v.v / 100).toFixed(4)})`;
-    if (v.t === 'vw')  return `(vpW * ${(v.v / 100).toFixed(4)})`;
-    if (v.t === 'vh')  return `(vpH * ${(v.v / 100).toFixed(4)})`;
-    if (v.t === 'auto') return '0';
-    return '0';
-  },
-
-  _sidesToEdgeInsetsCode(sides) {
-    if (!sides) return null;
-    const t = this._sideToDart(sides.top);
-    const r = this._sideToDart(sides.right);
-    const b = this._sideToDart(sides.bottom);
-    const l = this._sideToDart(sides.left);
-    const allNumeric = [t, r, b, l].every(x => /^\d+(\.\d+)?$/.test(x));
-    if (allNumeric) {
-      const tn = parseFloat(t), rn = parseFloat(r), bn = parseFloat(b), ln = parseFloat(l);
-      if (tn === rn && rn === bn && bn === ln) return `const EdgeInsets.all(${tn})`;
-      if (tn === bn && ln === rn)              return `const EdgeInsets.symmetric(vertical: ${tn}, horizontal: ${ln})`;
-      return `const EdgeInsets.fromLTRB(${ln}, ${tn}, ${rn}, ${bn})`;
-    }
-    return `EdgeInsets.fromLTRB(${l}, ${t}, ${r}, ${b})`;
+    if (t === r && r === b && b === l) return `const EdgeInsets.all(${t})`;
+    if (t === b && l === r)            return `const EdgeInsets.symmetric(vertical: ${t}, horizontal: ${l})`;
+    return `const EdgeInsets.fromLTRB(${l}, ${t}, ${r}, ${b})`;
   },
 
   extractAllText(node) {
