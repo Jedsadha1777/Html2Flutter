@@ -313,8 +313,7 @@
         case 'signature': {
             var sw = n.attrs.width ? 'width:' + n.attrs.width + 'px;' : 'width:100%;';
             var sh = n.attrs.height ? 'height:' + n.attrs.height + 'px;' : 'height:80px;';
-            var sigTitle = n.attrs.label ? esc(n.attrs.label) : 'Signature: ' + esc(n.name);
-            return '<div class="signature-field" data-field-id="' + fieldId + '" style="border:2px dashed #d1d5db;border-radius:8px;' + sw + sh + 'display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px;cursor:pointer;" title="Click to sign">' + sigTitle + '</div>';
+            return '<div class="signature-field" data-field-id="' + fieldId + '" style="border:2px dashed #d1d5db;border-radius:8px;' + sw + sh + 'display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px;cursor:pointer;" title="Click to sign">Signature: ' + esc(n.name) + '</div>';
         }
 
         // --- IMAGE-UPLOAD ---
