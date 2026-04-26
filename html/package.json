@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/parser.test.js && node test/check-snapshot.js && node test/check-golden.js",
+    "snapshot:build": "node test/extract-style-inputs.js > test/inputs.json && node test/build-snapshot.js < test/inputs.json > test/snapshot.json",
+    "golden:build": "node test/build-golden.js"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +16,7 @@
     "@chenglou/pretext": "^0.0.4"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0"
+    "esbuild": "^0.28.0",
+    "jsdom": "^29.0.2"
   }
 }

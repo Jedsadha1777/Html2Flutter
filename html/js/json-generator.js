@@ -188,7 +188,7 @@ const JsonGenerator = {
     if (styles.fontStyle === 'italic') s.fontStyle = 'italic';
     if (styles.color) s.color = styles.color;
     if (styles.fontSize) s.fontSize = this._parseDim(styles.fontSize);
-    if (styles.fontFamily) s.fontFamily = styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+    if (styles.fontFamily) s.fontFamily = StyleParser.firstFontFamily(styles.fontFamily);
     if (styles.textDecoration) s.decoration = this._mapTextDecoration(styles.textDecoration);
     if (styles.backgroundColor) s.backgroundColor = styles.backgroundColor;
 
@@ -381,7 +381,7 @@ const JsonGenerator = {
 
     const pStyle = {};
     if (styles.fontSize)   pStyle.fontSize   = this._parseDim(styles.fontSize);
-    if (styles.fontFamily)  pStyle.fontFamily = styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+    if (styles.fontFamily)  pStyle.fontFamily = StyleParser.firstFontFamily(styles.fontFamily);
     if (styles.color)       pStyle.color      = styles.color;
     if (styles.fontWeight)  pStyle.fontWeight = styles.fontWeight;
     if (styles.textAlign)   pStyle.textAlign  = styles.textAlign;
@@ -771,16 +771,19 @@ const JsonGenerator = {
     if (styles.color)           s.color = styles.color;
     if (styles.fontSize)        s.fontSize = this._parseDim(styles.fontSize);
     if (styles.fontWeight)      s.fontWeight = styles.fontWeight;
-    if (styles.fontFamily)      s.fontFamily = styles.fontFamily?.split(',')[0].trim().replace(/['"]/g, '');
+    if (styles.fontFamily)      s.fontFamily = StyleParser.firstFontFamily(styles.fontFamily);
     if (styles.textAlign)       s.textAlign = styles.textAlign;
 
     if (styles.width) {
-      const dim = this._parseDim(styles.width);
-      s.width = dim || 'infinity';
+      const dim = this._parseDimResponsive(styles.width);
+      s.width = dim != null ? dim : 'infinity';
     } else {
       s.width = 'infinity';
     }
-    if (styles.height) s.height = this._parseDim(styles.height);
+    if (styles.height) {
+      const dim = this._parseDimResponsive(styles.height);
+      if (dim != null) s.height = dim;
+    }
 
     const padding = this._extractEdgeInsets(styles, 'padding');
     if (padding) s.padding = padding;
@@ -820,22 +823,17 @@ const JsonGenerator = {
 
   _extractBorder(styles) {
     const sides = {};
-    for (const side of ['borderTop', 'borderBottom', 'borderLeft', 'borderRight']) {
-      if (styles[side]) {
-        const m = String(styles[side]).match(/([\d.]+)(?:px)?\s+\w+\s+(#[0-9a-fA-F]+|\w+)/);
-        if (m) {
-          sides[side.replace('border', '').toLowerCase()] = { width: parseFloat(m[1]), color: m[2] };
-        }
-      }
+    for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+      const w  = styles[`border${side}Width`];
+      const c  = styles[`border${side}Color`];
+      const st = styles[`border${side}Style`];
+      if (st === 'none' || st === 'hidden') continue;
+      if (!w && !c) continue;
+      const width = w ? (this._parseDim(w) ?? 1) : 1;
+      const color = c || '#000000';
+      sides[side.toLowerCase()] = { width, color };
     }
-    if (Object.keys(sides).length) return sides;
-
-    if (styles.borderWidth && styles.borderColor) {
-      const w = this._parseDim(styles.borderWidth) || 1;
-      return { top: { width: w, color: styles.borderColor }, right: { width: w, color: styles.borderColor },
-               bottom: { width: w, color: styles.borderColor }, left: { width: w, color: styles.borderColor } };
-    }
-    return null;
+    return Object.keys(sides).length > 0 ? sides : null;
   },
 
   // Merge consecutive text nodes with same style into single text/richtext with \n separators.
@@ -920,6 +918,22 @@ const JsonGenerator = {
     if (!dim) return null;
     // pt → px (1pt = 1.33 logical pixels), rem/em → px (1rem = 16px)
     if (dim.unit === 'pt')  return Math.round(dim.value * 1.33 * 10) / 10;
+    if (dim.unit === 'rem' || dim.unit === 'em') return Math.round(dim.value * 16 * 10) / 10;
+    return dim.value;
+  },
+
+  // Like _parseDim but preserves %/vh/vw as tagged objects so callers that
+  // run inside a LayoutBuilder context can resolve against parent / viewport
+  // sizes at runtime instead of dropping unit info.
+  _parseDimResponsive(str) {
+    if (str == null) return null;
+    if (typeof str === 'number') return str;
+    const dim = StyleParser.parseDimension(str);
+    if (!dim) return null;
+    if (dim.unit === '%')  return { t: 'pct', v: dim.value };
+    if (dim.unit === 'vh') return { t: 'vh', v: dim.value };
+    if (dim.unit === 'vw') return { t: 'vw', v: dim.value };
+    if (dim.unit === 'pt')                       return Math.round(dim.value * 1.33 * 10) / 10;
     if (dim.unit === 'rem' || dim.unit === 'em') return Math.round(dim.value * 16 * 10) / 10;
     return dim.value;
   },

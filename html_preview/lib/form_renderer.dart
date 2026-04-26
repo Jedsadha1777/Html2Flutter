@@ -5,15 +5,94 @@ import 'package:flutter/material.dart';
 import 'preview_shell.dart';
 import 'form_widgets/form_widgets.dart';
 
+// CSS Color Module Level 4 named colors (147). ARGB int values; matches the
+// list in style-parser.js _CSS_NAMED_HEX so JSON output and Flutter render
+// stay in sync.
+const Map<String, int> _cssNamedColors = {
+  'aliceblue':            0xFFF0F8FF, 'antiquewhite':         0xFFFAEBD7,
+  'aqua':                 0xFF00FFFF, 'aquamarine':           0xFF7FFFD4,
+  'azure':                0xFFF0FFFF, 'beige':                0xFFF5F5DC,
+  'bisque':               0xFFFFE4C4, 'black':                0xFF000000,
+  'blanchedalmond':       0xFFFFEBCD, 'blue':                 0xFF0000FF,
+  'blueviolet':           0xFF8A2BE2, 'brown':                0xFFA52A2A,
+  'burlywood':            0xFFDEB887, 'cadetblue':            0xFF5F9EA0,
+  'chartreuse':           0xFF7FFF00, 'chocolate':            0xFFD2691E,
+  'coral':                0xFFFF7F50, 'cornflowerblue':       0xFF6495ED,
+  'cornsilk':             0xFFFFF8DC, 'crimson':              0xFFDC143C,
+  'cyan':                 0xFF00FFFF, 'darkblue':             0xFF00008B,
+  'darkcyan':             0xFF008B8B, 'darkgoldenrod':        0xFFB8860B,
+  'darkgray':             0xFFA9A9A9, 'darkgreen':            0xFF006400,
+  'darkgrey':             0xFFA9A9A9, 'darkkhaki':            0xFFBDB76B,
+  'darkmagenta':          0xFF8B008B, 'darkolivegreen':       0xFF556B2F,
+  'darkorange':           0xFFFF8C00, 'darkorchid':           0xFF9932CC,
+  'darkred':              0xFF8B0000, 'darksalmon':           0xFFE9967A,
+  'darkseagreen':         0xFF8FBC8F, 'darkslateblue':        0xFF483D8B,
+  'darkslategray':        0xFF2F4F4F, 'darkslategrey':        0xFF2F4F4F,
+  'darkturquoise':        0xFF00CED1, 'darkviolet':           0xFF9400D3,
+  'deeppink':             0xFFFF1493, 'deepskyblue':          0xFF00BFFF,
+  'dimgray':              0xFF696969, 'dimgrey':              0xFF696969,
+  'dodgerblue':           0xFF1E90FF, 'firebrick':            0xFFB22222,
+  'floralwhite':          0xFFFFFAF0, 'forestgreen':          0xFF228B22,
+  'fuchsia':              0xFFFF00FF, 'gainsboro':            0xFFDCDCDC,
+  'ghostwhite':           0xFFF8F8FF, 'gold':                 0xFFFFD700,
+  'goldenrod':            0xFFDAA520, 'gray':                 0xFF808080,
+  'green':                0xFF008000, 'greenyellow':          0xFFADFF2F,
+  'grey':                 0xFF808080, 'honeydew':             0xFFF0FFF0,
+  'hotpink':              0xFFFF69B4, 'indianred':            0xFFCD5C5C,
+  'indigo':               0xFF4B0082, 'ivory':                0xFFFFFFF0,
+  'khaki':                0xFFF0E68C, 'lavender':             0xFFE6E6FA,
+  'lavenderblush':        0xFFFFF0F5, 'lawngreen':            0xFF7CFC00,
+  'lemonchiffon':         0xFFFFFACD, 'lightblue':            0xFFADD8E6,
+  'lightcoral':           0xFFF08080, 'lightcyan':            0xFFE0FFFF,
+  'lightgoldenrodyellow': 0xFFFAFAD2, 'lightgray':            0xFFD3D3D3,
+  'lightgreen':           0xFF90EE90, 'lightgrey':            0xFFD3D3D3,
+  'lightpink':            0xFFFFB6C1, 'lightsalmon':          0xFFFFA07A,
+  'lightseagreen':        0xFF20B2AA, 'lightskyblue':         0xFF87CEFA,
+  'lightslategray':       0xFF778899, 'lightslategrey':       0xFF778899,
+  'lightsteelblue':       0xFFB0C4DE, 'lightyellow':          0xFFFFFFE0,
+  'lime':                 0xFF00FF00, 'limegreen':            0xFF32CD32,
+  'linen':                0xFFFAF0E6, 'magenta':              0xFFFF00FF,
+  'maroon':               0xFF800000, 'mediumaquamarine':     0xFF66CDAA,
+  'mediumblue':           0xFF0000CD, 'mediumorchid':         0xFFBA55D3,
+  'mediumpurple':         0xFF9370DB, 'mediumseagreen':       0xFF3CB371,
+  'mediumslateblue':      0xFF7B68EE, 'mediumspringgreen':    0xFF00FA9A,
+  'mediumturquoise':      0xFF48D1CC, 'mediumvioletred':      0xFFC71585,
+  'midnightblue':         0xFF191970, 'mintcream':            0xFFF5FFFA,
+  'mistyrose':            0xFFFFE4E1, 'moccasin':             0xFFFFE4B5,
+  'navajowhite':          0xFFFFDEAD, 'navy':                 0xFF000080,
+  'oldlace':              0xFFFDF5E6, 'olive':                0xFF808000,
+  'olivedrab':            0xFF6B8E23, 'orange':               0xFFFFA500,
+  'orangered':            0xFFFF4500, 'orchid':               0xFFDA70D6,
+  'palegoldenrod':        0xFFEEE8AA, 'palegreen':            0xFF98FB98,
+  'paleturquoise':        0xFFAFEEEE, 'palevioletred':        0xFFDB7093,
+  'papayawhip':           0xFFFFEFD5, 'peachpuff':            0xFFFFDAB9,
+  'peru':                 0xFFCD853F, 'pink':                 0xFFFFC0CB,
+  'plum':                 0xFFDDA0DD, 'powderblue':           0xFFB0E0E6,
+  'purple':               0xFF800080, 'rebeccapurple':        0xFF663399,
+  'red':                  0xFFFF0000, 'rosybrown':            0xFFBC8F8F,
+  'royalblue':            0xFF4169E1, 'saddlebrown':          0xFF8B4513,
+  'salmon':               0xFFFA8072, 'sandybrown':           0xFFF4A460,
+  'seagreen':             0xFF2E8B57, 'seashell':             0xFFFFF5EE,
+  'sienna':               0xFFA0522D, 'silver':               0xFFC0C0C0,
+  'skyblue':              0xFF87CEEB, 'slateblue':            0xFF6A5ACD,
+  'slategray':            0xFF708090, 'slategrey':            0xFF708090,
+  'snow':                 0xFFFFFAFA, 'springgreen':          0xFF00FF7F,
+  'steelblue':            0xFF4682B4, 'tan':                  0xFFD2B48C,
+  'teal':                 0xFF008080, 'thistle':              0xFFD8BFD8,
+  'tomato':               0xFFFF6347, 'transparent':          0x00000000,
+  'turquoise':            0xFF40E0D0, 'violet':               0xFFEE82EE,
+  'wheat':                0xFFF5DEB3, 'white':                0xFFFFFFFF,
+  'whitesmoke':           0xFFF5F5F5, 'yellow':               0xFFFFFF00,
+  'yellowgreen':          0xFF9ACD32,
+};
+
 class FormRenderer extends StatefulWidget {
   final Map<String, dynamic> schema;
-  final void Function(Map<String, dynamic> values)? onSubmit;
   final void Function(String fieldName, dynamic value)? onChanged;
 
   const FormRenderer({
     super.key,
     required this.schema,
-    this.onSubmit,
     this.onChanged,
   });
 
@@ -134,20 +213,21 @@ class FormRendererState extends State<FormRenderer> {
     widget.onChanged?.call(name, value);
   }
 
-  /// Snap-aware input decoration used by TextField wrappers in tables
-  InputDecoration get inputDecoration => _snapMode
-      ? const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4))
-      : const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8));
-
   @override
   Widget build(BuildContext context) {
     if (_pages.isEmpty) {
       return const Center(child: Text('No pages in schema'));
     }
 
-    final pageWidgets = _pages
-        .map((p) => RepaintBoundary(key: _captureKey, child: _buildNode(p)))
-        .toList();
+    // _captureKey only on the first page — GlobalKeys must be unique in the
+    // tree, and screenshot capture targets the first page anyway.
+    final pageWidgets = <Widget>[];
+    for (var i = 0; i < _pages.length; i++) {
+      pageWidgets.add(RepaintBoundary(
+        key: i == 0 ? _captureKey : ValueKey('page_$i'),
+        child: _buildNode(_pages[i]),
+      ));
+    }
 
     return Form(
       key: _formKey,
@@ -295,13 +375,8 @@ class FormRendererState extends State<FormRenderer> {
       child = DefaultTextStyle.merge(style: textStyle, child: child);
     }
 
-    double? width;
     final widthVal = style['width'];
-    if (widthVal == 'infinity') {
-      width = double.infinity;
-    } else {
-      width = _dim(widthVal);
-    }
+    final heightVal = style['height'];
 
     final border = _parseContainerBorder(style['border'] as Map<String, dynamic>?);
     final borderLeft = _parseSingleBorder(style['borderLeft'] as Map<String, dynamic>?);
@@ -314,12 +389,19 @@ class FormRendererState extends State<FormRenderer> {
     final paddingRaw = style['padding'] as Map<String, dynamic>?;
     final marginRaw = style['margin'] as Map<String, dynamic>?;
     final hAlign = _marginHAlign(marginRaw);
-    final needsLB = _edgeInsetsIsResponsive(paddingRaw) || _edgeInsetsIsResponsive(marginRaw);
+    final needsLB = _edgeInsetsIsResponsive(paddingRaw) || _edgeInsetsIsResponsive(marginRaw)
+        || _isResponsiveSide(widthVal) || _isResponsiveSide(heightVal);
+
+    double? resolveSize(dynamic v, double parentW, double vpW, double vpH) {
+      if (v == 'infinity') return double.infinity;
+      if (v is Map) return _resolveSide(v, parentW, vpW, vpH);
+      return _dim(v);
+    }
 
     Widget build(double parentW, double vpW, double vpH) {
       Widget result = Container(
-        width: width,
-        height: _dim(style['height']),
+        width: resolveSize(widthVal, parentW, vpW, vpH),
+        height: resolveSize(heightVal, parentW, vpW, vpH),
         padding: paddingRaw != null ? _resolveEdgeInsets(paddingRaw, parentW, vpW, vpH) : null,
         margin: marginRaw != null ? _resolveEdgeInsets(marginRaw, parentW, vpW, vpH) : null,
         decoration: BoxDecoration(
@@ -613,17 +695,25 @@ class FormRendererState extends State<FormRenderer> {
         cellStyle['verticalAlign'] as String?,
       );
 
+      // Save/restore so nested table cells don't clobber the outer cell's
+      // text state. try/finally guards against widget-build exceptions.
+      final prevWS = _currentWhiteSpace;
+      final prevTA = _currentTextAlign;
+      final prevTT = _currentTextTransform;
       _currentWhiteSpace = cellStyle['whiteSpace'] as String?;
       _currentTextAlign = cellStyle['textAlign'] as String?;
       _currentTextTransform = cellStyle['textTransform'] as String?;
 
-      Widget content = pMap['child'] != null
-          ? _buildNode(pMap['child'])
-          : const SizedBox.shrink();
-
-      _currentWhiteSpace = null;
-      _currentTextAlign = null;
-      _currentTextTransform = null;
+      Widget content;
+      try {
+        content = pMap['child'] != null
+            ? _buildNode(pMap['child'])
+            : const SizedBox.shrink();
+      } finally {
+        _currentWhiteSpace = prevWS;
+        _currentTextAlign = prevTA;
+        _currentTextTransform = prevTT;
+      }
 
       final ts = _cellTextStyle(cellStyle);
       if (ts != null) {
@@ -883,8 +973,13 @@ class FormRendererState extends State<FormRenderer> {
   double? _dim(dynamic v) {
     if (v == null) return null;
     if (v is num) return v.toDouble();
+    if (v is Map) {
+      // Tagged unit ({unit, value}) — only resolvable in LayoutBuilder context.
+      // Non-LB callers see null and fall back to defaults.
+      return null;
+    }
     if (v is String) {
-      final m = RegExp(r'^([\d.]+)').firstMatch(v);
+      final m = RegExp(r'^(\d+(?:\.\d+)?)').firstMatch(v);
       if (m != null) return double.tryParse(m.group(1)!);
     }
     return null;
@@ -892,26 +987,115 @@ class FormRendererState extends State<FormRenderer> {
 
   Color? _color(dynamic v) {
     if (v == null) return null;
-    if (v is String) {
-      final s = v.trim();
-      if (s.startsWith('#')) {
-        var hex = s.substring(1);
-        if (hex.length == 3) hex = hex.split('').map((c) => '$c$c').join();
-        if (hex.length == 6) return Color(int.parse('FF$hex', radix: 16));
-      }
-      final m = RegExp(r'rgb\((\d+),\s*(\d+),\s*(\d+)\)').firstMatch(s);
-      if (m != null) {
-        return Color.fromARGB(255, int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
-      }
-      const named = <String, Color>{
-        'white': Colors.white, 'black': Colors.black, 'red': Colors.red,
-        'blue': Colors.blue, 'green': Colors.green, 'grey': Colors.grey,
-        'gray': Colors.grey, 'yellow': Colors.yellow, 'orange': Colors.orange,
-      };
-      final c = named[s.toLowerCase()];
-      if (c != null) return c;
+    if (v is! String) return null;
+    final s = v.trim();
+    if (s.isEmpty) return null;
+
+    if (s.startsWith('#')) return _parseHex(s.substring(1));
+
+    final lower = s.toLowerCase();
+    if (lower.endsWith(')')) {
+      if (lower.startsWith('rgb('))  return _parseRgb(s.substring(4, s.length - 1), false);
+      if (lower.startsWith('rgba(')) return _parseRgb(s.substring(5, s.length - 1), true);
+      if (lower.startsWith('hsl('))  return _parseHsl(s.substring(4, s.length - 1));
+      if (lower.startsWith('hsla(')) return _parseHsl(s.substring(5, s.length - 1));
+    }
+
+    final named = _cssNamedColors[lower];
+    if (named != null) return Color(named);
+    return null;
+  }
+
+  Color? _parseHex(String hex) {
+    if (hex.isEmpty) return null;
+    for (final c in hex.codeUnits) {
+      final isDigit = c >= 0x30 && c <= 0x39;
+      final isLower = c >= 0x61 && c <= 0x66;
+      final isUpper = c >= 0x41 && c <= 0x46;
+      if (!isDigit && !isLower && !isUpper) return null;
+    }
+    var h = hex;
+    if (h.length == 3 || h.length == 4) {
+      h = h.split('').map((c) => '$c$c').join();
+    }
+    if (h.length == 6) return Color(int.parse('FF$h', radix: 16));
+    // CSS #RRGGBBAA → Flutter ARGB (0xAARRGGBB)
+    if (h.length == 8) {
+      return Color(int.parse(h.substring(6, 8) + h.substring(0, 6), radix: 16));
     }
     return null;
+  }
+
+  // Tokenize body into (number, isPercent) pairs.
+  // Separators (`,` `whitespace` `/`) accepted between values; CSS engines are
+  // lenient here, and json-generator never emits non-canonical forms anyway.
+  List<List<num>>? _tokenizeColorArgs(String body) {
+    final out = <List<num>>[];
+    int i = 0;
+    final n = body.length;
+    while (i < n) {
+      final c = body.codeUnitAt(i);
+      // skip separators / whitespace
+      if (c == 0x20 || c == 0x09 || c == 0x0A || c == 0x0D || c == 0x2C || c == 0x2F) { i++; continue; }
+      // sign
+      final start = i;
+      if (c == 0x2B || c == 0x2D) i++;
+      bool sawDigit = false;
+      while (i < n) {
+        final cc = body.codeUnitAt(i);
+        if (cc < 0x30 || cc > 0x39) break;
+        sawDigit = true;
+        i++;
+      }
+      if (i < n && body.codeUnitAt(i) == 0x2E) {
+        i++;
+        while (i < n) {
+          final cc = body.codeUnitAt(i);
+          if (cc < 0x30 || cc > 0x39) break;
+        sawDigit = true;
+        i++;
+        }
+      }
+      if (!sawDigit) return null;
+      final value = double.tryParse(body.substring(start, i));
+      if (value == null) return null;
+      var pct = 0;
+      if (i < n && body.codeUnitAt(i) == 0x25) { pct = 1; i++; }
+      out.add([value, pct]);
+    }
+    return out;
+  }
+
+  Color? _parseRgb(String body, bool isRgba) {
+    final tokens = _tokenizeColorArgs(body);
+    if (tokens == null) return null;
+    if (tokens.length < 3 || tokens.length > 4) return null;
+    int chan(List<num> t) {
+      final isPct = t[1] == 1;
+      final px = isPct ? t[0] * 255 / 100 : t[0];
+      return px.round().clamp(0, 255);
+    }
+    final r = chan(tokens[0]);
+    final g = chan(tokens[1]);
+    final b = chan(tokens[2]);
+    final double a = tokens.length == 4
+        ? (tokens[3][1] == 1 ? tokens[3][0] / 100 : tokens[3][0]).toDouble().clamp(0.0, 1.0)
+        : 1.0;
+    return Color.fromRGBO(r, g, b, a);
+  }
+
+  Color? _parseHsl(String body) {
+    final tokens = _tokenizeColorArgs(body);
+    if (tokens == null) return null;
+    if (tokens.length < 3 || tokens.length > 4) return null;
+    final h = tokens[0][0].toDouble() % 360;
+    // saturation/lightness must be percent in CSS spec; accept bare numbers as %.
+    final sat = (tokens[1][0].toDouble() / 100).clamp(0.0, 1.0);
+    final lig = (tokens[2][0].toDouble() / 100).clamp(0.0, 1.0);
+    final double a = tokens.length == 4
+        ? (tokens[3][1] == 1 ? tokens[3][0] / 100 : tokens[3][0]).toDouble().clamp(0.0, 1.0)
+        : 1.0;
+    return HSLColor.fromAHSL(a, h, sat, lig).toColor();
   }
 
   TextStyle _textStyle(Map<String, dynamic> style) {
@@ -928,12 +1112,21 @@ class FormRendererState extends State<FormRenderer> {
 
   FontWeight? _fontWeight(dynamic v) {
     if (v == null) return null;
-    final s = v.toString();
-    if (s == 'bold' || s == '700') return FontWeight.bold;
-    if (s == '600') return FontWeight.w600;
-    if (s == '500') return FontWeight.w500;
-    if (s == '300') return FontWeight.w300;
-    if (s == '100') return FontWeight.w100;
+    final s = v.toString().toLowerCase();
+    if (s == 'normal') return FontWeight.normal;
+    if (s == 'bold' || s == 'bolder') return FontWeight.bold;
+    if (s == 'lighter') return FontWeight.w300;
+    switch (s) {
+      case '100': return FontWeight.w100;
+      case '200': return FontWeight.w200;
+      case '300': return FontWeight.w300;
+      case '400': return FontWeight.normal;
+      case '500': return FontWeight.w500;
+      case '600': return FontWeight.w600;
+      case '700': return FontWeight.bold;
+      case '800': return FontWeight.w800;
+      case '900': return FontWeight.w900;
+    }
     return null;
   }
 
@@ -941,26 +1134,29 @@ class FormRendererState extends State<FormRenderer> {
     if (v == null) return null;
     if (v == 'underline') return TextDecoration.underline;
     if (v == 'lineThrough') return TextDecoration.lineThrough;
+    if (v == 'overline') return TextDecoration.overline;
     return null;
   }
 
   TextAlign? _textAlign(dynamic v) {
     if (v == null) return null;
-    switch (v) {
+    switch (v.toString().toLowerCase()) {
       case 'center': return TextAlign.center;
       case 'right': case 'end': return TextAlign.right;
       case 'justify': return TextAlign.justify;
       case 'left': case 'start': return TextAlign.left;
-      default: return TextAlign.left;
+      default: return null;
     }
   }
 
   Alignment _alignment(String? hAlign, String? vAlign) {
+    final h = (hAlign ?? '').toLowerCase();
+    final v = (vAlign ?? '').toLowerCase();
     double x = -1, y = 0;
-    if (hAlign == 'center') x = 0;
-    if (hAlign == 'right' || hAlign == 'end') x = 1;
-    if (vAlign == 'top') y = -1;
-    if (vAlign == 'bottom') y = 1;
+    if (h == 'center') x = 0;
+    if (h == 'right' || h == 'end') x = 1;
+    if (v == 'top') y = -1;
+    if (v == 'bottom') y = 1;
     return Alignment(x, y);
   }
 
@@ -1215,13 +1411,11 @@ class _DashedBorderPainter extends CustomPainter {
 
 class FormRendererFromJson extends StatelessWidget {
   final String jsonString;
-  final void Function(Map<String, dynamic> values)? onSubmit;
   final void Function(String fieldName, dynamic value)? onChanged;
 
   const FormRendererFromJson({
     super.key,
     required this.jsonString,
-    this.onSubmit,
     this.onChanged,
   });
 
@@ -1229,7 +1423,7 @@ class FormRendererFromJson extends StatelessWidget {
   Widget build(BuildContext context) {
     try {
       final schema = jsonDecode(jsonString) as Map<String, dynamic>;
-      return FormRenderer(schema: schema, onSubmit: onSubmit, onChanged: onChanged);
+      return FormRenderer(schema: schema, onChanged: onChanged);
     } catch (e) {
       return Center(child: Text('Error parsing JSON: $e'));
     }

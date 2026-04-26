@@ -245,7 +245,8 @@ const HTMLParser = {
     node.min         = this.getAttrValue(element, 'min') || null;
     node.max         = this.getAttrValue(element, 'max') || null;
     const step = this.getAttrValue(element, 'step');
-    node.step = step ? parseInt(step, 10) : null;
+    const stepN = step ? parseInt(step, 10) : NaN;
+    node.step = Number.isFinite(stepN) ? stepN : null;
     return node;
   },
 
@@ -280,7 +281,7 @@ const HTMLParser = {
     const type = required ? typeRaw.slice(0, -1) : typeRaw;
 
     const { name, attrs, options } = this._parseBracketBody(body);
-    if (!name) return null;
+    if (!name || !/^[A-Za-z_][\w-]*$/.test(name)) return null;
 
     switch (type) {
       case 'input':    return this._buildInputNode(name, required, attrs);
@@ -304,26 +305,21 @@ const HTMLParser = {
     const options = [];
     let name = null;
 
-    // Regex to match: key="val", "quoted option", flag word
-    const regex = /(\w[\w\-]*)="([^"]*)"|"([^"]*)"|(\S+)/g;
+    // Match in priority order: key="val", key='val', key=val, "opt", 'opt', flag.
+    // Each form has its own capture group so the dispatch below stays explicit.
+    const regex = /(\w[\w\-]*)="([^"]*)"|(\w[\w\-]*)='([^']*)'|(\w[\w\-]*)=(\S+)|"([^"]*)"|'([^']*)'|(\S+)/g;
     let m;
     let first = true;
 
     while ((m = regex.exec(body)) !== null) {
-      if (m[1] && m[2] !== undefined) {
-        // key="value"
-        attrs[m[1]] = m[2];
-      } else if (m[3] !== undefined) {
-        // "quoted option"
-        options.push(m[3]);
-      } else if (m[4]) {
-        if (first) {
-          name = m[4];
-          first = false;
-        } else {
-          // flag like: readonly, disabled, other, first_as_label, multiple
-          attrs[m[4]] = true;
-        }
+      if (m[1] && m[2] !== undefined)      attrs[m[1]] = m[2];
+      else if (m[3] && m[4] !== undefined) attrs[m[3]] = m[4];
+      else if (m[5] && m[6] !== undefined) attrs[m[5]] = m[6];
+      else if (m[7] !== undefined)         options.push(m[7]);
+      else if (m[8] !== undefined)         options.push(m[8]);
+      else if (m[9]) {
+        if (first) { name = m[9]; first = false; }
+        else attrs[m[9]] = true; // flag
       }
     }
 
@@ -347,7 +343,10 @@ const HTMLParser = {
     const node = new ASTNodes.TextAreaNode();
     node.name        = name;
     node.placeholder = attrs.placeholder || '';
-    node.rows        = parseInt(attrs.rows) || 3;
+    {
+      const n = attrs.rows ? parseInt(attrs.rows, 10) : NaN;
+      node.rows = Number.isFinite(n) && n > 0 ? n : 3;
+    }
     node.value       = attrs.value || '';
     node.required    = required;
     node.readonly    = attrs.readonly === true;
@@ -414,7 +413,10 @@ const HTMLParser = {
     node.value       = attrs.value || '';
     node.min         = attrs.min || null;
     node.max         = attrs.max || null;
-    node.step        = attrs.step ? parseInt(attrs.step, 10) : null;
+    {
+      const n = attrs.step ? parseInt(attrs.step, 10) : NaN;
+      node.step = Number.isFinite(n) ? n : null;
+    }
     node.required    = required;
     node.readonly    = attrs.readonly === true;
     return node;
@@ -446,7 +448,10 @@ const HTMLParser = {
     node.name     = name;
     node.accept   = attrs.accept || null;
     node.multiple = attrs.multiple === true;
-    node.maxSize  = parseInt(attrs['max-size']) || null;
+    {
+      const n = attrs['max-size'] ? parseInt(attrs['max-size'], 10) : NaN;
+      node.maxSize = Number.isFinite(n) ? n : null;
+    }
     node.value    = attrs.value || '';
     node.required = required;
     return node;

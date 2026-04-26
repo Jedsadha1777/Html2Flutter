@@ -256,7 +256,7 @@ ${ind}],
       if (dim) props.push(`fontSize: ${dim.value}`);
     }
     if (styles.fontFamily) {
-      const ff = styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+      const ff = StyleParser.firstFontFamily(styles.fontFamily);
       if (ff) props.push(`fontFamily: '${ff}'`);
     }
     if (styles.textDecoration) {

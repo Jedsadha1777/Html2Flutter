@@ -129,6 +129,44 @@ const TableHandler = {
     return dim;
   },
 
+  // cellBorder is a structured object {top, right, bottom, left} where each
+  // side is {color, width, cssStyle} or null. String emission (Border(...))
+  // happens only at render time via _borderStructToFlutter.
+  _buildCellBorderStruct(cellStyles, drawTop, drawLeft) {
+    if (!cellStyles) return null;
+    const sideOf = (prefix) => {
+      const info = StyleParser.borderSideInfo(prefix, cellStyles);
+      if (!info) return null;
+      return { color: info.flutterColor, width: info.width, cssStyle: info.cssStyle };
+    };
+    let top    = sideOf('borderTop');
+    let right  = sideOf('borderRight');
+    let bottom = sideOf('borderBottom');
+    let left   = sideOf('borderLeft');
+    if (drawTop === false)  top = null;
+    if (drawLeft === false) left = null;
+    if (!top && !right && !bottom && !left) return null;
+    return { top, right, bottom, left };
+  },
+
+  _borderStructToFlutter(struct, sideFilter = null) {
+    if (!struct) return null;
+    const parts = [];
+    for (const side of ['top', 'right', 'bottom', 'left']) {
+      const s = struct[side];
+      if (!s) continue;
+      if (sideFilter && !sideFilter(side, s)) continue;
+      parts.push(`${side}: BorderSide(color: ${s.color}, width: ${s.width})`);
+    }
+    if (parts.length === 0) return null;
+    return `Border(${parts.join(', ')})`;
+  },
+
+  _borderStructDashEntry(side) {
+    if (!side || side.cssStyle === 'solid') return null;
+    return { cssStyle: side.cssStyle, width: side.width, color: side.color };
+  },
+
   buildTable(tableNode, parentStyle, estimatedAvailableWidth = null) {
     const allRows = this.collectRows(tableNode);
     const numRows = allRows.length;
@@ -142,7 +180,7 @@ const TableHandler = {
         if (dim) baseOpts.fontSize = dim.value;
       }
       if (parentStyle.fontFamily) {
-        const ff = parentStyle.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+        const ff = StyleParser.firstFontFamily(parentStyle.fontFamily);
         if (ff) baseOpts.fontFamily = ff;
       }
       if (parentStyle.color) baseOpts.textColor = StyleParser.colorToFlutter(parentStyle.color);
@@ -153,7 +191,7 @@ const TableHandler = {
       if (dim) baseOpts.fontSize = dim.value;
     }
     if (tableNode.styles?.fontFamily) {
-      const ff = tableNode.styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+      const ff = StyleParser.firstFontFamily(tableNode.styles.fontFamily);
       if (ff) baseOpts.fontFamily = ff;
     }
     if (tableNode.styles?.color) baseOpts.textColor = StyleParser.colorToFlutter(tableNode.styles.color);
@@ -191,7 +229,7 @@ const TableHandler = {
       }
       if (trStyles.fontStyle === 'italic') rowStyle = rowStyle.copyWith({ fontStyle: 'FontStyle.italic' });
       if (trStyles.fontFamily) {
-        const ff = trStyles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+        const ff = StyleParser.firstFontFamily(trStyles.fontFamily);
         if (ff) rowStyle = rowStyle.copyWith({ fontFamily: ff });
       }
       if (trStyles.color) rowStyle = rowStyle.copyWith({ textColor: StyleParser.colorToFlutter(trStyles.color) });
@@ -367,7 +405,7 @@ const TableHandler = {
 
         // Font family — strip quotes, take first family
         if (cell.styles?.fontFamily) {
-          const ff = cell.styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+          const ff = StyleParser.firstFontFamily(cell.styles.fontFamily);
           if (ff) cellStyle = cellStyle.copyWith({ fontFamily: ff });
         }
 
@@ -412,26 +450,22 @@ const TableHandler = {
         }
         if (cell.styles) {
           const collapsed = tableNode.styles?.borderCollapse === 'collapse';
-          let border;
+          let struct;
           if (collapsed) {
             const aboveSlot = rowIdx > 0 ? (matrix.slots[rowIdx - 1]?.[colIdx] ?? null) : null;
             const abovePlacement = aboveSlot != null ? matrix.placements[aboveSlot.placementIdx] : null;
-            const aboveHasBottom = (abovePlacement?.style?.cellBorder ?? '').includes('bottom:');
+            const aboveHasBottom = abovePlacement?.style?.cellBorder?.bottom != null;
 
             const leftSlot = colIdx > 0 ? (matrix.slots[rowIdx]?.[colIdx - 1] ?? null) : null;
             const leftPlacement = leftSlot != null ? matrix.placements[leftSlot.placementIdx] : null;
-            const leftHasRight = (leftPlacement?.style?.cellBorder ?? '').includes('right:');
+            const leftHasRight = leftPlacement?.style?.cellBorder?.right != null;
 
             // Draw top when above has no bottom; draw left when left has no right.
             // When a neighbor already drew the shared edge, resolve the CSS border-conflict:
             // if the current cell's side wins (CSS 2.1 §17.6.2.1) we overwrite the neighbor's
             // side with our own so the stronger border is rendered.
-            // Both are handled on the current cell ("first-fix" approach) so colspan/rowspan
-            // cells get a border that spans their full width/height.
-            // A post-processing pass (_convertLeftToRight) will shift left→right on neighbors
-            // for pixel-accurate vertical alignment once all rows are in the matrix.
-            let drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
-            let drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
+            const drawTop  = rowIdx === 0 || !abovePlacement || !aboveHasBottom;
+            const drawLeft = colIdx === 0 || !leftPlacement  || !leftHasRight;
 
             if (!drawTop && abovePlacement && this._borderSideWins(cell.styles, 'borderTop', abovePlacement.cell?.styles, 'borderBottom')) {
               this._overwriteNeighborSide(abovePlacement, 'bottom', cell.styles, 'borderTop');
@@ -440,15 +474,21 @@ const TableHandler = {
               this._overwriteNeighborSide(leftPlacement, 'right', cell.styles, 'borderLeft');
             }
 
-            const result = StyleParser.cellBorderCollapsedWithDash(cell.styles, drawTop, drawLeft);
-            border = result?.border || StyleParser.cellBorderCollapsed(cell.styles, drawTop, drawLeft);
-            if (result?.dash) cellStyle = cellStyle.copyWith({ borderDash: result.dash });
+            struct = this._buildCellBorderStruct(cell.styles, drawTop, drawLeft);
           } else {
-            const result = StyleParser.cellBorderWithDash(cell.styles);
-            border = result?.border || StyleParser.cellBorderToFlutter(cell.styles);
-            if (result?.dash) cellStyle = cellStyle.copyWith({ borderDash: result.dash });
+            struct = this._buildCellBorderStruct(cell.styles);
           }
-          if (border) cellStyle = cellStyle.copyWith({ cellBorder: border, rawBorderCss: cell.styles || null });
+          if (struct) {
+            const dash = {};
+            let hasDash = false;
+            for (const side of ['top', 'right', 'bottom', 'left']) {
+              const entry = this._borderStructDashEntry(struct[side]);
+              if (entry) { dash[side] = entry; hasDash = true; }
+            }
+            const patch = { cellBorder: struct, rawBorderCss: cell.styles || null };
+            if (hasDash) patch.borderDash = dash;
+            cellStyle = cellStyle.copyWith(patch);
+          }
         }
 
         const hd = cellHeightMap.get(cell) || { effFontSize: rowFontSize, structuralLines: 1 };
@@ -1013,29 +1053,12 @@ const TableHandler = {
         // For dashed/dotted borders: use solid border for non-dashed sides only,
         // dashed sides will be drawn by _DashedBorderPainter overlay
         if (style.cellBorder && !hasDashedBorder) {
-          decorProps.push(`border: ${style.cellBorder}`);
+          decorProps.push(`border: ${this._borderStructToFlutter(style.cellBorder)}`);
         } else if (style.cellBorder && hasDashedBorder) {
           // Build solid-only border (exclude dashed/dotted sides)
-          const solidParts = [];
           const dash = style.borderDash || {};
-          const borderStr = style.cellBorder;
-          if (borderStr.includes('top:') && !dash.top) {
-            const side = this.extractBorderSide(borderStr, 'top');
-            if (side) solidParts.push(`top: ${side}`);
-          }
-          if (borderStr.includes('right:') && !dash.right) {
-            const side = this.extractBorderSide(borderStr, 'right');
-            if (side) solidParts.push(`right: ${side}`);
-          }
-          if (borderStr.includes('bottom:') && !dash.bottom) {
-            const side = this.extractBorderSide(borderStr, 'bottom');
-            if (side) solidParts.push(`bottom: ${side}`);
-          }
-          if (borderStr.includes('left:') && !dash.left) {
-            const side = this.extractBorderSide(borderStr, 'left');
-            if (side) solidParts.push(`left: ${side}`);
-          }
-          if (solidParts.length > 0) decorProps.push(`border: Border(${solidParts.join(', ')})`);
+          const solidStr = this._borderStructToFlutter(style.cellBorder, (side) => !dash[side]);
+          if (solidStr) decorProps.push(`border: ${solidStr}`);
         }
         containerChild = `Container(
               decoration: BoxDecoration(${decorProps.join(', ')}),
@@ -1099,21 +1122,34 @@ const TableHandler = {
   },
 
   // Try to convert a Border(...) string to a _b*() helper call. Returns null if not possible.
-  borderToHelper(borderStr) {
-    if (!borderStr) return null;
+  borderToHelper(struct) {
+    if (!struct) return null;
     const blk = 'Colors.black';
-    const top  = borderStr.match(new RegExp(`^Border\\(top: BorderSide\\(color: ${blk}, width: ([\\d.]+)\\)\\)$`));
-    if (top)  return top[1]  === '1' ? '_bTop()'    : `_bTop(${top[1]})`;
-    const bot  = borderStr.match(new RegExp(`^Border\\(bottom: BorderSide\\(color: ${blk}, width: ([\\d.]+)\\)\\)$`));
-    if (bot)  return bot[1]  === '1' ? '_bBottom()' : `_bBottom(${bot[1]})`;
-    const lft  = borderStr.match(new RegExp(`^Border\\(left: BorderSide\\(color: ${blk}, width: ([\\d.]+)\\)\\)$`));
-    if (lft)  return lft[1]  === '1' ? '_bLeft()'   : `_bLeft(${lft[1]})`;
-    const rgt  = borderStr.match(new RegExp(`^Border\\(right: BorderSide\\(color: ${blk}, width: ([\\d.]+)\\)\\)$`));
-    if (rgt)  return rgt[1]  === '1' ? '_bRight()'  : `_bRight(${rgt[1]})`;
-    const tb = borderStr.match(new RegExp(`^Border\\(top: BorderSide\\(color: ${blk}, width: ([\\d.]+)\\), bottom: BorderSide\\(color: ${blk}, width: ([\\d.]+)\\)\\)$`));
-    if (tb) return `_bTopBottom(${tb[1]}, ${tb[2]})`;
-    const all = borderStr.match(new RegExp(`^Border\\.all\\(color: ${blk}, width: ([\\d.]+)\\)$`));
-    if (all) return all[1] === '1' ? '_bAll()' : `_bAll(${all[1]})`;
+    const isPlain = (s) => s && s.color === blk && (!s.cssStyle || s.cssStyle === 'solid');
+    const sides = ['top', 'right', 'bottom', 'left'];
+    const present = sides.filter(s => struct[s] != null);
+
+    // Single-side helpers (other sides absent + side is plain)
+    if (present.length === 1) {
+      const s = present[0];
+      if (!isPlain(struct[s])) return null;
+      const w = struct[s].width;
+      const map = { top: '_bTop', right: '_bRight', bottom: '_bBottom', left: '_bLeft' };
+      return w === 1 ? `${map[s]}()` : `${map[s]}(${w})`;
+    }
+
+    // top + bottom (no left/right)
+    if (present.length === 2 && struct.top && struct.bottom && isPlain(struct.top) && isPlain(struct.bottom)) {
+      return `_bTopBottom(${struct.top.width}, ${struct.bottom.width})`;
+    }
+
+    // All four sides identical, plain, same width → _bAll()
+    if (present.length === 4) {
+      const w = struct.top.width;
+      const allMatch = sides.every(s => isPlain(struct[s]) && struct[s].width === w);
+      if (allMatch) return w === 1 ? '_bAll()' : `_bAll(${w})`;
+    }
+
     return null;
   },
 
@@ -1407,61 +1443,19 @@ const TableHandler = {
     return pairs;
   },
 
-  // Add a border side to an existing Flutter Border(...) string, or create a new one.
-  // Keeps all borders on the canonical side (right for vertical, bottom for horizontal).
-  addBorderSide(borderStr, side, sideValue) {
-    if (!sideValue) return borderStr || null;
-    if (!borderStr) return `Border(${side}: ${sideValue})`;
-    if (borderStr.includes(`${side}:`)) return borderStr; // already has this side
-    // Append before the closing ')' of Border(...)
-    return borderStr.slice(0, -1) + `, ${side}: ${sideValue})`;
+  // (Border state lives on placement.style.cellBorder as a structured object.
+  // Mutators below operate on the struct directly — no string surgery needed.)
+  _setBorderSide(struct, side, value) {
+    const next = struct ? { ...struct } : { top: null, right: null, bottom: null, left: null };
+    next[side] = value;
+    return next;
   },
 
-  // Extract the value string of a named border side from a Flutter Border(...) string.
-  // e.g. extractBorderSide('Border(right: BorderSide(width: 1))', 'right') → 'BorderSide(width: 1)'
-  extractBorderSide(borderStr, side) {
-    if (!borderStr) return null;
-    const marker = `${side}: `;
-    const mIdx = borderStr.indexOf(marker);
-    if (mIdx === -1) return null;
-    const valStart = mIdx + marker.length;
-    let depth = 0, valEnd = valStart;
-    for (let i = valStart; i < borderStr.length; i++) {
-      if (borderStr[i] === '(') depth++;
-      else if (borderStr[i] === ')') {
-        if (depth === 0) break;
-        depth--;
-        if (depth === 0) { valEnd = i + 1; break; }
-      }
-      valEnd = i + 1;
-    }
-    return borderStr.slice(valStart, valEnd) || null;
-  },
-
-  // Remove a named border side from a Flutter Border(...) string.
-  removeBorderSide(borderStr, side) {
-    if (!borderStr || !borderStr.includes(`${side}:`)) return borderStr;
-    const marker = `${side}: `;
-    const mIdx = borderStr.indexOf(marker);
-    if (mIdx === -1) return borderStr;
-    const valStart = mIdx + marker.length;
-    let depth = 0, valEnd = valStart;
-    for (let i = valStart; i < borderStr.length; i++) {
-      if (borderStr[i] === '(') depth++;
-      else if (borderStr[i] === ')') {
-        if (depth === 0) break;
-        depth--;
-        if (depth === 0) { valEnd = i + 1; break; }
-      }
-      valEnd = i + 1;
-    }
-    const removal = `${marker}${borderStr.slice(valStart, valEnd)}`;
-    let result = borderStr;
-    if (result.includes(', ' + removal)) result = result.replace(', ' + removal, '');
-    else if (result.includes(removal + ', ')) result = result.replace(removal + ', ', '');
-    else result = result.replace(removal, '');
-    const inner = result.slice('Border('.length, -1).trim();
-    return inner ? result : null;
+  _clearBorderSide(struct, side) {
+    if (!struct || struct[side] == null) return struct;
+    const next = { ...struct, [side]: null };
+    if (!next.top && !next.right && !next.bottom && !next.left) return null;
+    return next;
   },
 
   // Post-processing: extend nowrap text cells into adjacent empty cells when text overflows.
@@ -1546,8 +1540,8 @@ const TableHandler = {
   _overwriteNeighborSide(neighborPlacement, neighborSide, sourceStyles, sourcePrefix) {
     const info = StyleParser.borderSideInfo(sourcePrefix, sourceStyles);
     if (!info) return;
-    let updated = this.removeBorderSide(neighborPlacement.style?.cellBorder, neighborSide);
-    updated = this.addBorderSide(updated, neighborSide, info.side);
+    const newSide = { color: info.flutterColor, width: info.width, cssStyle: info.cssStyle };
+    const updated = this._setBorderSide(neighborPlacement.style?.cellBorder, neighborSide, newSide);
     const prevDash = neighborPlacement.style?.borderDash || null;
     const nextDashEntry = info.cssStyle !== 'solid'
       ? { cssStyle: info.cssStyle, width: info.width, color: info.flutterColor }
@@ -1567,10 +1561,9 @@ const TableHandler = {
   _convertTopToBottom(matrix) {
     for (const p of matrix.placements) {
       if (p.row === 0) continue;
-      const cellBorder = p.style?.cellBorder;
-      if (!cellBorder || !cellBorder.includes('top:')) continue;
-      const topSide = this.extractBorderSide(cellBorder, 'top');
-      if (!topSide) continue;
+      const cb = p.style?.cellBorder;
+      if (!cb || !cb.top) continue;
+      const topSide = cb.top;
       let allCovered = true;
       const seen = new Set();
       for (let c = p.col; c < p.col + p.colspan; c++) {
@@ -1579,13 +1572,12 @@ const TableHandler = {
         if (seen.has(aSlot.placementIdx)) continue;
         seen.add(aSlot.placementIdx);
         const ap = matrix.placements[aSlot.placementIdx];
-        if ((ap.style?.cellBorder ?? '').includes('bottom:')) continue;
-        const updated = this.addBorderSide(ap.style?.cellBorder, 'bottom', topSide);
+        if (ap.style?.cellBorder?.bottom) continue;
+        const updated = this._setBorderSide(ap.style?.cellBorder, 'bottom', topSide);
         ap.style = ap.style.copyWith({ cellBorder: updated });
       }
       if (allCovered) {
-        const newBorder = this.removeBorderSide(cellBorder, 'top');
-        p.style = p.style.copyWith({ cellBorder: newBorder });
+        p.style = p.style.copyWith({ cellBorder: this._clearBorderSide(cb, 'top') });
       }
     }
   },
@@ -1596,10 +1588,9 @@ const TableHandler = {
   _convertLeftToRight(matrix) {
     for (const p of matrix.placements) {
       if (p.col === 0) continue;
-      const cellBorder = p.style?.cellBorder;
-      if (!cellBorder || !cellBorder.includes('left:')) continue;
-      const leftSide = this.extractBorderSide(cellBorder, 'left');
-      if (!leftSide) continue;
+      const cb = p.style?.cellBorder;
+      if (!cb || !cb.left) continue;
+      const leftSide = cb.left;
       let allCovered = true;
       const seen = new Set();
       for (let r = p.row; r < p.row + p.rowspan; r++) {
@@ -1608,13 +1599,12 @@ const TableHandler = {
         if (seen.has(lSlot.placementIdx)) continue;
         seen.add(lSlot.placementIdx);
         const lp = matrix.placements[lSlot.placementIdx];
-        if ((lp.style?.cellBorder ?? '').includes('right:')) continue;
-        const updated = this.addBorderSide(lp.style?.cellBorder, 'right', leftSide);
+        if (lp.style?.cellBorder?.right) continue;
+        const updated = this._setBorderSide(lp.style?.cellBorder, 'right', leftSide);
         lp.style = lp.style.copyWith({ cellBorder: updated });
       }
       if (allCovered) {
-        const newBorder = this.removeBorderSide(cellBorder, 'left');
-        p.style = p.style.copyWith({ cellBorder: newBorder });
+        p.style = p.style.copyWith({ cellBorder: this._clearBorderSide(cb, 'left') });
       }
     }
   },
@@ -1830,7 +1820,7 @@ const TableHandler = {
           const fs = childFs.toFixed(1);
           // Use child's own font-family if specified
           const ff = child.styles?.fontFamily
-            ? child.styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '')
+            ? StyleParser.firstFontFamily(child.styles.fontFamily)
             : (style.fontFamily || 'Browallia New');
           const props = [`fontFamily: '${ff}'`, `fontSize: ${fs}`];
           // heading tags are always bold
@@ -1887,7 +1877,7 @@ const TableHandler = {
       if (dim) props.push(`fontSize: ${dim.value.toFixed(1)}`);
     }
     if (styles.fontFamily) {
-      const ff = styles.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+      const ff = StyleParser.firstFontFamily(styles.fontFamily);
       if (ff) props.push(`fontFamily: '${ff}'`);
     }
     if (styles.textDecoration) {
@@ -2270,8 +2260,8 @@ const TableHandler = {
 
     const ts = node.styles || {};
     const tableStyle = {};
-    const tableBorderCss = StyleParser.cellBorderToFlutter(ts);
-    if (tableBorderCss) tableStyle.border = this._parseCellBorderToJson(tableBorderCss);
+    const tableBorderStruct = this._buildCellBorderStruct(ts);
+    if (tableBorderStruct) tableStyle.border = this._parseCellBorderToJson(tableBorderStruct);
     const tMargin = {};
     for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
       const v = ts[`margin${side}`];
@@ -2354,23 +2344,14 @@ const TableHandler = {
     return Object.keys(result).length > 0 ? result : null;
   },
 
-  // Parse Flutter Border(...) string into structured JSON
-  _parseCellBorderToJson(borderStr) {
-    if (!borderStr) return null;
+  // Convert struct {top, right, bottom, left} → JSON {top:{color,width}, ...}
+  _parseCellBorderToJson(struct) {
+    if (!struct) return null;
     const result = {};
-    const sidePattern = /(top|bottom|left|right): BorderSide\(color: (Colors?\.\w+|Color\(0x[0-9A-Fa-f]+\)),\s*width: ([\d.]+)\)/g;
-    let m;
-    while ((m = sidePattern.exec(borderStr)) !== null) {
-      result[m[1]] = {
-        color: this._flutterColorToHex(m[2]),
-        width: parseFloat(m[3]),
-      };
-    }
-    const allMatch = borderStr.match(/Border\.all\(color: (Colors?\.\w+|Color\(0x[0-9A-Fa-f]+\)),\s*width: ([\d.]+)\)/);
-    if (allMatch) {
-      const c = this._flutterColorToHex(allMatch[1]);
-      const w = parseFloat(allMatch[2]);
-      result.top = result.bottom = result.left = result.right = { color: c, width: w };
+    for (const side of ['top', 'right', 'bottom', 'left']) {
+      const s = struct[side];
+      if (!s) continue;
+      result[side] = { color: this._flutterColorToHex(s.color), width: s.width };
     }
     return Object.keys(result).length > 0 ? result : null;
   },
