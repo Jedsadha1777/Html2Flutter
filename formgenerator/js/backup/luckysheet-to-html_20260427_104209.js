@@ -40,11 +40,7 @@ function luckysheetToHtml() {
         
         // Build merge lookup table for performance
         const mergeLookup = buildMergeLookup(merge);
-
-        // Resolve borderInfo into per-cell sides (port of luckysheet's internal zc()).
-        // Build once per sheet so the per-cell loop just does a lookup.
-        const borderMap = computeBorderMap(borderInfo, data, mergeLookup, maxRow, maxCol);
-
+        
         // Apply conditional formatting
         const conditionalStyles = applyConditionalFormatting(data, condFormat, maxRow, maxCol);
         
@@ -95,6 +91,35 @@ function luckysheetToHtml() {
                             }
                         }
                     }
+                    
+                    // Get borders from last column and last row of merged area
+                    const lastCol = c + colspan - 1;
+                    const lastRow = r + rowspan - 1;
+                    
+                    if (!cell.bd) cell.bd = {};
+                    
+                    borderInfo.forEach(border => {
+                        if (border.rangeType === 'cell' && border.value) {
+                            const bRow = border.value.row_index || 0;
+                            const bCol = border.value.col_index || 0;
+                            
+                            // Right border from last column
+                            if (bRow === r && bCol === lastCol && border.value.r && !cell.bd.r) {
+                                cell.bd.r = {
+                                    s: border.value.r.style,
+                                    c: border.value.r.color
+                                };
+                            }
+                            
+                            // Bottom border from last row
+                            if (bRow === lastRow && bCol === c && border.value.b && !cell.bd.b) {
+                                cell.bd.b = {
+                                    s: border.value.b.style,
+                                    c: border.value.b.color
+                                };
+                            }
+                        }
+                    });
                 }
                 
                 let style = '';
@@ -196,7 +221,7 @@ function luckysheetToHtml() {
                 }
                 
                 // Borders
-                const borderResult = getCellBorders(borderMap, r, c, rowspan, colspan);
+                const borderResult = getCellBorders(r, c, borderInfo, cell);
                 style += borderResult.borderStyle;
                 
                 // Get cell content (handle rich text)
@@ -491,308 +516,100 @@ function evaluateCondition(value, rule) {
     }
 }
 
-// Read resolved per-cell border sides from the map and emit CSS for the cell's
-// outer perimeter. For merged cells, top/left come from the origin entry but
-// bottom comes from the bottom-row entry and right from the right-column entry —
-// matches how luckysheet's zc() places borders on edge cells of the merge.
-function getCellBorders(borderMap, r, c, rowspan, colspan) {
-    const lastRow = r + (rowspan || 1) - 1;
-    const lastCol = c + (colspan || 1) - 1;
-    const tl = borderMap[r + '_' + c] || {};
-    const bl = (rowspan && rowspan > 1) ? (borderMap[lastRow + '_' + c] || {}) : tl;
-    const tr = (colspan && colspan > 1) ? (borderMap[r + '_' + lastCol] || {}) : tl;
-
-    const top    = tl.t;
-    const left   = tl.l;
-    const bottom = bl.b;
-    const right  = tr.r;
-
+function getCellBorders(r, c, borderInfo, cell) {
     let borderStyle = '';
-    if (top)    borderStyle += 'border-top: '    + getBorderString(top.style,    top.color)    + '; ';
-    if (bottom) borderStyle += 'border-bottom: ' + getBorderString(bottom.style, bottom.color) + '; ';
-    if (left)   borderStyle += 'border-left: '   + getBorderString(left.style,   left.color)   + '; ';
-    if (right)  borderStyle += 'border-right: '  + getBorderString(right.style,  right.color)  + '; ';
-
-    // luckysheet doesn't model diagonal borders in borderInfo / cell data, so
-    // diagonalBorder is always null. The downstream SVG path stays in place
-    // for forward compatibility but won't fire.
-    return { borderStyle: borderStyle, diagonalBorder: null };
-}
-
-// Port of luckysheet's internal zc() border resolver (see vendor/luckysheet/
-// luckysheet.umd.js). Builds a map keyed by 'r_c' with each cell's resolved
-// {l, r, t, b} sides — each side is {color, style} (set), null (explicitly
-// cleared), or undefined (no border). Iterates borderInfo in array order so
-// later entries override earlier ones, matching luckysheet's canvas rendering.
-function computeBorderMap(borderInfo, data, mergeLookup, maxRow, maxCol) {
-    const o = {};
-    if (!borderInfo || borderInfo.length === 0) return o;
-
-    const rowMax = maxRow - 1;
-    const colMax = maxCol - 1;
-
-    function getMergeOf(rr, cc) {
-        const cell = data[rr] && data[rr][cc];
-        if (cell && typeof cell === 'object' && cell.mc) {
-            return mergeLookup[cell.mc.r + '_' + cell.mc.c] || null;
+    const borders = {
+        top: null,
+        bottom: null,
+        left: null,
+        right: null,
+        diagonal: null
+    };
+    
+    borderInfo.forEach(border => {
+        const rangeType = border.rangeType;
+        const value = border.value || {};
+        
+        if (rangeType === 'cell') {
+            const row_index = value.row_index || 0;
+            const col_index = value.col_index || 0;
+            
+            if (row_index === r && col_index === c) {
+                if (value.t) borders.top = getBorderString(value.t.style, value.t.color);
+                if (value.b) borders.bottom = getBorderString(value.b.style, value.b.color);
+                if (value.l) borders.left = getBorderString(value.l.style, value.l.color);
+                if (value.r) borders.right = getBorderString(value.r.style, value.r.color);
+            }
+        } else if (rangeType === 'range') {
+            const borderType = border.borderType;
+            const style = border.style;
+            const color = border.color;
+            const ranges = border.range || [];
+            
+            ranges.forEach(rangeItem => {
+                const row = rangeItem.row || [r, r];
+                const column = rangeItem.column || [c, c];
+                 
+                if (r >= row[0] && r <= row[1] && c >= column[0] && c <= column[1]) {
+                    const borderStr = getBorderString(style, color);
+                    
+                    if (borderType === 'border-all') {
+                        borders.top = borderStr;
+                        borders.bottom = borderStr;
+                        borders.left = borderStr;
+                        borders.right = borderStr;
+                    } else if (borderType === 'border-outside') {
+                        if (r === row[0]) borders.top = borderStr;
+                        if (r === row[1]) borders.bottom = borderStr;
+                        if (c === column[0]) borders.left = borderStr;
+                        if (c === column[1]) borders.right = borderStr;
+                    } else if (borderType === 'border-inside') {
+                        if (r > row[0]) borders.top = borderStr;
+                        if (r < row[1]) borders.bottom = borderStr;
+                        if (c > column[0]) borders.left = borderStr;
+                        if (c < column[1]) borders.right = borderStr;
+                    } else if (borderType === 'border-horizontal') {
+                        if (r > row[0]) borders.top = borderStr;
+                        if (r < row[1]) borders.bottom = borderStr;
+                    } else if (borderType === 'border-vertical') {
+                        if (c > column[0]) borders.left = borderStr;
+                        if (c < column[1]) borders.right = borderStr;
+                    } else if (borderType === 'border-top' && r === row[0]) {
+                        borders.top = borderStr;
+                    } else if (borderType === 'border-bottom' && r === row[1]) {
+                        borders.bottom = borderStr;
+                    } else if (borderType === 'border-left' && c === column[0]) {
+                        borders.left = borderStr;
+                    } else if (borderType === 'border-right' && c === column[1]) {
+                        borders.right = borderStr;
+                    }
+                 }
+            });
         }
-        return null;
-    }
-
-    function ensure(k) {
-        if (!o[k]) o[k] = {};
-        return o[k];
-    }
-
-    function setNeighbor(nr, nc, side, val) {
-        if (nr < 0 || nr > rowMax || nc < 0 || nc > colMax) return;
-        const nk = nr + '_' + nc;
-        if (!o[nk]) return; // luckysheet only sets neighbor sides when the neighbor entry exists
-        const nm = getMergeOf(nr, nc);
-        if (nm) {
-            // For merged neighbor, only set if this cell is on the relevant edge of the merge
-            if (side === 'b' && nm.r + nm.rs - 1 !== nr) return;
-            if (side === 't' && nm.r !== nr) return;
-            if (side === 'r' && nm.c + nm.cs - 1 !== nc) return;
-            if (side === 'l' && nm.c !== nc) return;
-        }
-        o[nk][side] = val;
-    }
-
-    for (let i = 0; i < borderInfo.length; i++) {
-        const entry = borderInfo[i];
-        if (entry.rangeType === 'range') {
-            const borderType = entry.borderType;
-            const sv = { color: entry.color, style: entry.style };
-            const ranges = entry.range || [];
-
-            for (const rng of ranges) {
-                let g = rng.row[0], v = rng.row[1];
-                let y = rng.column[0], b = rng.column[1];
-                if (g < 0) g = 0;
-                if (v > rowMax) v = rowMax;
-                if (y < 0) y = 0;
-                if (b > colMax) b = colMax;
-
-                if (borderType === 'border-left') {
-                    for (let r = g; r <= v; r++) {
-                        ensure(r + '_' + y).l = sv;
-                        setNeighbor(r, y - 1, 'r', sv);
-                    }
-                } else if (borderType === 'border-right') {
-                    for (let r = g; r <= v; r++) {
-                        ensure(r + '_' + b).r = sv;
-                        setNeighbor(r, b + 1, 'l', sv);
-                    }
-                } else if (borderType === 'border-top') {
-                    for (let c = y; c <= b; c++) {
-                        ensure(g + '_' + c).t = sv;
-                        setNeighbor(g - 1, c, 'b', sv);
-                    }
-                } else if (borderType === 'border-bottom') {
-                    for (let c = y; c <= b; c++) {
-                        ensure(v + '_' + c).b = sv;
-                        setNeighbor(v + 1, c, 't', sv);
-                    }
-                } else if (borderType === 'border-all') {
-                    for (let r = g; r <= v; r++) {
-                        for (let c = y; c <= b; c++) {
-                            const k = r + '_' + c;
-                            const m = getMergeOf(r, c);
-                            if (m) {
-                                if (m.r === r) ensure(k).t = sv;
-                                if (m.r + m.rs - 1 === r) ensure(k).b = sv;
-                                if (m.c === c) ensure(k).l = sv;
-                                if (m.c + m.cs - 1 === c) ensure(k).r = sv;
-                            } else {
-                                const e = ensure(k);
-                                e.l = sv; e.r = sv; e.t = sv; e.b = sv;
-                            }
-                            // Outer-edge propagation to neighbors of the range bounding box
-                            if (r === g) setNeighbor(g - 1, c, 'b', sv);
-                            if (r === v) setNeighbor(v + 1, c, 't', sv);
-                            if (c === y) setNeighbor(r, y - 1, 'r', sv);
-                            if (c === b) setNeighbor(r, b + 1, 'l', sv);
-                        }
-                    }
-                } else if (borderType === 'border-outside') {
-                    for (let r = g; r <= v; r++) {
-                        for (let c = y; c <= b; c++) {
-                            if (r !== g && r !== v && c !== y && c !== b) continue;
-                            if (r === g) {
-                                ensure(r + '_' + c).t = sv;
-                                setNeighbor(g - 1, c, 'b', sv);
-                            }
-                            if (r === v) {
-                                ensure(r + '_' + c).b = sv;
-                                setNeighbor(v + 1, c, 't', sv);
-                            }
-                            if (c === y) {
-                                ensure(r + '_' + c).l = sv;
-                                setNeighbor(r, y - 1, 'r', sv);
-                            }
-                            if (c === b) {
-                                ensure(r + '_' + c).r = sv;
-                                setNeighbor(r, b + 1, 'l', sv);
-                            }
-                        }
-                    }
-                } else if (borderType === 'border-inside') {
-                    for (let r = g; r <= v; r++) {
-                        for (let c = y; c <= b; c++) {
-                            const k = r + '_' + c;
-                            const m = getMergeOf(r, c);
-                            // Range corners — skip merged origin to mirror zc() behavior
-                            if (r === g && c === y) {
-                                if (m) continue;
-                                const e = ensure(k); e.r = sv; e.b = sv;
-                            } else if (r === v && c === y) {
-                                if (m) continue;
-                                const e = ensure(k); e.r = sv; e.t = sv;
-                            } else if (r === g && c === b) {
-                                if (m) continue;
-                                const e = ensure(k); e.l = sv; e.b = sv;
-                            } else if (r === v && c === b) {
-                                if (m) continue;
-                                const e = ensure(k); e.l = sv; e.t = sv;
-                            } else if (r === g) {
-                                if (m) {
-                                    if (m.c === c) ensure(k).l = sv;
-                                    else if (m.c + m.cs - 1 === c) ensure(k).r = sv;
-                                } else {
-                                    const e = ensure(k); e.l = sv; e.r = sv; e.b = sv;
-                                }
-                            } else if (r === v) {
-                                if (m) {
-                                    if (m.c === c) ensure(k).l = sv;
-                                    else if (m.c + m.cs - 1 === c) ensure(k).r = sv;
-                                } else {
-                                    const e = ensure(k); e.l = sv; e.r = sv; e.t = sv;
-                                }
-                            } else if (c === y) {
-                                if (m) {
-                                    if (m.r === r) ensure(k).t = sv;
-                                    else if (m.r + m.rs - 1 === r) ensure(k).b = sv;
-                                } else {
-                                    const e = ensure(k); e.r = sv; e.t = sv; e.b = sv;
-                                }
-                            } else if (c === b) {
-                                if (m) {
-                                    if (m.r === r) ensure(k).t = sv;
-                                    else if (m.r + m.rs - 1 === r) ensure(k).b = sv;
-                                } else {
-                                    const e = ensure(k); e.l = sv; e.t = sv; e.b = sv;
-                                }
-                            } else {
-                                if (m) {
-                                    if (m.r === r) ensure(k).t = sv;
-                                    else if (m.r + m.rs - 1 === r) ensure(k).b = sv;
-                                    if (m.c === c) ensure(k).l = sv;
-                                    else if (m.c + m.cs - 1 === c) ensure(k).r = sv;
-                                } else {
-                                    const e = ensure(k); e.l = sv; e.r = sv; e.t = sv; e.b = sv;
-                                }
-                            }
-                        }
-                    }
-                } else if (borderType === 'border-horizontal') {
-                    for (let r = g; r <= v; r++) {
-                        for (let c = y; c <= b; c++) {
-                            const k = r + '_' + c;
-                            const m = getMergeOf(r, c);
-                            if (r === g) {
-                                if (!m) ensure(k).b = sv;
-                            } else if (r === v) {
-                                if (!m) ensure(k).t = sv;
-                            } else if (m) {
-                                if (m.r === r) ensure(k).t = sv;
-                                else if (m.r + m.rs - 1 === r) ensure(k).b = sv;
-                            } else {
-                                const e = ensure(k); e.t = sv; e.b = sv;
-                            }
-                        }
-                    }
-                } else if (borderType === 'border-vertical') {
-                    for (let r = g; r <= v; r++) {
-                        for (let c = y; c <= b; c++) {
-                            const k = r + '_' + c;
-                            const m = getMergeOf(r, c);
-                            if (c === y) {
-                                if (!m) ensure(k).r = sv;
-                            } else if (c === b) {
-                                if (!m) ensure(k).l = sv;
-                            } else if (m) {
-                                if (m.c === c) ensure(k).l = sv;
-                                else if (m.c + m.cs - 1 === c) ensure(k).r = sv;
-                            } else {
-                                const e = ensure(k); e.l = sv; e.r = sv;
-                            }
-                        }
-                    }
-                } else if (borderType === 'border-none') {
-                    for (let r = g; r <= v; r++) {
-                        for (let c = y; c <= b; c++) {
-                            delete o[r + '_' + c];
-                            if (r === g && g - 1 >= 0 && o[(g - 1) + '_' + c]) delete o[(g - 1) + '_' + c].b;
-                            if (r === v && v + 1 <= rowMax && o[(v + 1) + '_' + c]) delete o[(v + 1) + '_' + c].t;
-                            if (c === y && y - 1 >= 0 && o[r + '_' + (y - 1)]) delete o[r + '_' + (y - 1)].r;
-                            if (c === b && b + 1 <= colMax && o[r + '_' + (b + 1)]) delete o[r + '_' + (b + 1)].l;
-                        }
-                    }
-                }
-            }
-        } else if (entry.rangeType === 'cell') {
-            const v = entry.value || {};
-            const fr = v.row_index;
-            const fc = v.col_index;
-            if (fr == null || fc == null) continue;
-            if (fr < 0 || fr > rowMax || fc < 0 || fc > colMax) continue;
-
-            const hasAny = v.l != null || v.r != null || v.t != null || v.b != null;
-            if (!hasAny) {
-                delete o[fr + '_' + fc];
-                continue;
-            }
-
-            const k = fr + '_' + fc;
-            const ent = ensure(k);
-            const m = getMergeOf(fr, fc);
-
-            // Merge edge filter — luckysheet only writes a side when this cell is
-            // on the merge edge that aligns with that side.
-            const allowL = !m || fc === m.c;
-            const allowR = !m || fc === m.c + m.cs - 1;
-            const allowT = !m || fr === m.r;
-            const allowB = !m || fr === m.r + m.rs - 1;
-
-            if (v.l != null && allowL) {
-                ent.l = { color: v.l.color, style: v.l.style };
-                setNeighbor(fr, fc - 1, 'r', { color: v.l.color, style: v.l.style });
-            } else {
-                ent.l = null;
-            }
-            if (v.r != null && allowR) {
-                ent.r = { color: v.r.color, style: v.r.style };
-                setNeighbor(fr, fc + 1, 'l', { color: v.r.color, style: v.r.style });
-            } else {
-                ent.r = null;
-            }
-            if (v.t != null && allowT) {
-                ent.t = { color: v.t.color, style: v.t.style };
-                setNeighbor(fr - 1, fc, 'b', { color: v.t.color, style: v.t.style });
-            } else {
-                ent.t = null;
-            }
-            if (v.b != null && allowB) {
-                ent.b = { color: v.b.color, style: v.b.style };
-                setNeighbor(fr + 1, fc, 't', { color: v.b.color, style: v.b.style });
-            } else {
-                ent.b = null;
-            }
+    });
+    
+    let diagonalBorder = null;
+    if (cell.bd) {
+        if (cell.bd.t) borders.top = getBorderString(cell.bd.t.s, cell.bd.t.c);
+        if (cell.bd.b) borders.bottom = getBorderString(cell.bd.b.s, cell.bd.b.c);
+        if (cell.bd.l) borders.left = getBorderString(cell.bd.l.s, cell.bd.l.c);
+        if (cell.bd.r) borders.right = getBorderString(cell.bd.r.s, cell.bd.r.c);
+        
+        if (cell.bd.d) {
+            diagonalBorder = {
+                type: cell.bd.d.t,
+                style: cell.bd.d.s,
+                color: cell.bd.d.c
+            };
         }
     }
-
-    return o;
+    
+    if (borders.top) borderStyle += 'border-top: ' + borders.top + '; ';
+    if (borders.bottom) borderStyle += 'border-bottom: ' + borders.bottom + '; ';
+    if (borders.left) borderStyle += 'border-left: ' + borders.left + '; ';
+    if (borders.right) borderStyle += 'border-right: ' + borders.right + '; ';
+    
+    return { borderStyle: borderStyle, diagonalBorder: diagonalBorder };
 }
 
 function getBorderString(style, color) {
