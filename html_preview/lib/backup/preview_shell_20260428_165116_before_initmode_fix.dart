@@ -93,7 +93,7 @@ class _PreviewShellState extends State<PreviewShell> {
   // (between AppBar and footer). Uses cSize so vertical shellPad (top + bottom)
   // is counted — otherwise paperH alone would overflow by the pad amount.
   double _reviewFitScale(Size viewport) {
-    final cs = _contentSize(viewport, reviewOverride: true);
+    final cs = _contentSize(viewport);
     final sw = viewport.width / cs.width;
     final sh = viewport.height / cs.height;
     return (sw < sh ? sw : sh).clamp(0.1, 5.0);
@@ -123,12 +123,8 @@ class _PreviewShellState extends State<PreviewShell> {
     return rb?.size ?? const Size(800, 600);
   }
 
-  // reviewOverride lets _initMode/_toggleMode compute the TARGET mode's cSize
-  // before _reviewMode flips. Without it, switching mode reads stale _reviewMode
-  // and seeds the new ctrl matrix with the wrong cSize → wrong fit → gray + drift.
-  Size _contentSize(Size vp, {bool? reviewOverride}) {
-    final review = reviewOverride ?? _reviewMode;
-    final pad = review ? _shellPad : 0.0;
+  Size _contentSize(Size vp) {
+    final pad = _shellPadForMode;
     final n = widget.pages.length;
     double totalGaps = 0;
     for (int i = 0; i < n; i++) {
@@ -138,7 +134,7 @@ class _PreviewShellState extends State<PreviewShell> {
     final naturalCh = pad + n * _paperH + totalGaps;
 
     // Edit: paper exactly fills its content area (no margin); height drives scroll.
-    if (!review) return Size(naturalCw, naturalCh);
+    if (!_reviewMode) return Size(naturalCw, naturalCh);
 
     // Review: pad to viewport aspect so at fit scale the scaled content equals
     // viewport on BOTH axes — eliminates the gap that lets InteractiveViewer's
@@ -242,7 +238,7 @@ class _PreviewShellState extends State<PreviewShell> {
     if (vp.width <= 0) return;
     final ctrl = review ? _reviewCtrl : _editCtrl;
     final s = review ? _reviewFitScale(vp) : _editFitScale(vp);
-    final cSize = _contentSize(vp, reviewOverride: review);
+    final cSize = _contentSize(vp);
     final tx = (vp.width - cSize.width * s) / 2;
     double ty;
     if (review) {
