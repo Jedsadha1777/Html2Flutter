@@ -1,39 +1,5 @@
 const PT_TO_LOGICAL_PIXELS = 1.33;
 
-const _lineHeightCache = new Map();
-function _measuredLineHeight(fontSize, fontFamily, fontWeight, fontStyle) {
-  const isBold   = fontWeight === 'FontWeight.bold' || fontWeight === 'bold' || fontWeight === '700' || fontWeight === 700;
-  const isItalic = fontStyle  === 'FontStyle.italic' || fontStyle === 'italic';
-  const weight = isBold   ? 'bold ' : '';
-  const style  = isItalic ? 'italic ' : '';
-  const family = fontFamily ? ` ${fontFamily}` : '';
-  const font   = `${style}${weight}${fontSize}px${family}`;
-  const cached = _lineHeightCache.get(font);
-  if (cached !== undefined) return cached;
-
-  let canvas;
-  if (typeof OffscreenCanvas !== 'undefined') canvas = new OffscreenCanvas(1, 1);
-  else if (typeof document !== 'undefined')   canvas = document.createElement('canvas');
-  else canvas = null;
-
-  let h = 0;
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    ctx.font = font;
-    const m = ctx.measureText('AyBp');
-    // fontBoundingBox* covers the full em line (ascent + descent + leading)
-    // matching Flutter Text default rendering. actualBoundingBox* only covers
-    // visible glyph and undershoots by leading, causing 1-2px crop per line.
-    const asc = m.fontBoundingBoxAscent  || m.actualBoundingBoxAscent  || 0;
-    const dsc = m.fontBoundingBoxDescent || m.actualBoundingBoxDescent || 0;
-    h = asc + dsc;
-  }
-  if (h <= 0) h = fontSize;
-  h = Math.ceil(h);
-  _lineHeightCache.set(font, h);
-  return h;
-}
-
 class TableMatrix {
   constructor() {
     this.slots = [];
@@ -280,15 +246,12 @@ const TableHandler = {
       let maxTextCellHeight = 0;  // text content only (excludes widget estimates)
 
       for (const cell of row.cells) {
+        // Effective font size: use cell's own fontSize if set, otherwise row/body default
         let effFontSize = rowFontSize;
         if (cell.styles?.fontSize) {
           const d = this.convertDimension(StyleParser.parseDimension(cell.styles.fontSize));
           if (d) effFontSize = d.value;
         }
-        const cellFontFamily = cell.styles?.fontFamily
-          ? StyleParser.firstFontFamily(cell.styles.fontFamily)
-          : (rowStyle.fontFamily || baseOpts.fontFamily);
-        const cellLineH = _measuredLineHeight(effFontSize, cellFontFamily, cell.styles?.fontWeight, cell.styles?.fontStyle);
 
         const pt = cell.styles?.paddingTop    ? (this.convertDimension(StyleParser.parseDimension(cell.styles.paddingTop))?.value    ?? cellPadDefault) : cellPadDefault;
         const pb = cell.styles?.paddingBottom ? (this.convertDimension(StyleParser.parseDimension(cell.styles.paddingBottom))?.value ?? cellPadDefault) : cellPadDefault;
@@ -305,41 +268,42 @@ const TableHandler = {
         for (const child of (cell.children || [])) {
           if (blockTagsH.has(child.tagName)) {
             if (hasCurrentInline) {
-              totalContentH += cellLineH;
+              totalContentH += Math.ceil(effFontSize * 1.5);
               hasCurrentInline = false;
             }
+            // Use child's own font-size if specified
             let childFs = effFontSize;
             if (child.styles?.fontSize) {
               const d = this.convertDimension(StyleParser.parseDimension(child.styles.fontSize));
               if (d) childFs = d.value;
             }
-            const childFamily = child.styles?.fontFamily
-              ? StyleParser.firstFontFamily(child.styles.fontFamily)
-              : cellFontFamily;
-            totalContentH += _measuredLineHeight(childFs, childFamily, child.styles?.fontWeight, child.styles?.fontStyle);
+            totalContentH += Math.ceil(childFs * 1.5);
             if (childFs > maxChildFs) maxChildFs = childFs;
           } else if (child.tagName === 'br') {
-            // pre-wrap/pre/pre-line: post-loop block counts every line via
-            // extractTextPreserveNewlines — adding here too would double-count.
+            // For pre/pre-wrap/pre-line cells the post-loop block below counts
+            // every line via extractTextPreserveNewlines — accumulating one
+            // lineHeight here per <br> on top of that would double-count.
             const preWrapHere = ['pre', 'pre-wrap', 'pre-line'].includes(cell.styles?.whiteSpace);
             if (!preWrapHere && hasCurrentInline) {
-              totalContentH += cellLineH;
+              totalContentH += Math.ceil(effFontSize * 1.5);
               hasCurrentInline = false;
             }
           } else if (child.type === 'textarea') {
-            if (hasCurrentInline) { totalContentH += cellLineH; hasCurrentInline = false; }
-            widgetContentH = Math.max(widgetContentH, (child.rows || 2) * cellLineH + 18);
+            if (hasCurrentInline) { totalContentH += Math.ceil(effFontSize * 1.5); hasCurrentInline = false; }
+            // rows * lineHeight + contentPadding(8+8) + border(1+1)
+            widgetContentH = Math.max(widgetContentH, Math.ceil((child.rows || 3) * effFontSize * 1.5) + 18);
           } else if (child.type === 'input' || child.type === 'date-picker' || child.type === 'time-picker') {
+            // fontSize + contentPadding(8+8) + border(1+1)
             widgetContentH = Math.max(widgetContentH, Math.ceil(effFontSize + 18));
           } else if (child.type === 'select') {
-            widgetContentH = Math.max(widgetContentH, cellLineH + 8);
+            widgetContentH = Math.max(widgetContentH, Math.ceil(effFontSize * 1.5 + 8));
           } else if (child.type === 'signature' || child.type === 'image-upload') {
             // Use explicit height if set, else default
             let wh = child.type === 'signature' ? 100 : 150;
             if (child.height) { const d = StyleParser.parseDimension(child.height); if (d) wh = d.value; }
             widgetContentH = Math.max(widgetContentH, wh);
           } else if (child.type === 'table') {
-          if (hasCurrentInline) { totalContentH += cellLineH; hasCurrentInline = false; }
+          if (hasCurrentInline) { totalContentH += Math.ceil(effFontSize * 1.5); hasCurrentInline = false; }
             // Calculate cell's pixel width from parent table's estimatedAvailableWidth + cell width attribute
             let nestedEstW = null;
             if (estimatedAvailableWidth != null) {
@@ -354,7 +318,7 @@ const TableHandler = {
             }
             const nested = this.buildTable(child, null, nestedEstW);
             const nestedH = nested.minRowHeights.reduce((a, b) => a + b, 0);
-            totalContentH += Math.max(nestedH, cellLineH);
+            totalContentH += Math.max(nestedH, Math.ceil(effFontSize * 1.5));
           }
           else if ((child.type === 'text' && child.content?.trim()) || (child.tagName && child.tagName !== 'svg')) {
             hasCurrentInline = true;
@@ -366,19 +330,19 @@ const TableHandler = {
           if (preWrap) {
             const rawText = this.extractTextPreserveNewlines(cell);
             const lineCount = Math.max(1, rawText.split('\n').length);
-            totalContentH += cellLineH * lineCount;
+            totalContentH += Math.ceil(effFontSize * 1.5) * lineCount;
           } else {
-            totalContentH += cellLineH;
+            totalContentH += Math.ceil(effFontSize * 1.5);
           }
         }
         // Truly-empty cells (no inline/block/widget content) must not inflate row height
         // via their declared font-size. Only fall back to one-line height for the cell's
         // own rendered height; row height calculations use the pre-fallback value.
         const cellIsEmpty = totalContentH === 0 && widgetContentH === 0;
-        const contentHForCell = cellIsEmpty ? cellLineH : totalContentH;
+        const contentHForCell = cellIsEmpty ? Math.ceil(effFontSize * 1.5) : totalContentH;
 
-        const maxChildLineH = _measuredLineHeight(maxChildFs, cellFontFamily);
-        const structuralLines = Math.max(1, Math.round(contentHForCell / maxChildLineH));
+        // structuralLines: how many lines at maxChildFs (for refineRowHeights wrapping estimate)
+        const structuralLines = Math.max(1, Math.round(contentHForCell / Math.ceil(maxChildFs * 1.5)));
         cellHeightMap.set(cell, { effFontSize: maxChildFs, structuralLines });
 
         const contentH = Math.max(contentHForCell, widgetContentH);
@@ -750,32 +714,23 @@ const TableHandler = {
       const pr = cs.paddingRight  ? (this.convertDimension(StyleParser.parseDimension(cs.paddingRight))?.value  ?? cellPadDefault) : cellPadDefault;
       const bt = cs.borderTopWidth    ? (StyleParser.parseDimension(cs.borderTopWidth)?.value    ?? 0) : 0;
       const bb = cs.borderBottomWidth ? (StyleParser.parseDimension(cs.borderBottomWidth)?.value ?? 0) : 0;
-      const bl = cs.borderLeftWidth   ? (StyleParser.parseDimension(cs.borderLeftWidth)?.value   ?? 0) : 0;
-      const br = cs.borderRightWidth  ? (StyleParser.parseDimension(cs.borderRightWidth)?.value  ?? 0) : 0;
 
-      const textWidth = colW - pl - pr - bl - br;
+      const textWidth = colW - pl - pr;
       if (textWidth <= 0) continue;
 
-      const fontFamily = p.style?.fontFamily;
-      const fontWeight = p.style?.fontWeight;
-      const fontStyle  = p.style?.fontStyle;
-      const lineHeight = _measuredLineHeight(effFontSize, fontFamily, fontWeight, fontStyle);
-      const isBold   = fontWeight === 'FontWeight.bold' || fontWeight === 'bold' || fontWeight === '700' || fontWeight === 700;
-      const isItalic = fontStyle  === 'FontStyle.italic' || fontStyle === 'italic';
-      const fontParts = [];
-      if (isItalic) fontParts.push('italic');
-      if (isBold)   fontParts.push('bold');
-      fontParts.push(`${effFontSize}px`);
-      if (fontFamily) fontParts.push(fontFamily);
-      const font = fontParts.join(' ');
+      const lineHeight = effFontSize * 1.5;
+      let wrapLines;
+
+      const fontFamily = p.style?.fontFamily || 'Arial';
+      const font = `${effFontSize}px ${fontFamily}`;
       const prepareOpts = isPreWrap ? { whiteSpace: 'pre-wrap' } : undefined;
       const prepared = Pretext.prepare(text, font, prepareOpts);
       const result = Pretext.layout(prepared, textWidth, lineHeight);
-      const wrapLines = result.lineCount;
+      wrapLines = result.lineCount;
 
       if (wrapLines <= structuralLines) continue;
 
-      const cellH = lineHeight * wrapLines + pt + pb + bt + bb;
+      const cellH = Math.ceil(lineHeight * wrapLines) + pt + pb + bt + bb;
       if (cellH > minRowHeights[p.row]) {
         minRowHeights[p.row] = cellH;
       }
@@ -1232,11 +1187,12 @@ const TableHandler = {
       const dim = this.convertDimension(StyleParser.parseDimension(tableNode.cellPadding));
       if (dim) return dim.value;
     }
+    // Luckysheet default: padding: 2px 4px
     if (tableNode.styles?.paddingTop) {
       const dim = this.convertDimension(StyleParser.parseDimension(tableNode.styles.paddingTop));
       if (dim) return dim.value;
     }
-    return 0;
+    return 4;
   },
 
   getCellPadding(cellStyles, tableDefault) {

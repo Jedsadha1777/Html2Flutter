@@ -162,9 +162,7 @@ ${ind}],
     return hasText || hasSpan;
   },
 
-  generateInlineContent(node, context, opts = {}) {
-    const baseStyleProps = opts.baseStyleProps || null;
-    const textAlign      = opts.textAlign      || null;
+  generateInlineContent(node, context) {
     const visible = this._visibleChildren(node);
 
     const spans = [];
@@ -204,57 +202,25 @@ ${ind}],
     }
 
     if (spans.length === 0) return null;
-
-    // Single styleless span — collapse to plain Text() but still attach base style + alignment
-    // when the caller supplied them (e.g. paragraph color, heading defaults).
     if (spans.length === 1 && !spans[0].includes('style:') && !spans[0].includes('recognizer:')) {
       const m = spans[0].match(/TextSpan\(text: '(.*)'\)$/s);
-      if (m) {
-        const args = [`'${m[1]}'`];
-        if (textAlign) args.push(`textAlign: ${textAlign}`);
-        if (baseStyleProps) args.push(`style: TextStyle(${baseStyleProps})`);
-        return `Text(${args.join(', ')})`;
-      }
+      if (m) return `Text('${m[1]}')`;
     }
-
-    // Multiple/styled spans — emit RichText. Base style goes on the outer TextSpan
-    // so all children inherit it; child-level styles override per Flutter's normal
-    // TextSpan inheritance.
-    const tsArgs = [];
-    if (baseStyleProps) tsArgs.push(`style: TextStyle(${baseStyleProps})`);
-    tsArgs.push(`children: [${spans.join(', ')}]`);
-    const outerArgs = [];
-    if (textAlign) outerArgs.push(`textAlign: ${textAlign}`);
-    outerArgs.push(`text: TextSpan(${tsArgs.join(', ')})`);
-    return `RichText(${outerArgs.join(', ')})`;
+    return `RichText(text: TextSpan(children: [${spans.join(', ')}]))`;
   },
 
   collectTextSpans(node, _context) {
-    // Compute parent's tag-level styling (e.g. <i> → fontStyle: FontStyle.italic).
-    // Text-node children inherit this; inline-tag children merge their own style
-    // on top of the parent's. Without this inheritance, <p>x<i>italic</i>y</p>
-    // would emit a styleless TextSpan for "italic" and lose the italic.
-    const parentSp = this.buildTextSpanStyle(node.styles || {}, node.tagName);
     const spans = [];
     for (const child of this._visibleChildren(node)) {
       if (child.type === 'text') {
         const t = child.content;
-        if (!t) continue;
-        if (parentSp) {
-          spans.push(`TextSpan(text: '${this.escapeString(t)}', style: TextStyle(${parentSp}))`);
-        } else {
-          spans.push(`TextSpan(text: '${this.escapeString(t)}')`);
-        }
+        if (t) spans.push(`TextSpan(text: '${this.escapeString(t)}')`);
       } else {
         const text = this.extractAllText(child);
         if (!text) continue;
-        const childSp = this.buildTextSpanStyle(child.styles || {}, child.tagName);
-        // Merge parent + child by concatenating prop lists. Child props come
-        // last so a child override (e.g. inner <span color:red>) takes effect
-        // over the parent's color, matching the inline CSS specificity model.
-        const merged = [parentSp, childSp].filter(Boolean).join(', ');
-        if (merged) {
-          spans.push(`TextSpan(text: '${this.escapeString(text)}', style: TextStyle(${merged}))`);
+        const sp = this.buildTextSpanStyle(child.styles || {}, child.tagName);
+        if (sp) {
+          spans.push(`TextSpan(text: '${this.escapeString(text)}', style: TextStyle(${sp}))`);
         } else {
           spans.push(`TextSpan(text: '${this.escapeString(text)}')`);
         }
@@ -517,24 +483,13 @@ ${ind}},
   },
 
   generateParagraph(node, context) {
-    const ind       = context.indent;
-    const styles    = node.styles || {};
+    const ind    = context.indent;
+    const styles = node.styles || {};
+
+    const text      = this.escapeString(this.extractAllText(node));
     const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
     const sp        = this.buildTextSpanStyle(styles, 'span');
 
-    // Mixed inline content (text + <i>, <b>, <span>, etc.) needs RichText to keep
-    // per-span styling. Plain extractAllText would flatten the children and drop
-    // any italic/bold/decoration on inner inline tags. The paragraph's own style
-    // (sp) becomes the outer TextSpan's base so children inherit it.
-    if (this.hasMixedInlineContent(node)) {
-      const inner = this.generateInlineContent(node, context, { baseStyleProps: sp, textAlign: alignCode });
-      if (inner) {
-        const margin = this.generateEdgeInsets(styles, 'margin');
-        return margin ? `Container(\n${ind}margin: ${margin},\n${ind}child: ${inner},\n)` : inner;
-      }
-    }
-
-    const text      = this.escapeString(this.extractAllText(node));
     const textArgs = [`'${text}'`];
     if (alignCode) textArgs.push(`textAlign: ${alignCode}`);
     if (sp) textArgs.push(`style: TextStyle(${sp})`);
@@ -583,19 +538,8 @@ ${ind}},
     // Merge heading defaults (size + bold) with any inline styles
     const headingStyles = { ...styles, fontSize: `${size}px`, fontWeight: styles.fontWeight || 'bold' };
     const sp = this.buildTextSpanStyle(headingStyles, 'span');
+
     const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
-
-    // Mixed inline content needs RichText with heading defaults on the outer TextSpan;
-    // inner spans (e.g. <i>, <span style="color:red">) inherit + override per Flutter
-    // TextSpan rules. Without this, extractAllText flattens children and drops their styles.
-    if (this.hasMixedInlineContent(node)) {
-      const inner = this.generateInlineContent(node, context, { baseStyleProps: sp, textAlign: alignCode });
-      if (inner) {
-        const margin = this.generateEdgeInsets(styles, 'margin');
-        return margin ? `Container(\n${ind}margin: ${margin},\n${ind}child: ${inner},\n)` : inner;
-      }
-    }
-
     const text      = this.escapeString(this.extractAllText(node));
     const textArgs  = [`'${text}'`];
     if (alignCode) textArgs.push(`textAlign: ${alignCode}`);
@@ -1097,8 +1041,8 @@ ${ind}),
     if (context.usesTable) {
       parts.push(`// ── Text helpers ──────────────────────────────────────────────────────────────
 
-Widget _t(String s, {double sz = 16, bool bold = false, bool italic = false, Color? color, String ff = 'Browallia New', TextAlign? align}) =>
-    Text(s, style: TextStyle(fontFamily: ff, fontSize: sz, fontWeight: bold ? FontWeight.bold : FontWeight.normal, fontStyle: italic ? FontStyle.italic : FontStyle.normal, color: color), softWrap: true, overflow: TextOverflow.clip, textAlign: align);
+Widget _t(String s, {double sz = 16, bool bold = false, Color? color, String ff = 'Browallia New', TextAlign? align}) =>
+    Text(s, style: TextStyle(fontFamily: ff, fontSize: sz, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color), softWrap: true, overflow: TextOverflow.clip, textAlign: align);
 
 Widget _rt(List<(String, bool)> spans, {double sz = 16, String ff = 'Browallia New', TextAlign align = TextAlign.start}) =>
     RichText(softWrap: true, overflow: TextOverflow.clip, textAlign: align,

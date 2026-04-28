@@ -1,171 +1,3 @@
-// Build a canvas-compatible font string from luckysheet cell properties.
-// Format: [italic ][bold ]<size>pt <family> — same shape luckysheet uses for
-// canvas rendering, so Pretext measurements line up with what would have been
-// drawn on the canvas.
-function buildCellFont(cell) {
-    const style = cell.it === 1 ? 'italic ' : '';
-    const weight = cell.bl === 1 ? 'bold ' : '';
-    const size = (cell.fs !== undefined ? cell.fs : 11) + 'pt';
-    const family = cell.ff || 'Arial';
-    return (style + weight + size + ' ' + family).trim();
-}
-
-const _lineHeightCache = {};
-
-// Measure a font's line-height in CSS px. Mirrors luckysheet's approach
-// (canvas measureText actualBoundingBoxAscent + Descent) and applies a 1.2x
-// leading factor to approximate browser default 'normal' line-height. Cached
-// per font string.
-function measureLineHeight(font) {
-    if (_lineHeightCache[font] !== undefined) return _lineHeightCache[font];
-    let h;
-    try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.font = font;
-        const m = ctx.measureText('AyBp');
-        if (m.actualBoundingBoxAscent !== undefined && m.actualBoundingBoxDescent !== undefined) {
-            h = Math.ceil(((m.actualBoundingBoxAscent || 0) + (m.actualBoundingBoxDescent || 0)) * 1.2);
-        } else {
-            const ms = font.match(/(\d+(?:\.\d+)?)\s*pt/);
-            h = ms ? Math.ceil(Number(ms[1]) * 1.6) : 19;
-        }
-    } catch (e) {
-        h = 19;
-    }
-    _lineHeightCache[font] = h;
-    return h;
-}
-
-// Sum widths/heights across a span for merged cells. Defaults match luckysheet
-// (defaultcollen=73, defaultrowlen=19).
-function sumColumnWidths(columnlen, startCol, span) {
-    let w = 0;
-    for (let i = 0; i < span; i++) {
-        const cw = columnlen[startCol + i];
-        w += (cw !== undefined ? cw : 73);
-    }
-    return w;
-}
-function sumRowHeights(rowlen, startRow, span) {
-    let h = 0;
-    for (let i = 0; i < span; i++) {
-        const rh = rowlen[startRow + i];
-        h += (rh !== undefined ? rh : 19);
-    }
-    return h;
-}
-
-// Normalize all newline forms to '\n'. Same set luckysheet normalizes (vendor:
-// \r\n, &#13;&#10;, \r, \n → _x000D_) plus the OOXML _x000D_ literal that can
-// survive xlsx import.
-function normalizeNewlines(s) {
-    return String(s).replace(/\r\n|\r|_x000D_|&#13;&#10;|&#13;|&#10;/g, '\n');
-}
-
-// Plain-text rendering with Pretext-driven line breaking.
-// - Wrap mode: Pretext lays out at contentWidth (pre-wrap), emit all lines.
-// - Nowrap mode: split on hard breaks only, clip to N lines that fit
-//   contentHeight (no horizontal wrapping — overflow is left to CSS).
-// Falls back to escape + <br> if Pretext is not loaded.
-function renderTextLines(rawText, font, contentWidth, contentHeight, isWrap) {
-    if (rawText === '' || rawText === null || rawText === undefined) return '';
-    const text = normalizeNewlines(rawText);
-
-    if (typeof window === 'undefined' || !window.Pretext) {
-        return escapeHtml(text).replace(/\n/g, '<br>');
-    }
-
-    const lineHeight = measureLineHeight(font);
-    let lines;
-
-    if (isWrap) {
-        const prepared = window.Pretext.prepareWithSegments(text, font, { whiteSpace: 'pre-wrap' });
-        const result = window.Pretext.layoutWithLines(prepared, Math.max(0, contentWidth), lineHeight);
-        lines = result.lines.map(l => l.text);
-    } else {
-        lines = text.split('\n');
-        const maxLines = Math.max(1, Math.floor(contentHeight / lineHeight));
-        if (lines.length > maxLines) lines = lines.slice(0, maxLines);
-    }
-
-    return lines.map(escapeHtml).join('<br>');
-}
-
-// Rich-text rendering with Pretext line breaking on the plain-text concatenation,
-// then re-applying per-segment styling within each measured line. cellFont is a
-// coarse approximation when segments mix fonts — Pretext can only measure with a
-// single font at a time, so accuracy degrades when segments diverge widely from
-// the cell-level font.
-function renderRichTextLines(richSegments, cellFont, contentWidth, contentHeight, isWrap) {
-    if (!richSegments || !richSegments.length) return '';
-    if (typeof window === 'undefined' || !window.Pretext) return convertRichText(richSegments);
-
-    const segNorm = richSegments.map(s => Object.assign({}, s, { _v: normalizeNewlines(s.v || '') }));
-    const fullText = segNorm.map(s => s._v).join('');
-    if (!fullText) return '';
-
-    const lineHeight = measureLineHeight(cellFont);
-    let lineTexts;
-
-    if (isWrap) {
-        const prepared = window.Pretext.prepareWithSegments(fullText, cellFont, { whiteSpace: 'pre-wrap' });
-        const result = window.Pretext.layoutWithLines(prepared, Math.max(0, contentWidth), lineHeight);
-        lineTexts = result.lines.map(l => l.text);
-    } else {
-        lineTexts = fullText.split('\n');
-        const maxLines = Math.max(1, Math.floor(contentHeight / lineHeight));
-        if (lineTexts.length > maxLines) lineTexts = lineTexts.slice(0, maxLines);
-    }
-
-    // Map each line's text back to a [start, end] character range within fullText
-    // so we can walk segments and emit only the portion that falls in this line.
-    let cursor = 0;
-    const ranges = [];
-    for (let i = 0; i < lineTexts.length; i++) {
-        const lt = lineTexts[i];
-        let idx = fullText.indexOf(lt, cursor);
-        if (idx < 0) idx = cursor;
-        const start = idx;
-        const end = start + lt.length;
-        ranges.push({ start: start, end: end });
-        cursor = end;
-        if (cursor < fullText.length && fullText.charAt(cursor) === '\n') cursor += 1;
-    }
-
-    let html = '';
-    for (let li = 0; li < ranges.length; li++) {
-        if (li > 0) html += '<br>';
-        const r = ranges[li];
-        let segPos = 0;
-        for (const seg of segNorm) {
-            const segStart = segPos;
-            const segEnd = segPos + seg._v.length;
-            const overlapStart = Math.max(segStart, r.start);
-            const overlapEnd = Math.min(segEnd, r.end);
-            if (overlapStart < overlapEnd) {
-                const visible = seg._v.substring(overlapStart - segStart, overlapEnd - segStart);
-                let style = '';
-                if (seg.bl === 1) style += 'font-weight: bold; ';
-                if (seg.it === 1) style += 'font-style: italic; ';
-                if (seg.un === 1) style += 'text-decoration: underline; ';
-                if (seg.cl === 1) style += 'text-decoration: line-through; ';
-                if (seg.fc) style += 'color: ' + seg.fc + '; ';
-                if (seg.fs) style += 'font-size: ' + seg.fs + 'pt; ';
-                if (seg.ff) style += 'font-family: ' + seg.ff + '; ';
-                if (style) {
-                    html += '<span style="' + style + '">' + escapeHtml(visible) + '</span>';
-                } else {
-                    html += escapeHtml(visible);
-                }
-            }
-            segPos = segEnd;
-        }
-    }
-
-    return html;
-}
-
 function columnToLetter(col) {
     let letter = '';
     let temp = col;
@@ -367,29 +199,17 @@ function luckysheetToHtml() {
                 const borderResult = getCellBorders(borderMap, r, c, rowspan, colspan);
                 style += borderResult.borderStyle;
                 
-                // Pixel-precise content area for Pretext line breaking. cellWidth/Height
-                // span the merged region; subtract td padding (2px 4px in 'style' above) to
-                // get the true content box that text must fit into.
-                const cellWidthPx = sumColumnWidths(columnlen, c, colspan);
-                const cellHeightPx = sumRowHeights(rowlen, r, rowspan);
-                const contentWidth = Math.max(0, cellWidthPx - 8);
-                const contentHeight = Math.max(0, cellHeightPx - 4);
-                const cellFont = buildCellFont(cell);
-                const isWrap = cell.tb === 2;
-
                 // Get cell content (handle rich text)
                 let cellContent = '';
-
+                
                 if (cell.ct && cell.ct.t === 'inlineStr' && cell.ct.s) {
-                    cellContent = renderRichTextLines(cell.ct.s, cellFont, contentWidth, contentHeight, isWrap);
+                    cellContent = convertRichText(cell.ct.s);
                 } else if (cell.f) {
-                    const rawText = formatCellValueRaw(cell.v, cell.fa, cell.m);
-                    cellContent = renderTextLines(rawText, cellFont, contentWidth, contentHeight, isWrap);
+                    cellContent = formatCellValue(cell.v, cell.fa, cell.m);
                 } else if (cell.m !== undefined) {
-                    cellContent = renderTextLines(cell.m, cellFont, contentWidth, contentHeight, isWrap);
+                    cellContent = escapeHtml(cell.m);
                 } else if (cell.v !== undefined) {
-                    const rawText = formatCellValueRaw(cell.v, cell.fa, cell.m);
-                    cellContent = renderTextLines(rawText, cellFont, contentWidth, contentHeight, isWrap);
+                    cellContent = formatCellValue(cell.v, cell.fa, cell.m);
                 } else {
                     cellContent = '';
                 }
@@ -476,48 +296,41 @@ function convertRichText(richTextArray) {
     return html;
 }
 
-// Raw value formatter — same logic as formatCellValue but returns the unescaped
-// string. Plain-text rendering breaks lines by character position (via Pretext)
-// before escaping, so the line-break stage needs the unescaped value.
-function formatCellValueRaw(value, format, formattedValue) {
+function formatCellValue(value, format, formattedValue) {
     if (formattedValue !== undefined && formattedValue !== null) {
-        return String(formattedValue);
+        return escapeHtml(String(formattedValue));
     }
-
+    
     if (!format || format === 'General') {
-        return String(value);
+        return escapeHtml(String(value));
     }
-
+    
     if (typeof value === 'number') {
         if (format.includes('yyyy') || format.includes('mm') || format.includes('dd')) {
             const date = excelDateToJSDate(value);
-            return formatDate(date, format);
+            return escapeHtml(formatDate(date, format));
         }
-
+        
         if (format.includes('%')) {
-            return (value * 100).toFixed(2) + '%';
+            return escapeHtml((value * 100).toFixed(2) + '%');
         }
-
+        
         if (format.includes('$') || format.includes('฿')) {
-            return formatCurrency(value, format);
+            return escapeHtml(formatCurrency(value, format));
         }
-
+        
         const decimalMatch = format.match(/0\.(0+)/);
         if (decimalMatch) {
             const decimals = decimalMatch[1].length;
-            return value.toFixed(decimals);
+            return escapeHtml(value.toFixed(decimals));
         }
-
+        
         if (format.includes('#,##0')) {
-            return value.toLocaleString();
+            return escapeHtml(value.toLocaleString());
         }
     }
-
-    return String(value);
-}
-
-function formatCellValue(value, format, formattedValue) {
-    return escapeHtml(formatCellValueRaw(value, format, formattedValue));
+    
+    return escapeHtml(String(value));
 }
 
 function excelDateToJSDate(excelDate) {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pretext Diagnostic</title>
+<style>
+body { font-family: Arial; padding: 20px; background: #fff; }
+h1 { font-size: 18px; }
+table { border-collapse: collapse; margin: 16px 0; }
+th, td { border: 1px solid #999; padding: 6px 10px; text-align: left; font-size: 13px; }
+th { background: #f0f0f0; }
+.actual { font-style: italic; font-family: Arial; font-size: 8pt; padding: 2px 4px; box-sizing: border-box; }
+.target { background: #ffffcc; }
+</style>
+</head>
+<body>
+<h1>Pretext line-count diagnostic</h1>
+<table id="results">
+<thead><tr><th>Test</th><th>text</th><th>font</th><th>maxWidth</th><th>Pretext lineCount</th><th>HTML actual render</th></tr></thead>
+<tbody></tbody>
+</table>
+
+<h2>Browser-rendered cells (visual reference)</h2>
+<p>Each cell below mimics the OP:E15 td — width 78 (col), padding 2px 4px, font Arial italic 8pt:</p>
+
+<table style="table-layout: fixed; border-collapse: collapse;">
+<colgroup><col style="width: 78px"></colgroup>
+<tr style="height: 24px;"><td class="actual" style="border:1px solid #999;">pc / kg / L / set</td></tr>
+</table>
+
+<h3>Same cell with various column widths</h3>
+<table style="table-layout: fixed; border-collapse: collapse;">
+<colgroup>
+  <col style="width: 60px"><col style="width: 70px"><col style="width: 78px"><col style="width: 90px"><col style="width: 110px">
+</colgroup>
+<tr style="height: 24px;">
+  <td class="actual" style="border:1px solid #999;">pc / kg / L / set</td>
+  <td class="actual" style="border:1px solid #999;">pc / kg / L / set</td>
+  <td class="actual" style="border:1px solid #999;">pc / kg / L / set</td>
+  <td class="actual" style="border:1px solid #999;">pc / kg / L / set</td>
+  <td class="actual" style="border:1px solid #999;">pc / kg / L / set</td>
+</tr>
+</table>
+
+<script src="js/pretext.bundle.js?v=20260428c"></script>
+<script>
+const tbody = document.querySelector('#results tbody');
+function row(label, text, font, maxW, expectHt) {
+    const p = Pretext.prepare(text, font, {whiteSpace: 'pre-wrap'});
+    const r = Pretext.layout(p, maxW, expectHt);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${label}</td><td>${text}</td><td>${font}</td><td>${maxW}</td><td><b>${r.lineCount}</b></td><td>height ${r.height}</td>`;
+    tbody.appendChild(tr);
+    return r.lineCount;
+}
+
+// Various widths around 70px (the OP:E15 content width)
+row('OP:E15 actual',  'pc / kg / L / set', 'italic 10.64px Arial', 70, 13);
+row('OP:E15 -10',     'pc / kg / L / set', 'italic 10.64px Arial', 60, 13);
+row('OP:E15 +10',     'pc / kg / L / set', 'italic 10.64px Arial', 80, 13);
+row('OP:E15 +20',     'pc / kg / L / set', 'italic 10.64px Arial', 90, 13);
+row('OP:E15 wide',    'pc / kg / L / set', 'italic 10.64px Arial', 200, 13);
+row('OP:E15 narrow',  'pc / kg / L / set', 'italic 10.64px Arial', 50, 13);
+
+// Direct measureText probe
+const c = document.createElement('canvas').getContext('2d');
+c.font = 'italic 10.64px Arial';
+const w = c.measureText('pc / kg / L / set').width;
+const tr = document.createElement('tr');
+tr.innerHTML = `<td colspan="6"><b>canvas measureText('pc / kg / L / set') width = ${w.toFixed(2)} px</b> &nbsp; (cell content area for col=78px is 70px)</td>`;
+tbody.appendChild(tr);
+
+// AyBp ascent/descent probe
+const m = c.measureText('AyBp');
+const tr2 = document.createElement('tr');
+tr2.innerHTML = `<td colspan="6">AyBp ascent=${(m.actualBoundingBoxAscent||0).toFixed(2)} descent=${(m.actualBoundingBoxDescent||0).toFixed(2)} → lineHeight = ${Math.ceil((m.actualBoundingBoxAscent||0)+(m.actualBoundingBoxDescent||0))}</td>`;
+tbody.appendChild(tr2);
+</script>
+</body>
+</html>

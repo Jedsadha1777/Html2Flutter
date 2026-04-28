@@ -99,3 +99,13 @@ flutter:
         - asset: fonts/CordiaNew-BoldItalic.ttf
           weight: 700
           style: italic
+    - family: Arial
+      fonts:
+        - asset: fonts/Arial.ttf
+        - asset: fonts/Arial-Bold.ttf
+          weight: 700
+        - asset: fonts/Arial-Italic.ttf
+          style: italic
+        - asset: fonts/Arial-BoldItalic.ttf
+          weight: 700
+          style: italic

@@ -162,9 +162,7 @@ ${ind}],
     return hasText || hasSpan;
   },
 
-  generateInlineContent(node, context, opts = {}) {
-    const baseStyleProps = opts.baseStyleProps || null;
-    const textAlign      = opts.textAlign      || null;
+  generateInlineContent(node, context) {
     const visible = this._visibleChildren(node);
 
     const spans = [];
@@ -204,29 +202,11 @@ ${ind}],
     }
 
     if (spans.length === 0) return null;
-
-    // Single styleless span — collapse to plain Text() but still attach base style + alignment
-    // when the caller supplied them (e.g. paragraph color, heading defaults).
     if (spans.length === 1 && !spans[0].includes('style:') && !spans[0].includes('recognizer:')) {
       const m = spans[0].match(/TextSpan\(text: '(.*)'\)$/s);
-      if (m) {
-        const args = [`'${m[1]}'`];
-        if (textAlign) args.push(`textAlign: ${textAlign}`);
-        if (baseStyleProps) args.push(`style: TextStyle(${baseStyleProps})`);
-        return `Text(${args.join(', ')})`;
-      }
+      if (m) return `Text('${m[1]}')`;
     }
-
-    // Multiple/styled spans — emit RichText. Base style goes on the outer TextSpan
-    // so all children inherit it; child-level styles override per Flutter's normal
-    // TextSpan inheritance.
-    const tsArgs = [];
-    if (baseStyleProps) tsArgs.push(`style: TextStyle(${baseStyleProps})`);
-    tsArgs.push(`children: [${spans.join(', ')}]`);
-    const outerArgs = [];
-    if (textAlign) outerArgs.push(`textAlign: ${textAlign}`);
-    outerArgs.push(`text: TextSpan(${tsArgs.join(', ')})`);
-    return `RichText(${outerArgs.join(', ')})`;
+    return `RichText(text: TextSpan(children: [${spans.join(', ')}]))`;
   },
 
   collectTextSpans(node, _context) {
@@ -517,17 +497,14 @@ ${ind}},
   },
 
   generateParagraph(node, context) {
-    const ind       = context.indent;
-    const styles    = node.styles || {};
-    const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
-    const sp        = this.buildTextSpanStyle(styles, 'span');
+    const ind    = context.indent;
+    const styles = node.styles || {};
 
     // Mixed inline content (text + <i>, <b>, <span>, etc.) needs RichText to keep
     // per-span styling. Plain extractAllText would flatten the children and drop
-    // any italic/bold/decoration on inner inline tags. The paragraph's own style
-    // (sp) becomes the outer TextSpan's base so children inherit it.
+    // any italic/bold/decoration on inner inline tags.
     if (this.hasMixedInlineContent(node)) {
-      const inner = this.generateInlineContent(node, context, { baseStyleProps: sp, textAlign: alignCode });
+      const inner = this.generateInlineContent(node, context);
       if (inner) {
         const margin = this.generateEdgeInsets(styles, 'margin');
         return margin ? `Container(\n${ind}margin: ${margin},\n${ind}child: ${inner},\n)` : inner;
@@ -535,6 +512,9 @@ ${ind}},
     }
 
     const text      = this.escapeString(this.extractAllText(node));
+    const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
+    const sp        = this.buildTextSpanStyle(styles, 'span');
+
     const textArgs = [`'${text}'`];
     if (alignCode) textArgs.push(`textAlign: ${alignCode}`);
     if (sp) textArgs.push(`style: TextStyle(${sp})`);
@@ -583,19 +563,8 @@ ${ind}},
     // Merge heading defaults (size + bold) with any inline styles
     const headingStyles = { ...styles, fontSize: `${size}px`, fontWeight: styles.fontWeight || 'bold' };
     const sp = this.buildTextSpanStyle(headingStyles, 'span');
+
     const alignCode = StyleParser.textAlignToFlutter(styles.textAlign);
-
-    // Mixed inline content needs RichText with heading defaults on the outer TextSpan;
-    // inner spans (e.g. <i>, <span style="color:red">) inherit + override per Flutter
-    // TextSpan rules. Without this, extractAllText flattens children and drops their styles.
-    if (this.hasMixedInlineContent(node)) {
-      const inner = this.generateInlineContent(node, context, { baseStyleProps: sp, textAlign: alignCode });
-      if (inner) {
-        const margin = this.generateEdgeInsets(styles, 'margin');
-        return margin ? `Container(\n${ind}margin: ${margin},\n${ind}child: ${inner},\n)` : inner;
-      }
-    }
-
     const text      = this.escapeString(this.extractAllText(node));
     const textArgs  = [`'${text}'`];
     if (alignCode) textArgs.push(`textAlign: ${alignCode}`);

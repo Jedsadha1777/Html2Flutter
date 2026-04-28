@@ -85,7 +85,7 @@ function initLuckysheetEditor(wrapperId, config) {
     }
 
     function loadResources(callback) {
-        if (window.luckysheet && window.LuckyExcel && window.luckysheetToHtml && window.Pretext) {
+        if (window.luckysheet && window.LuckyExcel && window.luckysheetToHtml) {
             callback();
             return;
         }
@@ -110,7 +110,6 @@ function initLuckysheetEditor(wrapperId, config) {
             'vendor/luckysheet/plugins/js/plugin.js',
             'vendor/luckysheet/luckysheet.umd.js',
             'vendor/luckyexcel/luckyexcel.umd.js',
-            'js/pretext.bundle.js',
             'js/luckysheet-to-html.js?v=2'
         ];
 
