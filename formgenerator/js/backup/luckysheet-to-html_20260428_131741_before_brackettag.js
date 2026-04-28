@@ -63,21 +63,6 @@ function normalizeNewlines(s) {
     return String(s).replace(/\r\n|\r|_x000D_|&#13;&#10;|&#13;|&#10;/g, '\n');
 }
 
-// Validate that the cell text IS a bracket-tag form field (the entire trimmed
-// content, not just contains-pattern). Mirrors parser.js parseBracketTag —
-// same anchored regex + same type whitelist. Cells whose whole content is one
-// of these tags must bypass Pretext: a <br> mid-tag breaks the downstream
-// parser. Text that merely contains '[foo]' as a word is left to Pretext.
-const _BRACKET_TAG_FULL = /^\[([\w-]+)\*?\s+(.+)\]$/s;
-const _BRACKET_TAG_TYPES = new Set([
-    'input','textarea','select','checkbox','radio',
-    'date','time','signature','image-upload','file','search',
-]);
-function isBracketTagCell(text) {
-    const m = String(text).trim().match(_BRACKET_TAG_FULL);
-    return !!m && _BRACKET_TAG_TYPES.has(m[1]);
-}
-
 // Plain-text rendering with Pretext-driven line breaking.
 // - Wrap mode: Pretext lays out at contentWidth (pre-wrap), emit all lines.
 // - Nowrap mode: split on hard breaks only, clip to N lines that fit
@@ -86,10 +71,6 @@ function isBracketTagCell(text) {
 function renderTextLines(rawText, font, contentWidth, contentHeight, isWrap) {
     if (rawText === '' || rawText === null || rawText === undefined) return '';
     const text = normalizeNewlines(rawText);
-
-    if (isBracketTagCell(text)) {
-        return escapeHtml(text).replace(/\n/g, '<br>');
-    }
 
     if (typeof window === 'undefined' || !window.Pretext) {
         return escapeHtml(text).replace(/\n/g, '<br>');
@@ -123,8 +104,6 @@ function renderRichTextLines(richSegments, cellFont, contentWidth, contentHeight
     const segNorm = richSegments.map(s => Object.assign({}, s, { _v: normalizeNewlines(s.v || '') }));
     const fullText = segNorm.map(s => s._v).join('');
     if (!fullText) return '';
-
-    if (isBracketTagCell(fullText)) return convertRichText(richSegments);
 
     const lineHeight = measureLineHeight(cellFont);
     let lineTexts;

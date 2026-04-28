@@ -76,29 +76,13 @@ class _FormSignatureState extends State<FormSignature> {
                   ),
                 ],
               )
-            : LayoutBuilder(
-                builder: (context, c) {
-                  final h = c.maxHeight.isFinite ? c.maxHeight : 100.0;
-                  if (h < 24) {
-                    return const SizedBox.shrink();
-                  }
-                  if (h < 44) {
-                    return Center(
-                      child: Icon(Icons.draw_outlined,
-                          size: (h - 4).clamp(12.0, 24.0),
-                          color: Colors.grey.shade400),
-                    );
-                  }
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.draw_outlined, size: 24, color: Colors.grey.shade400),
-                      const SizedBox(height: 4),
-                      Text('Tap to sign', style: TextStyle(color: Colors.grey.shade400, fontSize: 11)),
-                    ],
-                  );
-                },
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.draw_outlined, size: 24, color: Colors.grey.shade400),
+                  const SizedBox(height: 4),
+                  Text('Tap to sign', style: TextStyle(color: Colors.grey.shade400, fontSize: 11)),
+                ],
               ),
       ),
     );

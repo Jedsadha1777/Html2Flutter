@@ -2051,7 +2051,6 @@ const TableHandler = {
     if (node.label) props.push(`label: '${this.escapeString(node.label)}'`);
     if (node.width) props.push(`width: ${parseFloat(node.width) || 200}`);
     if (node.height) props.push(`height: ${parseFloat(node.height) || 100}`);
-    props.push(`initialData: ${varName}`);
     props.push(`onSigned: (v) => setState(() => ${varName} = v)`);
     return `FormSignature(${props.join(', ')})`;
   },
