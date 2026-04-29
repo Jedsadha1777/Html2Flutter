@@ -1343,9 +1343,9 @@ const TableHandler = {
       const segments = [];
       for (const child of contentChildren) {
         if (child.type === 'table')         { segments.push(_renderNestedTable(child)); continue; }
-        if (child.type === 'input')         { segments.push(this.inputWidget(child, context)); continue; }
-        if (child.type === 'select')        { segments.push(this.selectWidget(child, context)); continue; }
-        if (child.type === 'textarea')      { segments.push(this.textareaWidget(child, context)); continue; }
+        if (child.type === 'input')         { segments.push(this.inputWidget(child, context, style)); continue; }
+        if (child.type === 'select')        { segments.push(this.selectWidget(child, context, style)); continue; }
+        if (child.type === 'textarea')      { segments.push(this.textareaWidget(child, context, style)); continue; }
         if (child.type === 'date-picker')   { segments.push(this.datepickerWidget(child, context)); continue; }
         if (child.type === 'time-picker')   { segments.push(this.timepickerWidget(child, context)); continue; }
         if (child.type === 'signature')     { segments.push(this.signatureWidget(child, context)); continue; }
@@ -1954,7 +1954,7 @@ const TableHandler = {
 
   // ─── Form Widgets ────────────────────────────────────────────────────────────
 
-  inputWidget(node, context) {
+  inputWidget(node, context, style) {
     const name = node.name || `input_${context.controllers.size}`;
     context.controllers.set(name, { type: 'text', name });
     const ctrl = `_${this.toCamelCase(name)}Controller`;
@@ -1965,11 +1965,27 @@ const TableHandler = {
       const dim = this.convertDimension(StyleParser.parseDimension(wStr));
       if (dim && dim.unit !== '%') wCode = dim.value.toFixed(1);
     }
-    const tf = `TextField(controller: ${ctrl}, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
+    // Inherit fontFamily + fontSize from the cell that wraps this <input>.
+    // The HTML/CSS-derived row/cell heights are sized for that font, so any
+    // hard-coded value (e.g. fixed 16 px) overflows whenever the source
+    // designed the cell for a smaller font.
+    const fontFamily = (style && style.fontFamily) || 'Browallia New';
+    const fontSize   = (style && style.fontSize)   || 16;
+    // Map HTML input type → Flutter keyboardType so number/email/tel/url
+    // inputs raise the right soft keyboard on mobile (default is text).
+    const kbMap = {
+      number: 'TextInputType.number',
+      email:  'TextInputType.emailAddress',
+      tel:    'TextInputType.phone',
+      url:    'TextInputType.url',
+    };
+    const inputType = node.inputType || 'text';
+    const kbProp = kbMap[inputType] ? `, keyboardType: ${kbMap[inputType]}` : '';
+    const tf = `TextField(controller: ${ctrl}${kbProp}, style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize}), decoration: _inputDecoration)`;
     return wCode ? `ConstrainedBox(constraints: const BoxConstraints(maxWidth: ${wCode}), child: ${tf})` : tf;
   },
 
-  selectWidget(node, context) {
+  selectWidget(node, context, style) {
     const name = node.name || `select_${context.dropdowns.size}`;
     const varName = `_${this.toCamelCase(name)}`;
     const opts = (node.children || []).filter(c => c.type === 'option').map(o => ({
@@ -1978,19 +1994,26 @@ const TableHandler = {
     }));
     context.dropdowns.set(name, { name, options: opts });
     if (opts.length === 0) return "Text('[Select]')";
+    // Inherit the cell's fontFamily + fontSize so the dropdown items match the
+    // surrounding cell text (no hard-coded 16 px).
+    const fontFamily = (style && style.fontFamily) || 'Browallia New';
+    const fontSize   = (style && style.fontSize)   || 16;
     const items = opts.map(o =>
-      `DropdownMenuItem(value: '${this.escapeString(o.value)}', child: Text('${this.escapeString(o.label)}', style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16)))`
+      `DropdownMenuItem(value: '${this.escapeString(o.value)}', child: Text('${this.escapeString(o.label)}', style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize})))`
     );
     return `DropdownButton<String>(value: ${varName}, isDense: true, items: [${items.join(', ')}], onChanged: (v) => setState(() => ${varName} = v))`;
   },
 
-  textareaWidget(node, context) {
+  textareaWidget(node, context, style) {
     const name = node.name || `textarea_${context.controllers.size}`;
     context.controllers.set(name, { type: 'textarea', name });
     const ctrl = `_${this.toCamelCase(name)}Controller`;
+    // Inherit fontFamily + fontSize from the cell (see inputWidget for why).
+    const fontFamily = (style && style.fontFamily) || 'Browallia New';
+    const fontSize   = (style && style.fontSize)   || 16;
     // expands:true lets the field fill its cell instead of capping at the HTML "rows" hint,
     // which only defines a preferred size — the cell itself already dictates the real bounds.
-    const field = `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: 'Browallia New', fontSize: 16), decoration: _inputDecoration)`;
+    const field = `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize}), decoration: _inputDecoration)`;
 
     const mw = (node.maxWidth != null && isFinite(node.maxWidth))  ? parseFloat(node.maxWidth)  : null;
     const mh = (node.maxHeight != null && isFinite(node.maxHeight)) ? parseFloat(node.maxHeight) : null;

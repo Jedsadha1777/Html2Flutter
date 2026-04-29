@@ -1058,11 +1058,18 @@ ${ind}),
       lines.push(`bool ${this.toVariableName(name)} = false;`);
     }
     // Snap-aware input decoration getter
+    //
+    // contentPadding: vertical 0 — table cells in this generator can be as
+    // small as 20 px (rowHeights). With contentPadding 8v + fontSize 16 +
+    // OutlineBorder 2px the TextField's intrinsic height was ~37 px,
+    // overflowing the cell and rendering text past the border. Vertical 0
+    // keeps the textbox flush with the cell, with horizontal padding kept for
+    // visual separation between text and the side borders.
     if (hasAnyForm) {
       lines.push('');
       lines.push('InputDecoration get _inputDecoration => _snapMode');
-      lines.push("    ? const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4))");
-      lines.push("    : const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8));");
+      lines.push("    ? const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 0))");
+      lines.push("    : const InputDecoration(border: OutlineInputBorder(), isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0));");
     }
     return lines.join('\n');
   },
