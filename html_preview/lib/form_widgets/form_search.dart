@@ -63,26 +63,37 @@ class _FormSearchState extends State<FormSearch> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextField(
-      controller: _ctrl,
-      decoration: InputDecoration(
-        border: widget.snapMode ? InputBorder.none : const OutlineInputBorder(),
-        isDense: true,
-        contentPadding: widget.snapMode
-            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
-            : const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        hintText: widget.placeholder ?? 'Search ${widget.source}...',
-        suffixIcon: const Icon(Icons.search, size: 18),
-        filled: widget.required,
-        fillColor: widget.required ? Colors.yellow.shade50 : null,
-      ),
-      onChanged: (query) {
-        // TODO: implement fuzzy search against source data
-        // and call widget.onSelected with matched record
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        // See form_date.build for rationale on adaptive icon + 0v contentPadding.
+        final hasIconRoom =
+            !constraints.maxHeight.isFinite || constraints.maxHeight >= 32;
+        return SizedBox(
+          width: double.infinity,
+          child: TextField(
+            controller: _ctrl,
+            decoration: InputDecoration(
+              border: widget.snapMode
+                  ? InputBorder.none
+                  : const OutlineInputBorder(),
+              isDense: true,
+              contentPadding: widget.snapMode
+                  ? const EdgeInsets.symmetric(horizontal: 4, vertical: 0)
+                  : const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              hintText: widget.placeholder ?? 'Search ${widget.source}...',
+              suffixIcon: hasIconRoom
+                  ? const Icon(Icons.search, size: 18)
+                  : null,
+              filled: widget.required,
+              fillColor: widget.required ? Colors.yellow.shade50 : null,
+            ),
+            onChanged: (query) {
+              // TODO: implement fuzzy search against source data
+              // and call widget.onSelected with matched record
+            },
+          ),
+        );
       },
-      ),
     );
   }
 }

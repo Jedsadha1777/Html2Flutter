@@ -81,24 +81,42 @@ class _FormDateState extends State<FormDate> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextField(
-      controller: TextEditingController(text: _selected ?? ''),
-      readOnly: true,
-      onTap: widget.readonly ? null : _pickDate,
-      decoration: InputDecoration(
-        border: widget.snapMode ? InputBorder.none : const OutlineInputBorder(),
-        isDense: true,
-        contentPadding: widget.snapMode
-            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
-            : const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        hintText: widget.placeholder ?? 'เลือกวันที่',
-        suffixIcon: const Icon(Icons.calendar_today, size: 18),
-        filled: widget.required,
-        fillColor: widget.required ? Colors.yellow.shade50 : null,
-      ),
-      ),
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        // Adaptive suffix icon: hide when the host cell is shorter than ~32 px
+        // (table form fields are often packed into 24-30 px rows). Showing the
+        // 18 px calendar icon + InputDecoration's built-in icon padding eats
+        // most of a tight cell's visible width and overflows it vertically;
+        // dropping the icon makes the field behave like form_input in that case.
+        final hasIconRoom =
+            !constraints.maxHeight.isFinite || constraints.maxHeight >= 32;
+        // contentPadding vertical 0: cell row heights from the HTML/Excel
+        // source already account for the text glyph + border; the previous
+        // 10v / 4v values made the field overflow tight cells.
+        return SizedBox(
+          width: double.infinity,
+          child: TextField(
+            controller: TextEditingController(text: _selected ?? ''),
+            readOnly: true,
+            onTap: widget.readonly ? null : _pickDate,
+            decoration: InputDecoration(
+              border: widget.snapMode
+                  ? InputBorder.none
+                  : const OutlineInputBorder(),
+              isDense: true,
+              contentPadding: widget.snapMode
+                  ? const EdgeInsets.symmetric(horizontal: 4, vertical: 0)
+                  : const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              hintText: widget.placeholder ?? 'เลือกวันที่',
+              suffixIcon: hasIconRoom
+                  ? const Icon(Icons.calendar_today, size: 18)
+                  : null,
+              filled: widget.required,
+              fillColor: widget.required ? Colors.yellow.shade50 : null,
+            ),
+          ),
+        );
+      },
     );
   }
 }
