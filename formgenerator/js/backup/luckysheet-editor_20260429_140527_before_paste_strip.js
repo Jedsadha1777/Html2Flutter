@@ -122,12 +122,6 @@ function initLuckysheetEditor(wrapperId, config) {
                 return;
             }
             const script = document.createElement('script');
-            // Preserve source order — plugin.js MUST run before luckysheet.umd.js
-            // (plugin registration), and luckysheet-to-html.js depends on both
-            // luckysheet and Pretext. Dynamically-inserted scripts default to
-            // async=true, executing in load-completion order; setting async=false
-            // forces in-order execution while keeping the parallel network fetch.
-            script.async = false;
             script.src = src;
             script.onload = () => {
                 loaded++;
@@ -782,17 +776,12 @@ function initLuckysheetEditor(wrapperId, config) {
                 const shortcode = buildShortcodeFromDialog(fieldName, name, dialog);
 
                 luckysheet.setCellValue(row, col, shortcode);
-                // setRangeFormat(attr, value, options) — options.range expects
-                // {row:[r1,r2], column:[c1,c2]}, NOT a flat array. Passing a flat
-                // array makes options.range undefined, falling back to the current
-                // selection — which silently formats whatever the user happened to
-                // have selected (e.g., a paste range), not the inserted cell.
-                const rangeObj = { row: [row, rowEnd], column: [col, colEnd] };
+                const range = [row, col, rowEnd, colEnd];
                 setTimeout(function() {
-                    luckysheet.setRangeFormat("ht", 1, { range: rangeObj });
-                    luckysheet.setRangeFormat("vt", 0, { range: rangeObj });
-                    luckysheet.setRangeFormat("tb", 2, { range: rangeObj });
-                    luckysheet.setRangeFormat("fs", 12, { range: rangeObj });
+                    luckysheet.setRangeFormat("ht", 1, range);
+                    luckysheet.setRangeFormat("vt", 0, range);
+                    luckysheet.setRangeFormat("tb", 2, range);
+                    luckysheet.setRangeFormat("fs", 12, range);
                 }, 50);
                 closeDialog();
             };

@@ -22,9 +22,20 @@ function initLuckysheetEditor(wrapperId, config) {
     const previewSheetsId = config.previewSheetsId;
     const fileUrl = config.fileUrl;
 
-    const originalScrollTo = window.scrollTo;
-    let scrollBlocked = false;
-    window.scrollTo = function (x, y) { if (!scrollBlocked) originalScrollTo.call(window, x, y); };
+    // Wrap window.scrollTo exactly once across all initLuckysheetEditor calls.
+    // Re-uploading an Excel file re-runs this function; without the guard each
+    // run wraps the previous wrapper, building a chain that holds references to
+    // every prior `container` via closure.
+    let scrollBlocked = window.__luckysheetScrollBlockedRef
+        ? window.__luckysheetScrollBlockedRef
+        : { value: false };
+    if (!window.__luckysheetScrollBlockedRef) {
+        window.__luckysheetScrollBlockedRef = scrollBlocked;
+        const originalScrollTo = window.scrollTo;
+        window.scrollTo = function (x, y) {
+            if (!scrollBlocked.value) originalScrollTo.call(window, x, y);
+        };
+    }
 
 
     function saveContentToField(contentData, statusId) {
@@ -782,17 +793,12 @@ function initLuckysheetEditor(wrapperId, config) {
                 const shortcode = buildShortcodeFromDialog(fieldName, name, dialog);
 
                 luckysheet.setCellValue(row, col, shortcode);
-                // setRangeFormat(attr, value, options) — options.range expects
-                // {row:[r1,r2], column:[c1,c2]}, NOT a flat array. Passing a flat
-                // array makes options.range undefined, falling back to the current
-                // selection — which silently formats whatever the user happened to
-                // have selected (e.g., a paste range), not the inserted cell.
-                const rangeObj = { row: [row, rowEnd], column: [col, colEnd] };
+                const range = [row, col, rowEnd, colEnd];
                 setTimeout(function() {
-                    luckysheet.setRangeFormat("ht", 1, { range: rangeObj });
-                    luckysheet.setRangeFormat("vt", 0, { range: rangeObj });
-                    luckysheet.setRangeFormat("tb", 2, { range: rangeObj });
-                    luckysheet.setRangeFormat("fs", 12, { range: rangeObj });
+                    luckysheet.setRangeFormat("ht", 1, range);
+                    luckysheet.setRangeFormat("vt", 0, range);
+                    luckysheet.setRangeFormat("tb", 2, range);
+                    luckysheet.setRangeFormat("fs", 12, range);
                 }, 50);
                 closeDialog();
             };
