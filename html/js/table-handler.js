@@ -1956,6 +1956,11 @@ const TableHandler = {
 
   inputWidget(node, context, style) {
     const name = node.name || `input_${context.controllers.size}`;
+    // Duplicate-name detection: first occurrence owns the input; later
+    // occurrences (e.g. same field on a second page) become read-only mirrors.
+    const claimed = context.claimedFields && context.claimedFields.has(name);
+    if (context.claimedFields) context.claimedFields.add(name);
+    const isReadonly = node.readonly === true || claimed;
     context.controllers.set(name, { type: 'text', name });
     const ctrl = `_${this.toCamelCase(name)}Controller`;
     // Width: use explicit width as maxWidth (never overflow cell), no explicit = fill cell
@@ -1973,6 +1978,7 @@ const TableHandler = {
     const fontSize   = (style && style.fontSize)   || 16;
     // Map HTML input type → Flutter keyboardType so number/email/tel/url
     // inputs raise the right soft keyboard on mobile (default is text).
+    // Skip for readonly mirrors — they never raise the keyboard anyway.
     const kbMap = {
       number: 'TextInputType.number',
       email:  'TextInputType.emailAddress',
@@ -1980,13 +1986,23 @@ const TableHandler = {
       url:    'TextInputType.url',
     };
     const inputType = node.inputType || 'text';
-    const kbProp = kbMap[inputType] ? `, keyboardType: ${kbMap[inputType]}` : '';
-    const tf = `TextField(controller: ${ctrl}${kbProp}, style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize}), decoration: _inputDecoration)`;
+    const tfProps = [`controller: ${ctrl}`];
+    if (!isReadonly && kbMap[inputType]) tfProps.push(`keyboardType: ${kbMap[inputType]}`);
+    if (isReadonly) tfProps.push('readOnly: true');
+    tfProps.push(`style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize})`);
+    tfProps.push('decoration: _inputDecoration');
+    const tf = `TextField(${tfProps.join(', ')})`;
     return wCode ? `ConstrainedBox(constraints: const BoxConstraints(maxWidth: ${wCode}), child: ${tf})` : tf;
   },
 
   selectWidget(node, context, style) {
     const name = node.name || `select_${context.dropdowns.size}`;
+    // Duplicate-name detection (see inputWidget). Repeat occurrences pass
+    // `onChanged: null` to disable the dropdown — Flutter renders it greyed
+    // out and ignores taps.
+    const claimed = context.claimedFields && context.claimedFields.has(name);
+    if (context.claimedFields) context.claimedFields.add(name);
+    const isReadonly = node.disabled === true || claimed;
     const varName = `_${this.toCamelCase(name)}`;
     const opts = (node.children || []).filter(c => c.type === 'option').map(o => ({
       value: o.value || this.extractText(o),
@@ -2001,11 +2017,18 @@ const TableHandler = {
     const items = opts.map(o =>
       `DropdownMenuItem(value: '${this.escapeString(o.value)}', child: Text('${this.escapeString(o.label)}', style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize})))`
     );
-    return `DropdownButton<String>(value: ${varName}, isDense: true, items: [${items.join(', ')}], onChanged: (v) => setState(() => ${varName} = v))`;
+    const onChangedExpr = isReadonly
+      ? 'null'
+      : `(v) => setState(() => ${varName} = v)`;
+    return `DropdownButton<String>(value: ${varName}, isDense: true, items: [${items.join(', ')}], onChanged: ${onChangedExpr})`;
   },
 
   textareaWidget(node, context, style) {
     const name = node.name || `textarea_${context.controllers.size}`;
+    // Duplicate-name detection (see inputWidget).
+    const claimed = context.claimedFields && context.claimedFields.has(name);
+    if (context.claimedFields) context.claimedFields.add(name);
+    const isReadonly = node.readonly === true || claimed;
     context.controllers.set(name, { type: 'textarea', name });
     const ctrl = `_${this.toCamelCase(name)}Controller`;
     // Inherit fontFamily + fontSize from the cell (see inputWidget for why).
@@ -2013,7 +2036,8 @@ const TableHandler = {
     const fontSize   = (style && style.fontSize)   || 16;
     // expands:true lets the field fill its cell instead of capping at the HTML "rows" hint,
     // which only defines a preferred size — the cell itself already dictates the real bounds.
-    const field = `TextField(controller: ${ctrl}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize}), decoration: _inputDecoration)`;
+    const readonlyProp = isReadonly ? ', readOnly: true' : '';
+    const field = `TextField(controller: ${ctrl}${readonlyProp}, maxLines: null, minLines: null, expands: true, textAlignVertical: TextAlignVertical.top, style: const TextStyle(fontFamily: '${fontFamily}', fontSize: ${fontSize}), decoration: _inputDecoration)`;
 
     const mw = (node.maxWidth != null && isFinite(node.maxWidth))  ? parseFloat(node.maxWidth)  : null;
     const mh = (node.maxHeight != null && isFinite(node.maxHeight)) ? parseFloat(node.maxHeight) : null;
@@ -2030,6 +2054,11 @@ const TableHandler = {
   datepickerWidget(node, context) {
     context.usesFormWidgets = true;
     const name = node.name || `date_${context.controllers.size}`;
+    // Duplicate-name detection (see inputWidget). Repeat occurrences pass
+    // `readonly: true` to FormDate, which suppresses the picker on tap.
+    const claimed = context.claimedFields && context.claimedFields.has(name);
+    if (context.claimedFields) context.claimedFields.add(name);
+    const isReadonly = node.readonly === true || claimed;
     context.dateFields = context.dateFields || new Map();
     context.dateFields.set(name, { name });
     const varName = `_${this.toCamelCase(name)}`;
@@ -2038,7 +2067,7 @@ const TableHandler = {
     if (node.min) props.push(`min: '${node.min}'`);
     if (node.max) props.push(`max: '${node.max}'`);
     if (node.required) props.push('required: true');
-    if (node.readonly) props.push('readonly: true');
+    if (isReadonly) props.push('readonly: true');
     props.push(`snapMode: _snapMode`);
     props.push(`value: ${varName}`);
     props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
@@ -2048,6 +2077,10 @@ const TableHandler = {
   timepickerWidget(node, context) {
     context.usesFormWidgets = true;
     const name = node.name || `time_${context.controllers.size}`;
+    // Duplicate-name detection (see inputWidget).
+    const claimed = context.claimedFields && context.claimedFields.has(name);
+    if (context.claimedFields) context.claimedFields.add(name);
+    const isReadonly = node.readonly === true || claimed;
     context.timeFields = context.timeFields || new Map();
     context.timeFields.set(name, { name });
     const varName = `_${this.toCamelCase(name)}`;
@@ -2057,7 +2090,7 @@ const TableHandler = {
     if (node.max) props.push(`max: '${node.max}'`);
     if (node.step) props.push(`step: ${parseInt(node.step, 10)}`);
     if (node.required) props.push('required: true');
-    if (node.readonly) props.push('readonly: true');
+    if (isReadonly) props.push('readonly: true');
     props.push(`snapMode: _snapMode`);
     props.push(`value: ${varName}`);
     props.push(`onChanged: (v) => setState(() => ${varName} = v)`);
@@ -2125,6 +2158,12 @@ const TableHandler = {
   searchWidget(node, context) {
     context.usesFormWidgets = true;
     const name = node.name || 'search';
+    // Duplicate-name detection (see inputWidget). Repeat occurrences pass
+    // `readonly: true` to FormSearch, which sets TextField.readOnly and
+    // suppresses the search-icon / onChanged.
+    const claimed = context.claimedFields && context.claimedFields.has(name);
+    if (context.claimedFields) context.claimedFields.add(name);
+    const isReadonly = node.readonly === true || claimed;
     context.searchFields = context.searchFields || new Map();
     context.searchFields.set(name, { name, fields: node.fields });
     const varName = `_${this.toCamelCase(name)}`;
@@ -2134,6 +2173,7 @@ const TableHandler = {
     if (node.fields) props.push(`fields: '${node.fields}'`);
     if (node.placeholder) props.push(`placeholder: '${node.placeholder}'`);
     if (node.required) props.push('required: true');
+    if (isReadonly) props.push('readonly: true');
     props.push(`snapMode: _snapMode`);
     props.push(`value: ${varName}`);
     props.push(`onSelected: (v) => setState(() => ${varName} = v?['${fieldsKey}'] as String?)`);

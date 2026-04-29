@@ -305,7 +305,7 @@ class FormWidgetState1 extends State<FormWidget1> {
       21.0,
     ];
 
-    final rowHeights = <double>[24.0, 20.0, 20.0, 20.0, 20.0, 29.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 27.0, 20.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
+    final rowHeights = <double>[23.0, 20.0, 20.0, 26.0, 20.0, 28.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 27.0, 20.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
 
     final cs = <double>[0.0];
     for (final w in colWidths) { cs.add(cs.last + w); }
@@ -1327,330 +1327,330 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[32], width: cs[3] - cs[1], height: rs[33] - rs[32], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partNo1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partNo1Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[32], width: cs[21] - cs[3], height: rs[33] - rs[32], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_1', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_1,part_code1,unit_price1', required: true, snapMode: _snapMode, value: _partName1, onSelected: (v) => setState(() => _partName1 = v?['part_name_1,part_code1,unit_price1'] as String?)))),
           Positioned(left: cs[21], top: rs[32], width: cs[26] - cs[21], height: rs[33] - rs[32], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partCode1Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 16), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partCode1Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 16), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[32], width: cs[30] - cs[26], height: rs[33] - rs[32], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 16), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[32], width: cs[36] - cs[30], height: rs[33] - rs[32], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice1Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice1Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[32], width: cs[45] - cs[36], height: rs[33] - rs[32], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal1Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 16), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal1Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 16), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[33], width: cs[1] - cs[0], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[33], width: cs[3] - cs[1], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo2Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo2Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[33], width: cs[21] - cs[3], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_2', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_2,part_code2,unit_price2', required: true, snapMode: _snapMode, value: _partName2, onSelected: (v) => setState(() => _partName2 = v?['part_name_2,part_code2,unit_price2'] as String?)))),
           Positioned(left: cs[21], top: rs[33], width: cs[26] - cs[21], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode2Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode2Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[33], width: cs[30] - cs[26], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty2Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 16), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[33], width: cs[36] - cs[30], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice2Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice2Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[33], width: cs[45] - cs[36], height: rs[34] - rs[33], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal2Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal2Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[34], width: cs[1] - cs[0], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[34], width: cs[3] - cs[1], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo3Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo3Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[34], width: cs[21] - cs[3], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_3', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_3,part_code3,unit_price3', required: true, snapMode: _snapMode, value: _partName3, onSelected: (v) => setState(() => _partName3 = v?['part_name_3,part_code3,unit_price3'] as String?)))),
           Positioned(left: cs[21], top: rs[34], width: cs[26] - cs[21], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode3Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode3Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[34], width: cs[30] - cs[26], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty3Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[34], width: cs[36] - cs[30], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice3Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice3Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[34], width: cs[45] - cs[36], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal3Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal3Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[35], width: cs[1] - cs[0], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[35], width: cs[3] - cs[1], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo4Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo4Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[35], width: cs[21] - cs[3], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_4', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_4,part_code4,unit_price4', required: true, snapMode: _snapMode, value: _partName4, onSelected: (v) => setState(() => _partName4 = v?['part_name_4,part_code4,unit_price4'] as String?)))),
           Positioned(left: cs[21], top: rs[35], width: cs[26] - cs[21], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode4Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode4Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[35], width: cs[30] - cs[26], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty4Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[35], width: cs[36] - cs[30], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice4Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice4Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[35], width: cs[45] - cs[36], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal4Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal4Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[36], width: cs[1] - cs[0], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[36], width: cs[3] - cs[1], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo5Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo5Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[36], width: cs[21] - cs[3], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_5', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_5,part_code5,unit_price5', required: true, snapMode: _snapMode, value: _partName5, onSelected: (v) => setState(() => _partName5 = v?['part_name_5,part_code5,unit_price5'] as String?)))),
           Positioned(left: cs[21], top: rs[36], width: cs[26] - cs[21], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode5Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode5Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[36], width: cs[30] - cs[26], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty5Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[36], width: cs[36] - cs[30], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice5Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice5Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[36], width: cs[45] - cs[36], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal5Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal5Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[37], width: cs[1] - cs[0], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[37], width: cs[3] - cs[1], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo6Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo6Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[37], width: cs[21] - cs[3], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_6', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_6,part_code6,unit_price6', required: true, snapMode: _snapMode, value: _partName6, onSelected: (v) => setState(() => _partName6 = v?['part_name_6,part_code6,unit_price6'] as String?)))),
           Positioned(left: cs[21], top: rs[37], width: cs[26] - cs[21], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode6Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode6Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[37], width: cs[30] - cs[26], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty6Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[37], width: cs[36] - cs[30], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice6Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice6Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[37], width: cs[45] - cs[36], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal6Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal6Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[38], width: cs[1] - cs[0], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[38], width: cs[3] - cs[1], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo7Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo7Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[38], width: cs[21] - cs[3], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_7', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_7,part_code7,unit_price7', required: true, snapMode: _snapMode, value: _partName7, onSelected: (v) => setState(() => _partName7 = v?['part_name_7,part_code7,unit_price7'] as String?)))),
           Positioned(left: cs[21], top: rs[38], width: cs[26] - cs[21], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode7Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode7Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[38], width: cs[30] - cs[26], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty7Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[38], width: cs[36] - cs[30], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice7Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice7Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[38], width: cs[45] - cs[36], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal7Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal7Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[39], width: cs[1] - cs[0], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[39], width: cs[3] - cs[1], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo8Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo8Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[39], width: cs[21] - cs[3], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_8', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_8,part_code8,unit_price8', required: true, snapMode: _snapMode, value: _partName8, onSelected: (v) => setState(() => _partName8 = v?['part_name_8,part_code8,unit_price8'] as String?)))),
           Positioned(left: cs[21], top: rs[39], width: cs[26] - cs[21], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode8Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode8Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[39], width: cs[30] - cs[26], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty8Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[39], width: cs[36] - cs[30], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice8Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice8Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[39], width: cs[45] - cs[36], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal8Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal8Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[40], width: cs[1] - cs[0], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[40], width: cs[3] - cs[1], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo9Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo9Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[40], width: cs[21] - cs[3], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_9', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_9,part_code9,unit_price9', required: true, snapMode: _snapMode, value: _partName9, onSelected: (v) => setState(() => _partName9 = v?['part_name_9,part_code9,unit_price9'] as String?)))),
           Positioned(left: cs[21], top: rs[40], width: cs[26] - cs[21], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode9Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode9Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[40], width: cs[30] - cs[26], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty9Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[40], width: cs[36] - cs[30], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice9Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice9Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[40], width: cs[45] - cs[36], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal9Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal9Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[41], width: cs[1] - cs[0], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[41], width: cs[3] - cs[1], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo10Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo10Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[41], width: cs[21] - cs[3], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_10', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_10,part_code10,unit_price10', required: true, snapMode: _snapMode, value: _partName10, onSelected: (v) => setState(() => _partName10 = v?['part_name_10,part_code10,unit_price10'] as String?)))),
           Positioned(left: cs[21], top: rs[41], width: cs[26] - cs[21], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode10Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode10Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[41], width: cs[30] - cs[26], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty10Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[41], width: cs[36] - cs[30], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice10Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice10Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[41], width: cs[45] - cs[36], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal10Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal10Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[42], width: cs[1] - cs[0], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[42], width: cs[3] - cs[1], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo11Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo11Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[42], width: cs[21] - cs[3], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_11', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_11,part_code11,unit_price11', required: true, snapMode: _snapMode, value: _partName11, onSelected: (v) => setState(() => _partName11 = v?['part_name_11,part_code11,unit_price11'] as String?)))),
           Positioned(left: cs[21], top: rs[42], width: cs[26] - cs[21], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode11Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode11Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[42], width: cs[30] - cs[26], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty11Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[42], width: cs[36] - cs[30], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice11Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice11Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[42], width: cs[45] - cs[36], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal11Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal11Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[43], width: cs[1] - cs[0], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[43], width: cs[3] - cs[1], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo12Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo12Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[43], width: cs[21] - cs[3], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_12', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_12,part_code12,unit_price12', required: true, snapMode: _snapMode, value: _partName12, onSelected: (v) => setState(() => _partName12 = v?['part_name_12,part_code12,unit_price12'] as String?)))),
           Positioned(left: cs[21], top: rs[43], width: cs[26] - cs[21], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode12Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode12Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[43], width: cs[30] - cs[26], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty12Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[43], width: cs[36] - cs[30], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice12Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice12Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[43], width: cs[45] - cs[36], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal12Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal12Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[44], width: cs[1] - cs[0], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[44], width: cs[3] - cs[1], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo13Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo13Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[44], width: cs[21] - cs[3], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_13', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_13,part_code13,unit_price13', required: true, snapMode: _snapMode, value: _partName13, onSelected: (v) => setState(() => _partName13 = v?['part_name_13,part_code13,unit_price13'] as String?)))),
           Positioned(left: cs[21], top: rs[44], width: cs[26] - cs[21], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode13Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode13Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[44], width: cs[30] - cs[26], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty13Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[44], width: cs[36] - cs[30], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice13Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice13Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[44], width: cs[45] - cs[36], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal13Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal13Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[45], width: cs[1] - cs[0], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[45], width: cs[3] - cs[1], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo14Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo14Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[45], width: cs[21] - cs[3], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_14', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_14,part_code14,unit_price14', required: true, snapMode: _snapMode, value: _partName14, onSelected: (v) => setState(() => _partName14 = v?['part_name_14,part_code14,unit_price14'] as String?)))),
           Positioned(left: cs[21], top: rs[45], width: cs[26] - cs[21], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode14Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode14Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[45], width: cs[30] - cs[26], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty14Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[45], width: cs[36] - cs[30], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice14Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice14Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[45], width: cs[45] - cs[36], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal14Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal14Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[46], width: cs[1] - cs[0], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[1], top: rs[46], width: cs[3] - cs[1], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo15Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partNo15Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[3], top: rs[46], width: cs[21] - cs[3], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'part_name_15', source: 'parts', displayFields: 'parts_code,parts_name,unit_price', fields: 'part_name_15,part_code15,unit_price15', required: true, snapMode: _snapMode, value: _partName15, onSelected: (v) => setState(() => _partName15 = v?['part_name_15,part_code15,unit_price15'] as String?)))),
           Positioned(left: cs[21], top: rs[46], width: cs[26] - cs[21], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode15Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode15Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[46], width: cs[30] - cs[26], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty15Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[46], width: cs[36] - cs[30], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice15Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice15Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[36], top: rs[46], width: cs[45] - cs[36], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal15Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partTotal15Controller, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[47], width: cs[1] - cs[0], height: rs[48] - rs[47], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
@@ -1750,7 +1750,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[36], top: rs[47], width: cs[45] - cs[36], height: rs[48] - rs[47], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partSubTotalController, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partSubTotalController, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[48], width: cs[1] - cs[0], height: rs[49] - rs[48], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
@@ -1826,7 +1826,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[36], top: rs[48], width: cs[45] - cs[36], height: rs[49] - rs[48], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partFeeTotalController, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partFeeTotalController, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[49], width: cs[1] - cs[0], height: rs[50] - rs[49], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
@@ -1926,7 +1926,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
           Positioned(left: cs[36], top: rs[49], width: cs[45] - cs[36], height: rs[50] - rs[49], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partGrandTotalController, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partGrandTotalController, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
 
 
@@ -2052,7 +2052,7 @@ class FormWidgetState1 extends State<FormWidget1> {
       21.0,
     ];
 
-    final rowHeights = <double>[24.0, 20.0, 20.0, 20.0, 20.0, 29.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 20.0, 24.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
+    final rowHeights = <double>[23.0, 20.0, 20.0, 26.0, 20.0, 28.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 20.0, 23.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
 
     final cs = <double>[0.0];
     for (final w in colWidths) { cs.add(cs.last + w); }
@@ -2458,7 +2458,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[6], top: rs[7], width: cs[17] - cs[6], height: rs[8] - rs[7], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormDate(name: 'visit_date', required: true, snapMode: _snapMode, value: _visitDate, onChanged: (v) => setState(() => _visitDate = v)))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormDate(name: 'visit_date', required: true, readonly: true, snapMode: _snapMode, value: _visitDate, onChanged: (v) => setState(() => _visitDate = v)))),
           Positioned(left: cs[17], top: rs[7], width: cs[18] - cs[17], height: rs[8] - rs[7], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
@@ -2482,7 +2482,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[27], top: rs[7], width: cs[36] - cs[27], height: rs[8] - rs[7], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormTime(name: 'time_in', required: true, snapMode: _snapMode, value: _timeIn, onChanged: (v) => setState(() => _timeIn = v)))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormTime(name: 'time_in', required: true, readonly: true, snapMode: _snapMode, value: _timeIn, onChanged: (v) => setState(() => _timeIn = v)))),
           Positioned(left: cs[36], top: rs[7], width: cs[37] - cs[36], height: rs[8] - rs[7], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: const SizedBox.shrink())),
@@ -2522,7 +2522,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[6], top: rs[8], width: cs[17] - cs[6], height: rs[9] - rs[8], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormDate(name: 'finish_date', required: true, snapMode: _snapMode, value: _finishDate, onChanged: (v) => setState(() => _finishDate = v)))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormDate(name: 'finish_date', required: true, readonly: true, snapMode: _snapMode, value: _finishDate, onChanged: (v) => setState(() => _finishDate = v)))),
           Positioned(left: cs[17], top: rs[8], width: cs[18] - cs[17], height: rs[9] - rs[8], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
@@ -2546,7 +2546,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[27], top: rs[8], width: cs[36] - cs[27], height: rs[9] - rs[8], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormTime(name: 'time_out', required: true, snapMode: _snapMode, value: _timeOut, onChanged: (v) => setState(() => _timeOut = v)))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormTime(name: 'time_out', required: true, readonly: true, snapMode: _snapMode, value: _timeOut, onChanged: (v) => setState(() => _timeOut = v)))),
           Positioned(left: cs[36], top: rs[8], width: cs[37] - cs[36], height: rs[9] - rs[8], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: const SizedBox.shrink())),
@@ -2586,7 +2586,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[8], top: rs[9], width: cs[29] - cs[8], height: rs[10] - rs[9], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'customer_name', source: 'customers', displayFields: 'customer_id,name,tel', fields: 'customer_name,customer_tel', required: true, snapMode: _snapMode, value: _customerName, onSelected: (v) => setState(() => _customerName = v?['customer_name,customer_tel'] as String?)))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'customer_name', source: 'customers', displayFields: 'customer_id,name,tel', fields: 'customer_name,customer_tel', required: true, readonly: true, snapMode: _snapMode, value: _customerName, onSelected: (v) => setState(() => _customerName = v?['customer_name,customer_tel'] as String?)))),
           Positioned(left: cs[29], top: rs[9], width: cs[33] - cs[29], height: rs[10] - rs[9], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
@@ -2595,7 +2595,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[33], top: rs[9], width: cs[45] - cs[33], height: rs[10] - rs[9], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _customerTelController, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _customerTelController, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
           Positioned(left: cs[0], top: rs[10], width: cs[1] - cs[0], height: rs[11] - rs[10], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1))),
@@ -2608,7 +2608,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[7], top: rs[10], width: cs[20] - cs[7], height: rs[11] - rs[10], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'model_name', source: 'machine_models', displayFields: 'model_code,model_name', fields: 'model_name', required: true, snapMode: _snapMode, value: _modelName, onSelected: (v) => setState(() => _modelName = v?['model_name'] as String?)))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: FormSearch(name: 'model_name', source: 'machine_models', displayFields: 'model_code,model_name', fields: 'model_name', required: true, readonly: true, snapMode: _snapMode, value: _modelName, onSelected: (v) => setState(() => _modelName = v?['model_name'] as String?)))),
           Positioned(left: cs[20], top: rs[10], width: cs[25] - cs[20], height: rs[11] - rs[10], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
@@ -2617,7 +2617,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               ))),
           Positioned(left: cs[25], top: rs[10], width: cs[45] - cs[25], height: rs[11] - rs[10], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _serialNoController, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _serialNoController, readOnly: true, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
 
 
 

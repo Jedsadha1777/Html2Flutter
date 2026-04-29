@@ -10,6 +10,13 @@ const DartGenerator = {
       searchFields: new Map(),
       signatureFields: new Map(),
       customWidgets: new Set(),
+      // Tracks form-field names that have already been emitted with an
+      // editable widget. The first occurrence of a name owns the input; any
+      // later occurrence in the document (e.g. on page 2 of a multi-page
+      // form) is rendered read-only and just mirrors the value from the
+      // first occurrence — they share the same controller / state variable
+      // so updates flow through automatically.
+      claimedFields: new Set(),
       usesGesture: false,
       usesTable: false,
       usesDiagonalBorder: false,
