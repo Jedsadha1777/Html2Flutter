@@ -81,9 +81,7 @@ class _FormDateState extends State<FormDate> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextField(
+    return TextField(
       controller: TextEditingController(text: _selected ?? ''),
       readOnly: true,
       onTap: widget.readonly ? null : _pickDate,
@@ -97,7 +95,6 @@ class _FormDateState extends State<FormDate> {
         suffixIcon: const Icon(Icons.calendar_today, size: 18),
         filled: widget.required,
         fillColor: widget.required ? Colors.yellow.shade50 : null,
-      ),
       ),
     );
   }

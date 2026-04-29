@@ -98,9 +98,7 @@ class _FormTimeState extends State<FormTime> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextField(
+    return TextField(
       controller: TextEditingController(text: _selected ?? ''),
       readOnly: true,
       onTap: widget.readonly ? null : _pickTime,
@@ -114,7 +112,6 @@ class _FormTimeState extends State<FormTime> {
         suffixIcon: const Icon(Icons.access_time, size: 18),
         filled: widget.required,
         fillColor: widget.required ? Colors.yellow.shade50 : null,
-      ),
       ),
     );
   }

@@ -9,7 +9,6 @@ class FormSearch extends StatefulWidget {
   final String? placeholder;
   final String? value;
   final bool required;
-  final bool snapMode;
   final ValueChanged<Map<String, dynamic>?>? onSelected;
 
   const FormSearch({
@@ -22,7 +21,6 @@ class FormSearch extends StatefulWidget {
     this.placeholder,
     this.value,
     this.required = false,
-    this.snapMode = false,
     this.onSelected,
   });
 
@@ -63,16 +61,12 @@ class _FormSearchState extends State<FormSearch> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextField(
+    return TextField(
       controller: _ctrl,
       decoration: InputDecoration(
-        border: widget.snapMode ? InputBorder.none : const OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         isDense: true,
-        contentPadding: widget.snapMode
-            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
-            : const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         hintText: widget.placeholder ?? 'Search ${widget.source}...',
         suffixIcon: const Icon(Icons.search, size: 18),
         filled: widget.required,
@@ -82,7 +76,6 @@ class _FormSearchState extends State<FormSearch> {
         // TODO: implement fuzzy search against source data
         // and call widget.onSelected with matched record
       },
-      ),
     );
   }
 }

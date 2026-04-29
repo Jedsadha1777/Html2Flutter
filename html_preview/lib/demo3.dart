@@ -209,6 +209,7 @@ class FormWidgetState1 extends State<FormWidget1> {
   String? _partName15;
   Uint8List? _customerSignBytes;
   Uint8List? _staffSignBytes;
+  bool _typeOfService = false;
 
   InputDecoration get _inputDecoration => _snapMode
       ? const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4))
@@ -327,27 +328,27 @@ class FormWidgetState1 extends State<FormWidget1> {
       <int>[472, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 473],
       <int>[474, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 466, 475],
       <int>[476, 477, 478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521],
-      <int>[522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 544, 544, 544, 544, 544, 544, 544, 544, 544, 544, 544, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567],
-      <int>[568, 569, 569, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 570, 571, 571, 571, 571, 571, 572, 572, 572, 572, 573, 573, 573, 573, 573, 573, 574, 574, 574, 574, 574, 574, 574, 574, 574, 575],
-      <int>[576, 577, 577, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 578, 579, 579, 579, 579, 579, 580, 580, 580, 580, 581, 581, 581, 581, 581, 581, 582, 582, 582, 582, 582, 582, 582, 582, 582, 583],
-      <int>[584, 585, 585, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 586, 587, 587, 587, 587, 587, 588, 588, 588, 588, 589, 589, 589, 589, 589, 589, 590, 590, 590, 590, 590, 590, 590, 590, 590, 591],
-      <int>[592, 593, 593, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 594, 595, 595, 595, 595, 595, 596, 596, 596, 596, 597, 597, 597, 597, 597, 597, 598, 598, 598, 598, 598, 598, 598, 598, 598, 599],
-      <int>[600, 601, 601, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 602, 603, 603, 603, 603, 603, 604, 604, 604, 604, 605, 605, 605, 605, 605, 605, 606, 606, 606, 606, 606, 606, 606, 606, 606, 607],
-      <int>[608, 609, 609, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 610, 611, 611, 611, 611, 611, 612, 612, 612, 612, 613, 613, 613, 613, 613, 613, 614, 614, 614, 614, 614, 614, 614, 614, 614, 615],
-      <int>[616, 617, 617, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 618, 619, 619, 619, 619, 619, 620, 620, 620, 620, 621, 621, 621, 621, 621, 621, 622, 622, 622, 622, 622, 622, 622, 622, 622, 623],
-      <int>[624, 625, 625, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 626, 627, 627, 627, 627, 627, 628, 628, 628, 628, 629, 629, 629, 629, 629, 629, 630, 630, 630, 630, 630, 630, 630, 630, 630, 631],
-      <int>[632, 633, 633, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 634, 635, 635, 635, 635, 635, 636, 636, 636, 636, 637, 637, 637, 637, 637, 637, 638, 638, 638, 638, 638, 638, 638, 638, 638, 639],
-      <int>[640, 641, 641, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 642, 643, 643, 643, 643, 643, 644, 644, 644, 644, 645, 645, 645, 645, 645, 645, 646, 646, 646, 646, 646, 646, 646, 646, 646, 647],
-      <int>[648, 649, 649, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 650, 651, 651, 651, 651, 651, 652, 652, 652, 652, 653, 653, 653, 653, 653, 653, 654, 654, 654, 654, 654, 654, 654, 654, 654, 655],
-      <int>[656, 657, 657, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 658, 659, 659, 659, 659, 659, 660, 660, 660, 660, 661, 661, 661, 661, 661, 661, 662, 662, 662, 662, 662, 662, 662, 662, 662, 663],
-      <int>[664, 665, 665, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 666, 667, 667, 667, 667, 667, 668, 668, 668, 668, 669, 669, 669, 669, 669, 669, 670, 670, 670, 670, 670, 670, 670, 670, 670, 671],
-      <int>[672, 673, 673, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 674, 675, 675, 675, 675, 675, 676, 676, 676, 676, 677, 677, 677, 677, 677, 677, 678, 678, 678, 678, 678, 678, 678, 678, 678, 679],
-      <int>[680, 681, 681, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 682, 683, 683, 683, 683, 683, 684, 684, 684, 684, 685, 685, 685, 685, 685, 685, 686, 686, 686, 686, 686, 686, 686, 686, 686, 687],
-      <int>[688, 689, 689, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 690, 691, 691, 691, 691, 691, 692, 692, 692, 692, 693, 693, 693, 693, 693, 693, 694, 694, 694, 694, 694, 694, 694, 694, 694, 695],
-      <int>[696, 697, 697, 697, 697, 697, 697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 727, 727, 727, 727, 727, 727, 727, 727, 728],
-      <int>[729, 730, 730, 730, 730, 730, 730, 730, 730, 731, 731, 731, 731, 732, 733, 733, 733, 733, 734, 734, 734, 737, 738, 739, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 752, 752, 752, 752, 752, 752, 752, 752, 753],
-      <int>[754, 755, 755, 755, 755, 755, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779, 780, 781, 782, 783, 784, 785, 785, 785, 785, 785, 785, 785, 785, 785, 786],
-      <int>[787, 788, 789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816, 817, 818, 819, 820, 821, 822, 823, 824, 825, 826, 827, 828, 829, 830, 831, 832],
+      <int>[522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522, 522],
+      <int>[523, 524, 524, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 525, 526, 526, 526, 526, 526, 527, 527, 527, 527, 528, 528, 528, 528, 528, 528, 529, 529, 529, 529, 529, 529, 529, 529, 529, 530],
+      <int>[531, 532, 532, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 533, 534, 534, 534, 534, 534, 535, 535, 535, 535, 536, 536, 536, 536, 536, 536, 537, 537, 537, 537, 537, 537, 537, 537, 537, 538],
+      <int>[539, 540, 540, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 541, 542, 542, 542, 542, 542, 543, 543, 543, 543, 544, 544, 544, 544, 544, 544, 545, 545, 545, 545, 545, 545, 545, 545, 545, 546],
+      <int>[547, 548, 548, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 549, 550, 550, 550, 550, 550, 551, 551, 551, 551, 552, 552, 552, 552, 552, 552, 553, 553, 553, 553, 553, 553, 553, 553, 553, 554],
+      <int>[555, 556, 556, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 558, 558, 558, 558, 558, 559, 559, 559, 559, 560, 560, 560, 560, 560, 560, 561, 561, 561, 561, 561, 561, 561, 561, 561, 562],
+      <int>[563, 564, 564, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 565, 566, 566, 566, 566, 566, 567, 567, 567, 567, 568, 568, 568, 568, 568, 568, 569, 569, 569, 569, 569, 569, 569, 569, 569, 570],
+      <int>[571, 572, 572, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 573, 574, 574, 574, 574, 574, 575, 575, 575, 575, 576, 576, 576, 576, 576, 576, 577, 577, 577, 577, 577, 577, 577, 577, 577, 578],
+      <int>[579, 580, 580, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 581, 582, 582, 582, 582, 582, 583, 583, 583, 583, 584, 584, 584, 584, 584, 584, 585, 585, 585, 585, 585, 585, 585, 585, 585, 586],
+      <int>[587, 588, 588, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 589, 590, 590, 590, 590, 590, 591, 591, 591, 591, 592, 592, 592, 592, 592, 592, 593, 593, 593, 593, 593, 593, 593, 593, 593, 594],
+      <int>[595, 596, 596, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 597, 598, 598, 598, 598, 598, 599, 599, 599, 599, 600, 600, 600, 600, 600, 600, 601, 601, 601, 601, 601, 601, 601, 601, 601, 602],
+      <int>[603, 604, 604, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 605, 606, 606, 606, 606, 606, 607, 607, 607, 607, 608, 608, 608, 608, 608, 608, 609, 609, 609, 609, 609, 609, 609, 609, 609, 610],
+      <int>[611, 612, 612, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 613, 614, 614, 614, 614, 614, 615, 615, 615, 615, 616, 616, 616, 616, 616, 616, 617, 617, 617, 617, 617, 617, 617, 617, 617, 618],
+      <int>[619, 620, 620, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 621, 622, 622, 622, 622, 622, 623, 623, 623, 623, 624, 624, 624, 624, 624, 624, 625, 625, 625, 625, 625, 625, 625, 625, 625, 626],
+      <int>[627, 628, 628, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 629, 630, 630, 630, 630, 630, 631, 631, 631, 631, 632, 632, 632, 632, 632, 632, 633, 633, 633, 633, 633, 633, 633, 633, 633, 634],
+      <int>[635, 636, 636, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 637, 638, 638, 638, 638, 638, 639, 639, 639, 639, 640, 640, 640, 640, 640, 640, 641, 641, 641, 641, 641, 641, 641, 641, 641, 642],
+      <int>[643, 644, 644, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 645, 646, 646, 646, 646, 646, 647, 647, 647, 647, 648, 648, 648, 648, 648, 648, 649, 649, 649, 649, 649, 649, 649, 649, 649, 650],
+      <int>[651, 652, 652, 652, 652, 652, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 682, 682, 682, 682, 682, 682, 682, 682, 683],
+      <int>[684, 685, 685, 685, 685, 685, 685, 685, 685, 686, 686, 686, 686, 687, 688, 688, 688, 688, 689, 689, 689, 692, 693, 694, 695, 696, 697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 707, 707, 707, 707, 707, 707, 707, 707, 708],
+      <int>[709, 710, 710, 710, 710, 710, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 728, 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740, 740, 740, 740, 740, 740, 740, 740, 740, 741],
+      <int>[742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779, 780, 781, 782, 783, 784, 785, 786, 787],
     ];
 
     return SizedBox(
@@ -900,7 +901,7 @@ class FormWidgetState1 extends State<FormWidget1> {
                 style: TextStyle(fontFamily: 'Calibri', fontSize: 16.0, fontWeight: FontWeight.bold, color: Color(0xFF000000)),
                 child: Text('TYPE OF SERVICE*', softWrap: false, overflow: TextOverflow.visible),
               )),
-
+          cell(10, 12, 38, 13, pad: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), child: FormCheckbox(name: 'type_of_service', options: ['WARRANTY', 'MAINTENANCE', 'REPAIR'])),
 
 
 
@@ -1249,110 +1250,12 @@ class FormWidgetState1 extends State<FormWidget1> {
 
 
 
-
-          Positioned(left: cs[1], top: rs[30], width: cs[2] - cs[1], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[2], top: rs[30], width: cs[3] - cs[2], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[3], top: rs[30], width: cs[4] - cs[3], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[4], top: rs[30], width: cs[5] - cs[4], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[5], top: rs[30], width: cs[6] - cs[5], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[6], top: rs[30], width: cs[7] - cs[6], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[7], top: rs[30], width: cs[8] - cs[7], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[8], top: rs[30], width: cs[9] - cs[8], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[9], top: rs[30], width: cs[10] - cs[9], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[10], top: rs[30], width: cs[11] - cs[10], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[11], top: rs[30], width: cs[12] - cs[11], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[12], top: rs[30], width: cs[13] - cs[12], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[13], top: rs[30], width: cs[14] - cs[13], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[14], top: rs[30], width: cs[15] - cs[14], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[15], top: rs[30], width: cs[16] - cs[15], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[16], top: rs[30], width: cs[17] - cs[16], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[17], top: rs[30], width: cs[18] - cs[17], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[18], top: rs[30], width: cs[19] - cs[18], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[19], top: rs[30], width: cs[20] - cs[19], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[20], top: rs[30], width: cs[21] - cs[20], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[21], top: rs[30], width: cs[22] - cs[21], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[22], top: rs[30], width: cs[34] - cs[22], height: rs[31] - rs[30], child: Container(
+          Positioned(left: cs[0], top: rs[30], width: cs[46] - cs[0], height: rs[31] - rs[30], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: DefaultTextStyle.merge(
                 style: TextStyle(fontFamily: 'Calibri', fontSize: 16.0, fontWeight: FontWeight.bold, color: Color(0xFF000000)),
                 child: Text('PARTS / MATERIALS', softWrap: false, overflow: TextOverflow.visible, textAlign: TextAlign.center),
               ))),
-          Positioned(left: cs[34], top: rs[30], width: cs[35] - cs[34], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[35], top: rs[30], width: cs[36] - cs[35], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[36], top: rs[30], width: cs[37] - cs[36], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[37], top: rs[30], width: cs[38] - cs[37], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[38], top: rs[30], width: cs[39] - cs[38], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[39], top: rs[30], width: cs[40] - cs[39], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[40], top: rs[30], width: cs[41] - cs[40], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[41], top: rs[30], width: cs[42] - cs[41], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[42], top: rs[30], width: cs[43] - cs[42], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[43], top: rs[30], width: cs[44] - cs[43], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-          Positioned(left: cs[44], top: rs[30], width: cs[45] - cs[44], height: rs[31] - rs[30], child: Container(
-              decoration: BoxDecoration(color: Colors.transparent, border: Border(bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),
-
           Positioned(left: cs[0], top: rs[31], width: cs[1] - cs[0], height: rs[32] - rs[31], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.bottomLeft, child: const SizedBox.shrink())),

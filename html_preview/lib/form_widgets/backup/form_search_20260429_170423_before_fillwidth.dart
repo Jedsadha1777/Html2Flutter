@@ -63,9 +63,7 @@ class _FormSearchState extends State<FormSearch> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextField(
+    return TextField(
       controller: _ctrl,
       decoration: InputDecoration(
         border: widget.snapMode ? InputBorder.none : const OutlineInputBorder(),
@@ -82,7 +80,6 @@ class _FormSearchState extends State<FormSearch> {
         // TODO: implement fuzzy search against source data
         // and call widget.onSelected with matched record
       },
-      ),
     );
   }
 }
