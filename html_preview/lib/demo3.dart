@@ -41,54 +41,67 @@ class FormWidgetState1 extends State<FormWidget1> {
   final _partTotal2Controller = TextEditingController();
   final _partNo3Controller = TextEditingController();
   final _partCode3Controller = TextEditingController();
+  final _partQty3Controller = TextEditingController();
   final _unitPrice3Controller = TextEditingController();
   final _partTotal3Controller = TextEditingController();
   final _partNo4Controller = TextEditingController();
   final _partCode4Controller = TextEditingController();
+  final _partQty4Controller = TextEditingController();
   final _unitPrice4Controller = TextEditingController();
   final _partTotal4Controller = TextEditingController();
   final _partNo5Controller = TextEditingController();
   final _partCode5Controller = TextEditingController();
+  final _partQty5Controller = TextEditingController();
   final _unitPrice5Controller = TextEditingController();
   final _partTotal5Controller = TextEditingController();
   final _partNo6Controller = TextEditingController();
   final _partCode6Controller = TextEditingController();
+  final _partQty6Controller = TextEditingController();
   final _unitPrice6Controller = TextEditingController();
   final _partTotal6Controller = TextEditingController();
   final _partNo7Controller = TextEditingController();
   final _partCode7Controller = TextEditingController();
+  final _partQty7Controller = TextEditingController();
   final _unitPrice7Controller = TextEditingController();
   final _partTotal7Controller = TextEditingController();
   final _partNo8Controller = TextEditingController();
   final _partCode8Controller = TextEditingController();
+  final _partQty8Controller = TextEditingController();
   final _unitPrice8Controller = TextEditingController();
   final _partTotal8Controller = TextEditingController();
   final _partNo9Controller = TextEditingController();
   final _partCode9Controller = TextEditingController();
+  final _partQty9Controller = TextEditingController();
   final _unitPrice9Controller = TextEditingController();
   final _partTotal9Controller = TextEditingController();
   final _partNo10Controller = TextEditingController();
   final _partCode10Controller = TextEditingController();
+  final _partQty10Controller = TextEditingController();
   final _unitPrice10Controller = TextEditingController();
   final _partTotal10Controller = TextEditingController();
   final _partNo11Controller = TextEditingController();
   final _partCode11Controller = TextEditingController();
+  final _partQty11Controller = TextEditingController();
   final _unitPrice11Controller = TextEditingController();
   final _partTotal11Controller = TextEditingController();
   final _partNo12Controller = TextEditingController();
   final _partCode12Controller = TextEditingController();
+  final _partQty12Controller = TextEditingController();
   final _unitPrice12Controller = TextEditingController();
   final _partTotal12Controller = TextEditingController();
   final _partNo13Controller = TextEditingController();
   final _partCode13Controller = TextEditingController();
+  final _partQty13Controller = TextEditingController();
   final _unitPrice13Controller = TextEditingController();
   final _partTotal13Controller = TextEditingController();
   final _partNo14Controller = TextEditingController();
   final _partCode14Controller = TextEditingController();
+  final _partQty14Controller = TextEditingController();
   final _unitPrice14Controller = TextEditingController();
   final _partTotal14Controller = TextEditingController();
   final _partNo15Controller = TextEditingController();
   final _partCode15Controller = TextEditingController();
+  final _partQty15Controller = TextEditingController();
   final _unitPrice15Controller = TextEditingController();
   final _partTotal15Controller = TextEditingController();
   final _partSubTotalController = TextEditingController();
@@ -116,54 +129,67 @@ class FormWidgetState1 extends State<FormWidget1> {
     'partTotal2': _partTotal2Controller,
     'partNo3': _partNo3Controller,
     'partCode3': _partCode3Controller,
+    'partQty3': _partQty3Controller,
     'unitPrice3': _unitPrice3Controller,
     'partTotal3': _partTotal3Controller,
     'partNo4': _partNo4Controller,
     'partCode4': _partCode4Controller,
+    'partQty4': _partQty4Controller,
     'unitPrice4': _unitPrice4Controller,
     'partTotal4': _partTotal4Controller,
     'partNo5': _partNo5Controller,
     'partCode5': _partCode5Controller,
+    'partQty5': _partQty5Controller,
     'unitPrice5': _unitPrice5Controller,
     'partTotal5': _partTotal5Controller,
     'partNo6': _partNo6Controller,
     'partCode6': _partCode6Controller,
+    'partQty6': _partQty6Controller,
     'unitPrice6': _unitPrice6Controller,
     'partTotal6': _partTotal6Controller,
     'partNo7': _partNo7Controller,
     'partCode7': _partCode7Controller,
+    'partQty7': _partQty7Controller,
     'unitPrice7': _unitPrice7Controller,
     'partTotal7': _partTotal7Controller,
     'partNo8': _partNo8Controller,
     'partCode8': _partCode8Controller,
+    'partQty8': _partQty8Controller,
     'unitPrice8': _unitPrice8Controller,
     'partTotal8': _partTotal8Controller,
     'partNo9': _partNo9Controller,
     'partCode9': _partCode9Controller,
+    'partQty9': _partQty9Controller,
     'unitPrice9': _unitPrice9Controller,
     'partTotal9': _partTotal9Controller,
     'partNo10': _partNo10Controller,
     'partCode10': _partCode10Controller,
+    'partQty10': _partQty10Controller,
     'unitPrice10': _unitPrice10Controller,
     'partTotal10': _partTotal10Controller,
     'partNo11': _partNo11Controller,
     'partCode11': _partCode11Controller,
+    'partQty11': _partQty11Controller,
     'unitPrice11': _unitPrice11Controller,
     'partTotal11': _partTotal11Controller,
     'partNo12': _partNo12Controller,
     'partCode12': _partCode12Controller,
+    'partQty12': _partQty12Controller,
     'unitPrice12': _unitPrice12Controller,
     'partTotal12': _partTotal12Controller,
     'partNo13': _partNo13Controller,
     'partCode13': _partCode13Controller,
+    'partQty13': _partQty13Controller,
     'unitPrice13': _unitPrice13Controller,
     'partTotal13': _partTotal13Controller,
     'partNo14': _partNo14Controller,
     'partCode14': _partCode14Controller,
+    'partQty14': _partQty14Controller,
     'unitPrice14': _unitPrice14Controller,
     'partTotal14': _partTotal14Controller,
     'partNo15': _partNo15Controller,
     'partCode15': _partCode15Controller,
+    'partQty15': _partQty15Controller,
     'unitPrice15': _unitPrice15Controller,
     'partTotal15': _partTotal15Controller,
     'partSubTotal': _partSubTotalController,
@@ -279,7 +305,7 @@ class FormWidgetState1 extends State<FormWidget1> {
       21.0,
     ];
 
-    final rowHeights = <double>[23.0, 20.0, 20.0, 26.0, 20.0, 28.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 27.0, 20.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
+    final rowHeights = <double>[24.0, 20.0, 20.0, 20.0, 20.0, 29.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 27.0, 20.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
 
     final cs = <double>[0.0];
     for (final w in colWidths) { cs.add(cs.last + w); }
@@ -1354,7 +1380,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode3Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[34], width: cs[30] - cs[26], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty3Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[34], width: cs[36] - cs[30], height: rs[35] - rs[34], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice3Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1376,7 +1402,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode4Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[35], width: cs[30] - cs[26], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty4Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[35], width: cs[36] - cs[30], height: rs[36] - rs[35], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice4Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1398,7 +1424,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode5Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[36], width: cs[30] - cs[26], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty5Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[36], width: cs[36] - cs[30], height: rs[37] - rs[36], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice5Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1420,7 +1446,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode6Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[37], width: cs[30] - cs[26], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty6Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[37], width: cs[36] - cs[30], height: rs[38] - rs[37], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice6Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1442,7 +1468,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode7Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[38], width: cs[30] - cs[26], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty7Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[38], width: cs[36] - cs[30], height: rs[39] - rs[38], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice7Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1464,7 +1490,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode8Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[39], width: cs[30] - cs[26], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty8Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[39], width: cs[36] - cs[30], height: rs[40] - rs[39], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice8Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1486,7 +1512,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode9Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[40], width: cs[30] - cs[26], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty9Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[40], width: cs[36] - cs[30], height: rs[41] - rs[40], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice9Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1508,7 +1534,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode10Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[41], width: cs[30] - cs[26], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty10Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[41], width: cs[36] - cs[30], height: rs[42] - rs[41], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice10Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1530,7 +1556,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode11Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[42], width: cs[30] - cs[26], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty11Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[42], width: cs[36] - cs[30], height: rs[43] - rs[42], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice11Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1552,7 +1578,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode12Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[43], width: cs[30] - cs[26], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty12Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[43], width: cs[36] - cs[30], height: rs[44] - rs[43], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice12Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1574,7 +1600,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode13Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[44], width: cs[30] - cs[26], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty13Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[44], width: cs[36] - cs[30], height: rs[45] - rs[44], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice13Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1596,7 +1622,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode14Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[45], width: cs[30] - cs[26], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty14Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[45], width: cs[36] - cs[30], height: rs[46] - rs[45], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 1))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice14Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -1618,7 +1644,7 @@ class FormWidgetState1 extends State<FormWidget1> {
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.center, child: TextField(controller: _partCode15Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[26], top: rs[46], width: cs[30] - cs[26], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty1Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
+              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _partQty15Controller, keyboardType: TextInputType.number, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
           Positioned(left: cs[30], top: rs[46], width: cs[36] - cs[30], height: rs[47] - rs[46], child: Container(
               decoration: BoxDecoration(color: Colors.transparent, border: Border(right: BorderSide(color: Color(0xFF000000), width: 1), bottom: BorderSide(color: Color(0xFF000000), width: 2))),
               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), alignment: Alignment.centerLeft, child: TextField(controller: _unitPrice15Controller, style: const TextStyle(fontFamily: 'Calibri', fontSize: 14.6), decoration: _inputDecoration))),
@@ -2026,7 +2052,7 @@ class FormWidgetState1 extends State<FormWidget1> {
       21.0,
     ];
 
-    final rowHeights = <double>[23.0, 20.0, 20.0, 26.0, 20.0, 28.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 20.0, 23.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
+    final rowHeights = <double>[24.0, 20.0, 20.0, 20.0, 20.0, 29.0, 24.0, 24.0, 24.0, 24.0, 24.0, 20.0, 20.0, 24.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 24.0, 20.0];
 
     final cs = <double>[0.0];
     for (final w in colWidths) { cs.add(cs.last + w); }
